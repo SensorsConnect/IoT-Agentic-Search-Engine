@@ -322,7 +322,7 @@ def vector_search(user_query: str, limit: int):
     ```
 
     """
-    workspace= r"vector_db/Vector Database"
+    workspace= r"vector_db/vectordb_files"
     db = HNSWVectorDB[ToDoc](workspace=workspace)
     # Perform a search query
     query = ToDoc(text=user_query, embedding=embedding_model(doc=user_query))
