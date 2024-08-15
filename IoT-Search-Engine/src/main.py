@@ -16,9 +16,11 @@ runnable = graph.compile(checkpointer=memory)
 thread = {"configurable": {"thread_id": "a"}}
 
 
-human_message = HumanMessage(content="Hi")
+human_message = HumanMessage(content="I want to rent a car")
 messages = [human_message]
 
 result = runnable.invoke({"messages":messages}, thread)
 
 print(result)
+
+print(result["response"])

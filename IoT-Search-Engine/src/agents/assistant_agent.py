@@ -11,14 +11,17 @@ def assistant_agent(state: AgentState):
     human_messages = filter_messages(messages, include_types="human")
     prompt = [SystemMessage(content=assistant_prompt)] + list(human_messages)
     response = llm.invoke(prompt)
+    logging.info(response)
     response_json = parser.parse(response.content)
     if response_json["query-type"] == "greeting-general":
         agent_state["call"] = "reviewer_agent"
         agent_state["response"] = response_json["response"]
     elif response_json["query-type"] == "service-recommendation":
-        agent_state["call"] = "IoT-engine"
+        agent_state["call"] = "IoT_engine"
+        agent_state["query"] = response_json["question"]
     else:
         agent_state["query"] = response_json["question"]
         agent_state["call"] = "scrapper"
     agent_state["messages"] = [response]
+    logging.info(agent_state)
     return prepaer_states(agent_state)

@@ -13,6 +13,7 @@ from routers import (
     assitant_router,
     scrapper_router,
     reviewer_router,
+    IoT_router,
     router
 )
 
@@ -35,7 +36,7 @@ def initialize_graph():
     )
 
     graph.add_conditional_edges(
-        "IoT_engine", router, {"generator_agent": "generator_agent", "GoogleMaps": "GoogleMaps"}
+        "IoT_engine", IoT_router, {"generator_agent": "generator_agent", "GoogleMaps": "GoogleMaps"}
     )
 
     graph.add_conditional_edges(

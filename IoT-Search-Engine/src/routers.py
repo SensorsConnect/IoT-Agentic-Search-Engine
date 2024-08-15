@@ -18,8 +18,8 @@ def reviewer_router(state: AgentState):
     else:
         return "IoT_engine"
 
+def IoT_router(state: AgentState):
+    return state["call"]
+
 def router(state: AgentState):
-    if state["make_sense"]:
-        return "END"
-    else:
-        return "IoT_engine"
+    return "END"

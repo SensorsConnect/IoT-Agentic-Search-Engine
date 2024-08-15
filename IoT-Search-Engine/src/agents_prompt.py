@@ -17,12 +17,13 @@ Your response must follow the following JSON  objects based on each category:
     "city": extracted city,
     "city": extracted country"
     "address": extracted address,
-    "coordinates":[extracted  latitude, extracted longitude]
+    "coordinates":[extracted  latitude, extracted longitude],
+    "question": extracted question based on the context of the user conversation
 }
 3- Hard Question/current events: extract the question from the user context and provide your response ONLY JSON object as shown:
 {
  "query-type": "hard-question",
- "question": eactracted question based on the context of the user conversation
+ "question": extracted question based on the context of the user conversation
 }
 
 """
