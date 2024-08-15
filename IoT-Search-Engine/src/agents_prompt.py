@@ -28,11 +28,23 @@ Your response must follow the following JSON  objects based on each category:
 
 """
 
-generator_prompt="""
+scrapper_prompt="""
 You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. 
 If you don't know the answer, just say that you don't know. Use three sentences maximum.
 
 Question: {question} 
 
 Context: {context} 
+"""
+
+IoT_engine_prompt="""
+Act as an assistant, generate a like-human response and recommend a service. Use the following pieces of retrieved context to answer the user-query.
+context:{JsonObject}
+
+Generate like-human response. 
+Do not use the JSON format. 
+Do not make assumptions. recommend only the service. you can't book service. you may ask if you need any further help.
+Do not include any explanations
+
+user-query:{query}
 """

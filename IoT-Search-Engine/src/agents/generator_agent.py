@@ -5,18 +5,27 @@ import logging
 from state_graph import AgentState
 from agents_prompt import assistant_prompt
 from utils import parser,prepaer_states,llm
-from agents_prompt import generator_prompt
+from agents_prompt import scrapper_prompt,IoT_engine_prompt
 
 TavilySearch = TavilySearchResults(max_results=2)  # increased number of results
 
 def generator_agent(state: AgentState):
-    question = state["query"]
-    context = state["context"]
-    messages = [
-        SystemMessage(
-            content=generator_prompt.format(question=question, context=context)
-        )
-    ]
+    if state["node"][-1]=='scrapper':
+        question = state["query"]
+        context = state["context"]
+        messages = [
+            SystemMessage(
+                content=scrapper_prompt.format(question=question, context=context)
+            )
+        ]
+    elif state["node"][-1]=='IoT_engine':
+        question = state["query"]
+        context = state["context"]
+        messages = [
+            SystemMessage(
+                content=IoT_engine_prompt.format(JsonObject=context, query=question)
+            )
+        ]
     response = llm.invoke(messages)
     return prepaer_states({"messages": [response], "node": ["generator_agent"], "response": response.content})
 
