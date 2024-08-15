@@ -45,14 +45,14 @@ from transformers import AutoTokenizer, AutoModel
 import torch
 import torch.nn.functional as F
 from nltk.stem import PorterStemmer
-# import spacy
+import spacy
 from docarray import BaseDoc, DocList
 from docarray.typing import NdArray
 from vectordb import HNSWVectorDB
 import time
 import warnings
 from tqdm import tqdm
-warnings.filterwarnings("ignore")
+# warnings.filterwarnings("ignore")
 
 # Constants
 vector_dimension = 768
@@ -270,6 +270,7 @@ def vector_db_push_batch(txt_file_path: str, workspace: str):
 
     """
     try:
+        print("gett in")
         # file processing.
         with open(txt_file_path, "r", encoding='latin-1') as file:
             content = file.read()
@@ -299,7 +300,8 @@ def vector_db_push_batch(txt_file_path: str, workspace: str):
         print("Successful Insert!")
 
     except Exception as e:
-        print(e)
+        print(f"Error type: {type(e).__name__}")
+        print(f"Error message: {e}")
 
 
 def vector_search(user_query: str, limit: int):
@@ -322,7 +324,7 @@ def vector_search(user_query: str, limit: int):
     ```
 
     """
-    workspace= r"vector_db/vectordb_files"
+    workspace= r"vector_db/vectorDB_files"
     db = HNSWVectorDB[ToDoc](workspace=workspace)
     # Perform a search query
     query = ToDoc(text=user_query, embedding=embedding_model(doc=user_query))
@@ -336,3 +338,5 @@ def vector_search(user_query: str, limit: int):
 
 # results= vector_search(user_query= "I want to drink coffee", limit= 3)
 # print(results)
+
+# vector_db_push_batch("./assets/Services_description_V2.txt", "vectorDB_files")

@@ -3,6 +3,7 @@ import os
 from langchain_groq import ChatGroq  # Assuming this is the correct import
 
 
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 parser = JsonOutputParser()
 
 # Initialize the language model

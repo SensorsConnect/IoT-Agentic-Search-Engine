@@ -2,7 +2,7 @@
 import os
 from pprint import pprint
 from pymongo import MongoClient
-from dotenv import load_dotenv
+
 
 def get_database(): 
    # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
@@ -13,9 +13,7 @@ def get_database():
   
 
 # Load environment variables from .env file
-load_dotenv()
-
-MONGODB_URL = os.getenv("MONGODB_URL")
+MONGODB_URL= os.environ.get("MONGODB_URL")
 db= get_database()
 
 

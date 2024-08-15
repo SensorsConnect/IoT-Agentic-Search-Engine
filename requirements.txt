@@ -25,7 +25,6 @@ scipy
 google-search-results
 pymongo
 openrouteservice
-# logging
 sentencepiece
 colorlog
 groq
@@ -33,3 +32,4 @@ langgraph
 langchain_community
 langchain-groq
 tavily-python
+langgraph-checkpoint-sqlite
