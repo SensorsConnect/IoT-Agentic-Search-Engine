@@ -1,0 +1,24 @@
+import logging
+from langchain_core.messages import SystemMessage,filter_messages
+from state_graph import AgentState
+from utils import parser, prepaer_states,llm  # Example import for utility functions
+from agents_prompt import assistant_prompt
+
+def assistant_agent(state: AgentState):
+    logging.info("entering assistant node")
+    agent_state = {"node": ["assistant_agent"]}
+    messages = state["messages"]
+    human_messages = filter_messages(messages, include_types="human")
+    prompt = [SystemMessage(content=assistant_prompt)] + list(human_messages)
+    response = llm.invoke(prompt)
+    response_json = parser.parse(response.content)
+    if response_json["query-type"] == "greeting-general":
+        agent_state["call"] = "reviewer_agent"
+        agent_state["response"] = response_json["response"]
+    elif response_json["query-type"] == "service-recommendation":
+        agent_state["call"] = "IoT-engine"
+    else:
+        agent_state["query"] = response_json["question"]
+        agent_state["call"] = "scrapper"
+    agent_state["messages"] = [response]
+    return prepaer_states(agent_state)
