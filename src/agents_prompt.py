@@ -38,14 +38,37 @@ Question: {question}
 Context: {context} 
 """
 
-IoT_engine_prompt="""
-Act as an assistant, generate a like-human response and recommend a service. Use the following pieces of retrieved context to answer the user-query.
-context:{JsonObject}
+# IoT_engine_prompt="""
+# Act as an assistant, generate a like-human response and recommend a service. 
+# Use the following pieces of retrieved context to answer the user-query.
+# context:{JsonObject}
 
-Generate like-human response. 
-Do not use the JSON format. 
-Do not make assumptions. recommend only the service. you can't book service. you may ask if you need any further help.
-Do not include any explanations
+# Generate like-human response. 
+# Do not use the JSON format. 
+# Do not make assumptions. recommend only the service. you can't book service. you may ask if you need any further help.
+# Do not include any explanations
+
+# user-query:{query}
+# """
+
+IoT_engine_prompt=  """
+Act as an assistant, generate a like-human response and recommend only one or Two services, giving the suggested service details in this list of JSON objects.
+    List of JSON objects.: {JsonObject}
+    
+- Do not include any explanations.
+- Generate like-human response. 
+- Do not use the JSON format in your response. 
+- Do not make assumptions. 
+- Recommend only the service based on the following parameters:
+    a) Occupancy 
+		b) Travel time 
+		c) Expected Service time
+		d) Rate
+  Note: these parameters may not mentioned explicitly in the query. For examples, (Travel time, closer, nearest) (Occupancy, not crowded) (good review, Rate) all have the same meaning, and   So, try to extract these parameters based understanding the user query. 
+- If the user does not specify any preferences, recommend based on your reasoning and differentiating between these available parameters, or you might ask about his preferences.
+- You can't book a service.
+- You may ask if you need further help.
+- At the end of your response, in a new line, mention the data source on {node} agent.
 
 user-query:{query}
 """

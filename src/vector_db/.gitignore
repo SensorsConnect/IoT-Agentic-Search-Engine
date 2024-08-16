@@ -5,3 +5,4 @@ config.py
 /.ipynb_checkpoints
 /__pycache__
 Vector Database
+vectorDB_files

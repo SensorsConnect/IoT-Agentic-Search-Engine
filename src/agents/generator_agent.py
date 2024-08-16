@@ -21,9 +21,10 @@ def generator_agent(state: AgentState):
     elif state["node"][-1]=='IoT_engine':
         question = state["query"]
         context = state["context"]
+        node =state["node"][-1]
         messages = [
             SystemMessage(
-                content=IoT_engine_prompt.format(JsonObject=context, query=question)
+                content=IoT_engine_prompt.format(JsonObject=context, query=question, node=node)
             )
         ]
     response = llm.invoke(messages)
