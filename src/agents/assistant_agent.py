@@ -1,25 +1,14 @@
 import logging
 from langchain_core.messages import SystemMessage,filter_messages
 from state_graph import AgentState
-from utils import parser, prepaer_states,llm  # Example import for utility functions
+from utils import parser, prepaer_states,llm,get_thread  # Example import for utility functions
 from agents_prompt import assistant_prompt
 
 def assistant_agent(state: AgentState):
     logging.info("entering assistant node")
     agent_state = {"node": ["assistant_agent"]}
-    messages = state["messages"]
-    human_messages = filter_messages(messages, include_types="human")
-    if(len(human_messages)>1):
-        index =0
-        responses = state["response"]
-        thread=[]
-        for response in responses:
-            thread.append(human_messages[index])
-            thread.append(SystemMessage(content=response))
-            index+=1
-        thread.append(human_messages[-1])
-    else:
-        thread= human_messages
+
+    thread= get_thread(state)
 
     prompt = [SystemMessage(content=assistant_prompt)] + list(thread)
     response = llm.invoke(prompt)
