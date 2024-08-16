@@ -1,0 +1,7 @@
+.venv
+.env
+react_agent.ipynb
+config.py
+/.ipynb_checkpoints
+/__pycache__
+Vector Database

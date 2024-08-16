@@ -77,6 +77,6 @@ class GoogleMapsTextSearchClient:
 
 
 # Example usage:
-# gmaps_text_search_client = GoogleMapsTextSearchClient(GKGraph_API_KEY, osm_api_key)
+gmaps_text_search_client = GoogleMapsTextSearchClient(GKGraph_API_KEY, osm_api_key)
 # results = gmaps_text_search_client.text_search_with_details("best coffee shops in San Francisco", 37.7749, -122.4194, limit=3)
 # print(results)
