@@ -33,3 +33,4 @@ langchain_community
 langchain-groq
 tavily-python
 langgraph-checkpoint-sqlite
+geopy
