@@ -78,7 +78,7 @@ def query_handler(query: Query):
 
     result = runnable.invoke({"messages":messages}, thread)
 
-    return  {"answer": result["response"]}
+    return  {"answer": result["response"][-1]}
     return {"item_name": item.title, "item_id": item_id}
 
 

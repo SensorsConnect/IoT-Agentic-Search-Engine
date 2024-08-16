@@ -28,7 +28,7 @@ def generator_agent(state: AgentState):
             )
         ]
     response = llm.invoke(messages)
-    return prepaer_states({"messages": [response], "node": ["generator_agent"], "response": response.content})
+    return prepaer_states({"messages": [response], "node": ["generator_agent"], "response": [response.content]})
 
 def reviewer_agent(state: AgentState):
     logging.info("entering reviewer node")

@@ -9,13 +9,25 @@ def assistant_agent(state: AgentState):
     agent_state = {"node": ["assistant_agent"]}
     messages = state["messages"]
     human_messages = filter_messages(messages, include_types="human")
-    prompt = [SystemMessage(content=assistant_prompt)] + list(human_messages)
+    if(len(human_messages)>1):
+        index =0
+        responses = state["response"]
+        thread=[]
+        for response in responses:
+            thread.append(human_messages[index])
+            thread.append(SystemMessage(content=response))
+            index+=1
+        thread.append(human_messages[-1])
+    else:
+        thread= human_messages
+
+    prompt = [SystemMessage(content=assistant_prompt)] + list(thread)
     response = llm.invoke(prompt)
     logging.info(response)
     response_json = parser.parse(response.content)
     if response_json["query-type"] == "greeting-general":
         agent_state["call"] = "reviewer_agent"
-        agent_state["response"] = response_json["response"]
+        agent_state["response"] = [response_json["response"]]
     elif response_json["query-type"] == "service-recommendation":
         agent_state["call"] = "IoT_engine"
         agent_state["query"] = response_json["question"]

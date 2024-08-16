@@ -8,6 +8,6 @@ class AgentState(TypedDict):
     make_sense: Annotated[List[bool], operator.add]
     node: Annotated[List[str], operator.add]
     query: str = ""
-    response: str = ""
+    response: Annotated[List[str], operator.add]
     context: str = ""
     call: str = ""
