@@ -77,6 +77,7 @@ def get_recommendedSerivce(longitude,latitude ,result, preference='Estimated Ove
     #########
     weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     for  dic in result:
+        del dic["Unnamed: 0"]
         del dic['_id']
         del dic['Service Type']
         del dic['About']
@@ -91,9 +92,9 @@ def get_recommendedSerivce(longitude,latitude ,result, preference='Estimated Ove
     for x,y in zip(result, occpancyFactors):
         x["Occupancy"] = y 
     for x,y in zip(result, durations):
-        x["Estimated Travel Time"] = y 
+        x["Estimated Travel Time"] = y/60 
     for x,y in zip(result, Estimated_serviceTime):
-        x["Estimated Overall Service Time"] = y 
+        x["Estimated Overall Service Time"] = y/60 
 
     import pandas as pd
     df= pd.DataFrame(result)

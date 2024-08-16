@@ -32,7 +32,7 @@ def initialize_graph():
     )
 
     graph.add_conditional_edges(
-        "scrapper", scrapper_router, {"generator_agent": "generator_agent", "GoogleMaps": "GoogleMaps"}
+        "scrapper", scrapper_router, {"generator_agent": "generator_agent", "GoogleKnowledgeGraph": "GoogleKnowledgeGraph"}
     )
 
     graph.add_conditional_edges(
@@ -40,11 +40,11 @@ def initialize_graph():
     )
 
     graph.add_conditional_edges(
-        "GoogleMaps", router, {"generator_agent": "generator_agent", "GoogleKnowledgeGraph": "GoogleKnowledgeGraph"}
+        "GoogleMaps", router, {"generator_agent": "generator_agent", "scrapper": "scrapper"}
     )
 
     graph.add_conditional_edges(
-        "GoogleKnowledgeGraph", router, {"generator_agent": "generator_agent", "GoogleMaps": "GoogleMaps", "scrapper": "scrapper"}
+        "GoogleKnowledgeGraph", router, {"generator_agent": "generator_agent", "scrapper": "scrapper"}
     )
 
     graph.add_edge("generator_agent", "reviewer_agent")
