@@ -50,6 +50,7 @@ class Item(BaseModel):
 
 class Query(BaseModel):
     text:str
+    threadId:str
 
 
 @app.get("/")
@@ -69,8 +70,8 @@ def update_item(item_id: int, item: Item):
 
 @app.put("/query")
 def query_handler(query: Query):
-    print(query.text)
-    thread = {"configurable": {"thread_id": "a"}}
+    print(query)
+    thread = {"configurable": {"thread_id": query.threadId}}
 
 
     human_message = HumanMessage(content=query.text)
