@@ -1,3 +1,4 @@
+import json
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
@@ -62,7 +63,6 @@ class LocationFinder:
                 return None
         return None
     
-
     def get_country_from_coordinates(self, latitude, longitude):
         address = self.get_address_from_coordinates(latitude, longitude)
         if address:
@@ -74,27 +74,74 @@ class LocationFinder:
                 return None
         return None
 
-    
+    def process_location_query(self, location_data):
+        # Check if any location data is provided
+#         if not any([location_data["city"], location_data["country"], location_data["address"], location_data["coordinates"] != [0, 0]]):
+#             return False
+        
+        result = {
+            "city": None,
+            "country": None,
+            "coordinates": None
+        }
+        
+        if location_data["city"]:
+            result["city"] = location_data["city"]
+            country = self.get_country_from_city(location_data["city"])
+            if country:
+                result["country"] = country
+                coords = self.get_location_from_address(location_data["city"])
+                if coords:
+                    result["coordinates"] = coords
+            else:
+                return False
+        
+        elif location_data["address"]:
+            country_city = self.get_country_city_from_address(location_data["address"])
+            if country_city:
+                result["city"], result["country"] = country_city
+                coords = self.get_location_from_address(location_data["address"])
+                if coords:
+                    result["coordinates"] = coords
+            else:
+                return False
+        
+        elif location_data["coordinates"] != [0, 0]:
+            print( location_data["coordinates"] )
+            latitude, longitude = location_data["coordinates"]
+            country_city = self.get_country_city_from_coordinates(latitude, longitude)
+            if country_city:
+                result["city"], result["country"] = country_city
+                result["coordinates"] = (latitude, longitude)
+            else:
+                return  {
+                    "city": None,
+                    "country": None,
+                    "coordinates": location_data["coordinates"] 
+                    }
+        
+        else:
+            return False
+        
+        return result
+
 # Example usage
 finder = LocationFinder()
-# address = "1600 Pennsylvania Avenue NW, Washington, DC"
-# coordinates = (43.8908352,-78.8664241)
 
-# # Get location from address
-# location = finder.get_location_from_address(address)
-# print(f"Location (lat, long) for the address: {location}")
+# json_data = """
+# {
+#   "query-type": "service-recommendation",
+#   "service": "coffee shop",
+#   "city": "Vancouver",
+#   "country": "",
+#   "address": "",
+#   "coordinates": [34.648529,-51.6013529],
+#   "question": "I want to drink coffee in a place close to me"
+# }
+# """
 
-# # Get address from coordinates
-# address_from_coords = finder.get_address_from_coordinates(*coordinates)
-# print(f"Address from coordinates: {address_from_coords}")
+# location_data = json.loads(json_data)
 
-# # Get country and city from address
-# country_city = finder.get_country_city_from_address(address)
-# print(f"Country and city for the address: {country_city}")
+# result = finder.process_location_query(location_data)
+# print(result)
 
-# # Get country and city from coordinates
-# country_city_from_coords = finder.get_country_city_from_coordinates(*coordinates)
-# print(f"Country and city for the coordinates: {country_city_from_coords}")
-
-
-# finder.get_country_from_city("Oshawa")

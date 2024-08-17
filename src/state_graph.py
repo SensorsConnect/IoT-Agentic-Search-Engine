@@ -11,3 +11,4 @@ class AgentState(TypedDict):
     response: Annotated[List[str], operator.add]
     context: str = ""
     call: str = ""
+    location_finder_results: dict= {}

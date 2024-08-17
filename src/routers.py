@@ -23,3 +23,6 @@ def IoT_router(state: AgentState):
 
 def router(state: AgentState):
     return "END"
+
+def googlemaps_router(state: AgentState):
+    return state["call"]

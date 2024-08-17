@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
 # Create an engine and a base class
-engine = create_engine('sqlite:///geography.db', echo=False)
+engine = create_engine('sqlite:///sensorsconnect_coverage/geography.db', echo=False)
 Base = declarative_base()
 
 # Define the Country model

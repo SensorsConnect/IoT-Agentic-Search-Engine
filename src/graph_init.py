@@ -14,6 +14,7 @@ from routers import (
     scrapper_router,
     reviewer_router,
     IoT_router,
+    googlemaps_router,
     router
 )
 
@@ -28,7 +29,10 @@ def initialize_graph():
     graph.add_node("reviewer_agent", reviewer_agent)
 
     graph.add_conditional_edges(
-        "assistant_agent", assitant_router, {"reviewer_agent": "reviewer_agent", "IoT_engine": "IoT_engine", "scrapper": "scrapper"}
+        "assistant_agent", assitant_router, {"reviewer_agent": "reviewer_agent",
+                                              "IoT_engine": "IoT_engine",
+                                              "GoogleMaps":"GoogleMaps",
+                                              "scrapper": "scrapper"}
     )
 
     graph.add_conditional_edges(
@@ -40,7 +44,7 @@ def initialize_graph():
     )
 
     graph.add_conditional_edges(
-        "GoogleMaps", router, {"generator_agent": "generator_agent", "scrapper": "scrapper"}
+        "GoogleMaps", googlemaps_router, {"generator_agent": "generator_agent", "scrapper": "scrapper"}
     )
 
     graph.add_conditional_edges(
