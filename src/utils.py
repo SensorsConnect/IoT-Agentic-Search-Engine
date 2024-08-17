@@ -1,7 +1,7 @@
 from langchain_core.output_parsers import JsonOutputParser
 import os
 from langchain_groq import ChatGroq  # Assuming this is the correct import
-from langchain_core.messages import SystemMessage,filter_messages
+from langchain_core.messages import AIMessage,filter_messages
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 parser = JsonOutputParser()
@@ -36,7 +36,7 @@ def get_thread(state):
         thread=[]
         for response in responses:
             thread.append(human_messages[index])
-            thread.append(SystemMessage(content=response))
+            thread.append(AIMessage(content=response))
             index+=1
         thread.append(human_messages[-1])
     else:
