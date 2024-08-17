@@ -13,9 +13,16 @@ def assistant_agent(state: AgentState):
     thread= get_thread(state)
 
     prompt = [SystemMessage(content=assistant_prompt)] + list(thread)
-    response = llm.invoke(prompt)
-    logging.info(response)
-    response_json = parser.parse(response.content)
+    isParsed=False
+    while isParsed == False:
+        try:
+            response = llm.invoke(prompt)
+            logging.info(response)
+            response_json = parser.parse(response.content)
+            isParsed=True
+        except:
+            isParsed=True
+
     if response_json["query-type"] == "greeting-general":
         agent_state["call"] = "reviewer_agent"
         agent_state["response"] = [response_json["response"]]
