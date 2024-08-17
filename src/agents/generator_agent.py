@@ -13,11 +13,10 @@ def generator_agent(state: AgentState):
     if state["node"][-1]=='scrapper':
         question = state["query"]
         context = state["context"]
-        prompt = [
-            SystemMessage(
-                content=scrapper_prompt.format(question=question, context=context)
-            )
-        ]
+        node =state["node"][-1]
+
+        thread= get_thread(state)
+        prompt = [SystemMessage(content=scrapper_prompt.format(context=context, node=node))] + list(thread)
     elif state["node"][-1]=='IoT_engine':
         question = state["query"]
         context = state["context"]

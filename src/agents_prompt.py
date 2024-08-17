@@ -30,13 +30,14 @@ Respond ONLY with one of the JSON objects defined above without writing the prov
 """
 
 scrapper_prompt="""
-You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. 
-If you don't know the answer, just say that you don't know. Use three sentences maximum.
-don't say according to the context. provide only your answer
-
-Question: {question} 
+Act as an assistant, generate a like-human response. Use the following pieces of retrieved context to answer the question. 
+If you don't know the answer, just say that you don't know.
 
 Context: {context} 
+
+At the end of your response,in a new line, mention:
+   - Reference: URl extracted from the context (e,g, https://www.bbc.com/news).
+   - Data Source: the {node} agent.
 """
 
 # IoT_engine_prompt="""
