@@ -21,7 +21,11 @@ def assistant_agent(state: AgentState):
             response_json = parser.parse(response.content)
             isParsed=True
         except:
-            isParsed=False
+            response_json={
+                "query-type" : "greeting-general",
+                "response" : response.content
+            }
+            isParsed=True
 
     if response_json["query-type"] == "greeting-general":
         agent_state["call"] = "reviewer_agent"
