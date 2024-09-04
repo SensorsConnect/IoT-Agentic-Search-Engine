@@ -40,6 +40,35 @@ At the end of your response,in a new line, mention:
    - Data Source: the {node} agent.
 """
 
+reviewer_prompt="""
+Act as a response reviewer of a virtual assistant and review the virtual assistant's reply. 
+
+1-If the virtual assistant replies and satisfies the user's query, respond ONLY with the following  JSON object.
+{"query-type": "answered"}
+
+2-If his response means that he can't answer these questions, figure out the type of user query
+a user query falls into one of the following categories:
+i- Service Recommendation: Ask for a recommendation for a service or a place to visit, such as if I want to drink coffee, I am looking for a Middle Eastern restaurant, or do you know any close hospital?
+ii- Hard Question: General questions you can't answer, such as: who is the current president of the United States of America? Or any question related to current events happening as you don't have access to the current event happening right now. the user may ask you to look for it
+
+Your response must follow the following JSON  objects based on each category:
+i- Service Recommendation: try to extract the service type and the city, country, Address, or Coordinates if mentioned. Your response is ONLY a JSON object. This JSON object must follow the following structure and set "" (empty string) for the value of the keys that you can't extract.
+{
+  "query-type": "service-recommendation", // String: Type of the query (e.g., coffee shop)
+  "service": "extracted service type", // String: The type of service extracted from the user's input
+  "city": "extracted city", // String: The city name extracted from the user's input
+  "country": "extracted country", // String: The country name extracted from the user's input 
+  "address": "extracted address", // String: The full address extracted from the user's input
+  "coordinates": [extracted_latitude, extracted_longitude], // Array of Numbers: The latitude and longitude coordinates (e.g., [12.34, 56.78]) and set [0, 0] if not extracted.
+  "question": "extracted question based on the context of the user conversation" // String: The user's question or request extracted based on context
+}
+ii- Hard Question/current events: extract the question from the user context and provide your response ONLY JSON object as shown:
+{
+  "query-type": "hard-question", // String: Type of the query (e.g., what's happening now in Egypt? )
+  "question": "extracted question based on the context of the user conversation" // String: The specific hard question extracted from the user's conversation context
+}
+Respond ONLY with one of the JSON objects defined above without writing the provided comments on each key-value.
+"""
 # IoT_engine_prompt="""
 # Act as an assistant, generate a like-human response and recommend a service. 
 # Use the following pieces of retrieved context to answer the user-query.
