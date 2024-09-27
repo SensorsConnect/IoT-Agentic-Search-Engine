@@ -16,7 +16,8 @@ def reviewer_agent(state: AgentState):
     
     if state["node"][-1]=="assistant_agent":
         # question = state["query"]
-        if state["query"]!=None:
+        # if state["query"]!=None:
+        if state.get("query") is not None:
             print(state["query"])
             query= HumanMessage(content=state["query"])
         else:
