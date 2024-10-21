@@ -37,7 +37,7 @@ handler.setFormatter(ColoredFormatter('%(log_color)s%(levelname)-8s%(reset)s %(m
 logging.getLogger().addHandler(handler)
 logging.getLogger().setLevel(logging.DEBUG)
 #turn off debugger
-# logging.disable()
+logging.disable()
 # class Item(BaseModel):
 #     title: str
 #     price: float

@@ -6,7 +6,7 @@
 	// "image": "mcr.microsoft.com/devcontainers/universal:2-linux"
 	"build": {
         // Path is relative to the devcontainer.json file.
-        "dockerfile": "Dockerfile"
+        "dockerfile": "Dockerfile" 
     },
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -14,7 +14,7 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 
-	// "runArgs": ["--gpus","all"],
+	"runArgs": ["--gpus","all"],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand":"chmod +x try_install.sh&& ./try_install.sh && python -m spacy download en_core_web_lg && python -m spacy download en_core_web_sm && python -m spacy download en && pip install pydantic_settings&& python src/vector_database/batch_processor.py;",

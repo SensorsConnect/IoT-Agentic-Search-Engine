@@ -25,10 +25,12 @@ Your response must follow the following JSON  objects based on each category:
   "query-type": "hard-question", // String: Type of the query (e.g., what's happening now in Egypt? )
   "question": "extracted question based on the context of the user conversation" // String: The specific hard question extracted from the user's conversation context
 }
-
-Respond ONLY with one of the JSON objects defined above without writing the provided comments on each key-value.
+Follow these steps:
+1- Respond ONLY with one of the JSON objects defined above without including any comments, i.e. the JSON object contains only (key and value pairs).
+2- Clean the JSON object by removing any written comment.
+3- Return the cleaned JSON-object.
 """
-
+# Respond ONLY with one of the JSON objects defined above without writing the provided comments on each key-value or any other comments.
 scrapper_prompt="""
 Act as an assistant, generate a like-human response. Use the following pieces of retrieved context to answer the question. 
 If you don't know the answer, just say that you don't know.

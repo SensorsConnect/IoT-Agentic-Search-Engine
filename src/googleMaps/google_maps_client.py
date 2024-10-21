@@ -59,10 +59,10 @@ class GoogleMapsTextSearchClient:
         ]
         
         # Get travel times for all destinations in one call
-        travel_times = self.get_travel_times(origin_latitude, origin_longitude, destinations)
+        # travel_times = self.get_travel_times(origin_latitude, origin_longitude, destinations)
         
         places_with_details = []
-        for place, travel_time in zip(places, travel_times):
+        for place in places:
             name = place.get('name', 'N/A')
             address = place.get('formatted_address', 'N/A')
             rating = place.get('rating', 'N/A')
@@ -70,7 +70,7 @@ class GoogleMapsTextSearchClient:
                 'entity_name': name,
                 'address': address,
                 'rate': rating,
-                'estimated_travel_time': f"{travel_time:.2f} mins" if travel_time != 'N/A' else 'N/A'
+                # 'estimated_travel_time': f"{travel_time:.2f} mins" if travel_time != 'N/A' else 'N/A'
             })
         
         return places_with_details
