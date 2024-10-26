@@ -54,7 +54,7 @@ def initialize_graph():
     graph.add_edge("generator_agent", "reviewer_agent")
 
     graph.add_conditional_edges(
-        "reviewer_agent", reviewer_router, {"scrapper": "scrapper", "GoogleMaps": "GoogleMaps", "END": END}
+        "reviewer_agent", reviewer_router, {"IoT_engine": "IoT_engine", "scrapper": "scrapper", "GoogleMaps": "GoogleMaps", "END": END}
     )
 
     graph.set_entry_point("assistant_agent")

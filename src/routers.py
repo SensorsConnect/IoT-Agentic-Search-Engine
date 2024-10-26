@@ -11,12 +11,16 @@ def scrapper_router(state: AgentState):
     else:
         return "generator_agent"
 
+# def reviewer_router(state: AgentState):
+#     logging.info("I'm in reviewer router")
+#     if state["make_sense"]:
+#         return "END"
+#     else:
+#         return "IoT_engine"
 def reviewer_router(state: AgentState):
     logging.info("I'm in reviewer router")
-    if state["make_sense"]:
-        return "END"
-    else:
-        return "IoT_engine"
+    return state["call"]
+
 
 def IoT_router(state: AgentState):
     return state["call"]
