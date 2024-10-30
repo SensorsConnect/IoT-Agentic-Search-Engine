@@ -44,7 +44,7 @@ def get_OccpancyFactors(result):
 
 def get_travelDurations(longitude,latitude ,result, profile='driving-car'):
 
-    print(f"result {result}")
+    # print(f"result {result}")
     sources=[0]
     destinations=[]
     locations=[]
@@ -53,27 +53,28 @@ def get_travelDurations(longitude,latitude ,result, profile='driving-car'):
         locations.append(entity['location']['coordinates'])
     
     destinations=[ i for i in range(len(sources), len(locations) )]
-    logging.debug(f'sources: {sources}')
-    logging.debug(f'destinations: {destinations}')
-    logging.debug(f'locations: {locations}')
-    logging.debug(f'profile: {profile}')
+    logging.info(f'sources: {sources}')
+    logging.info(f'destinations: {destinations}')
+    logging.info(f'locations: {locations}')
+    logging.info(f'profile: {profile}')
 
     geometry=client.distance_matrix(locations ,profile=profile, sources=sources, destinations=destinations)
-    logging.debug(geometry)
+    logging.info(geometry)
     return geometry['durations'][0]
 
 def get_recommendedSerivce(longitude,latitude ,result, preference='Estimated Overall Service Time'):   
     # Load environment variables from .env file
     occpancyFactors= get_OccpancyFactors(result)
-    logging.debug(occpancyFactors)
+    logging.info(f"occpancyFactors :{occpancyFactors}")
     #########
     #########
     durations =get_travelDurations(longitude,latitude ,result)
-    logging.debug(durations)
+    logging.info(f"durations: {durations}")
     #########
     minutes=5
     serviceTime=60*minutes
     Estimated_serviceTime= [(x*serviceTime) + y for x, y in zip(occpancyFactors,durations)]
+    logging.info(f"Estimated_serviceTime: {Estimated_serviceTime}")
     #########
     weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     for  dic in result:

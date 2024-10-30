@@ -11,6 +11,15 @@ from langchain_core.messages import HumanMessage
 
 from graph import runnable
 
+# Reset the logging configuration to ensure only the new settings apply
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+
+handler = logging.StreamHandler()
+# Configure logging to show only INFO level and higher
+handler.setFormatter(ColoredFormatter('%(log_color)s%(levelname)-8s%(reset)s %(message)s'))
+logging.basicConfig(level=logging.INFO)
+# logging.disable()
 app = FastAPI()
 #  This part achive secure connection to your server need to be done latw
 # https://medium.com/@mariovanrooij/adding-https-to-fastapi-ad5e0f9e084e#:~:text=To%20use%20HTTPS%2C%20simply%20change,.com%2Fapi%2Fendpoint%20.
@@ -31,13 +40,14 @@ app.add_middleware(
 
 # Configure the logging module
 # Configure the logging settings
-logging.getLogger().handlers = []  # Remove any existing handlers
-handler = logging.StreamHandler()
-handler.setFormatter(ColoredFormatter('%(log_color)s%(levelname)-8s%(reset)s %(message)s'))
-logging.getLogger().addHandler(handler)
-logging.getLogger().setLevel(logging.DEBUG)
+    # logging.getLogger().handlers = []  # Remove any existing handlers
+    # handler = logging.StreamHandler()
+    # handler.setFormatter(ColoredFormatter('%(log_color)s%(levelname)-8s%(reset)s %(message)s'))
+    # logging.getLogger().addHandler(handler)
+# Configure logging to show only INFO level and higher
+
 #turn off debugger
-logging.disable()
+# logging.disable()
 # class Item(BaseModel):
 #     title: str
 #     price: float
@@ -78,6 +88,7 @@ def query_handler(query: Query):
     messages = [human_message]
 
     result = runnable.invoke({"messages":messages}, thread)
+    print(result["response"][-1])
 
     return  {"answer": result["response"][-1]}
     return {"item_name": item.title, "item_id": item_id}

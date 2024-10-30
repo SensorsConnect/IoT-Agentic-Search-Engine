@@ -32,7 +32,7 @@ def IoT_engine(state: AgentState):
         logging.info(result['Service Name'])
         logging.info(result['location']['coordinates'])
 
-    print(services)
+    # print(services)
     ResponseInJson=get_recommendedSerivce(longitude,latitude,services)
     logging.debug(ResponseInJson)
     if ResponseInJson:
