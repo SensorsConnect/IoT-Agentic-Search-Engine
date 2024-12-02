@@ -19,7 +19,7 @@ Before you begin, ensure you have the following installed on your system:
 Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/your-repo/demo-project.git
+git clone https://github.com/SensorsConnect/IoT-Agentic-Search-Engine.git
 cd demo-project
 ```
 
