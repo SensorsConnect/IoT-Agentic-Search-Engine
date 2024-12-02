@@ -88,7 +88,9 @@ Run the following command to export environment variables from a `.env` file int
 
 ```bash
 bash export_env.sh
+source ~/.bashrc
 ```
+
 
 ### 7. create services descriptions vectorDB:
 1. Navigate to the vector_db folder:
