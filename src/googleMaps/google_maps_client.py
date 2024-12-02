@@ -1,6 +1,6 @@
 import requests
 import os
-GKGraph_API_KEY = os.environ.get("GKGraph_API_KEY") 
+Google_Maps_API_Key = os.environ.get("Google_Maps_API_Key") 
 osm_api_key = os.environ.get("ORS_API_KEY")  # Not needed for OSRM, but could be used for other OSM services
 
 class GoogleMapsTextSearchClient:
@@ -77,6 +77,6 @@ class GoogleMapsTextSearchClient:
 
 
 # Example usage:
-gmaps_text_search_client = GoogleMapsTextSearchClient(GKGraph_API_KEY, osm_api_key)
+gmaps_text_search_client = GoogleMapsTextSearchClient(Google_Maps_API_Key, osm_api_key)
 # results = gmaps_text_search_client.text_search_with_details("best coffee shops in San Francisco", 37.7749, -122.4194, limit=3)
 # print(results)
