@@ -102,17 +102,26 @@ cd src/vector_db/
 python create_vectordb.py
 ```
 
-### 6. Run the Demo
+### 8. Run the Demo
 
-Start the demo using:
+Start the demo run the following demo in `src`:
 
 ```bash
-./start-demo.sh
+uvicorn main:app --reload
 ```
 
 ### 7. Access the Application
 
-Follow the instructions provided in the terminal output to access the application, usually via `http://localhost:<port>`.
+1. Follow the instructions provided in the terminal output to access the application, usually via `http://127.0.0.1:8000/docs`.
+2. To try the IoT- Agentic Search Engine (IoT-ASE), click the try button on the query API and replace `"string"` in the `text` value with your query and put a random `threadid` value, for instance
+```json
+{
+  "text": "I want to get coffee",
+  "threadId": "1234"
+}
+```
+3. Click on the execute button and wait until you receive the response.
+
 
 ## Configuration
 
