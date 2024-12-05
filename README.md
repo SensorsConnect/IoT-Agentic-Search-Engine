@@ -20,7 +20,7 @@ Clone this repository to your local machine:
 
 ```bash
 git clone https://github.com/SensorsConnect/IoT-Agentic-Search-Engine.git
-cd demo-project
+cd IoT-Agentic-Search-Engine
 ```
 
 ### 2. Open the Project in VS Code
