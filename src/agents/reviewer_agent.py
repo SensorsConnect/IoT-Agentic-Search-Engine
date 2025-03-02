@@ -68,7 +68,9 @@ def reviewer_agent(state: AgentState):
         agent_state["messages"] = [response]
         logging.info(agent_state)
         return agent_state
-    
-    agent_state["call"] = "END"
+    elif state["response"][-1] == "":
+        return agent_state
+    else:
+        agent_state["call"] = "END"
     print("end of reviwer")
     return agent_state

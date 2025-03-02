@@ -10,23 +10,34 @@ from agents_prompt import scrapper_prompt,IoT_engine_prompt,GoogleMaps_prompt
 TavilySearch = TavilySearchResults(max_results=2)  # increased number of results
 
 def generator_agent(state: AgentState):
+    question= state.get("query", "")
+    context= state.get("context", "")
+    if context=="":
+        if state["node"][-1]=='IoT_engine':
+            return prepaer_states({"node": ["generator_agent"], "response": [""], "call": "GoogleMaps"})
+        elif state["node"][-1]=='GoogleMaps':
+            return prepaer_states({"node": ["generator_agent"], "response": [""], "call": "scrapper"})
+        else:
+            return prepaer_states({"node": ["generator_agent"], "response": ["I can't handle this query"], "call": "scrapper"})
+
+
     if state["node"][-1]=='scrapper':
-        question = state["query"]
-        context = state["context"]
+        # question = state["query"]
+        # context = state["context"]
         node =state["node"][-1]
 
         thread= get_thread(state)
         prompt = [SystemMessage(content=scrapper_prompt.format(context=context, node=node))] + list(thread)
     elif state["node"][-1]=='IoT_engine':
-        question = state["query"]
-        context = state["context"]
+        # question = state["query"]
+        # context = state["context"]
         node =state["node"][-1]
         
         thread= get_thread(state)
         prompt = [SystemMessage(content=IoT_engine_prompt.format(JsonObject=context, node=node))] + list(thread)
     elif state["node"][-1]=='GoogleMaps':
-        question = state["query"]
-        context = state["context"]
+        # question = state["query"]
+        # context = state["context"]
         node =state["node"][-1]
         thread= get_thread(state)
         prompt = [SystemMessage(content=GoogleMaps_prompt.format(JsonObject=context, node=node))] + list(thread) 
