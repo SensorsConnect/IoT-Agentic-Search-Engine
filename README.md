@@ -1,7 +1,64 @@
 
-# IoT-Agentic-Search-Engine
+# IoT-Agentic Search Engine  
 
-This repository provides the IoT-Agentic-Search-Engine project that leverages a [DevContainer](https://code.visualstudio.com/docs/devcontainers/containers) for a seamless development environment setup. Follow the instructions below to install and start the demo.
+This repository contains the implementation of an IoT search engine integrated with the **SensorsConnect** framework. The **IoT-Agentic Search Engine** leverages **Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), and an Agentic workflow** to enhance search capabilities.  
+
+We have deployed this repository on a local machine for testing. You can try our demo using this [URL](https://iot-ase-demo-morning-brook-6041.fly.dev/IoT-ASE-Demo/chat).  
+
+> **Note:** The current demo assumes the user's location is **downtown Toronto**.  
+> If you want to query services in another location, make sure to **explicitly specify the location in your query**.  
+
+## 🌍 Agentic Workflow Overview  
+
+The **IoT-Agentic Search Engine** integrates three intelligent agents to retrieve and process information efficiently:  
+
+### 1️⃣ IoT-RAG Search Engine  
+
+- Retrieves data mimicking IoT-based information.  
+- Hypothetically considers services around downtown Toronto, treating each service location as an IoT device.  
+- For example, restaurants in the framework are considered IoT-integrated services, meaning each restaurant is treated as a virtual IoT device.  
+
+### 2️⃣ Google Maps Agent  
+
+- Handles uncovered zones or services by leveraging the **Google Maps API**.  
+- If a relevant IoT service is not found in the **IoT-RAG Search Engine**, this agent searches for similar locations using **Google Maps**.  
+
+### 3️⃣ Scraper Agent  
+
+- Handles general queries or questions that cannot be answered by the other two agents.  
+- Extracts relevant information by browsing web content.  
+
+## 📌 Available Services  
+
+Currently, the search engine provides recommendations for common **daily activities and services**, including:  
+
+- 🛒 Grocery stores  
+- 🏥 Walk-in clinics  
+- 🚗 Car rental agencies  
+- 🌳 Parks  
+- 🍽️ Restaurants  
+- ...and more (primarily places available on **Google Maps**).  
+
+The **Agentic workflow** suggests places based on the following factors:  
+
+- ⭐ **Reputation (Ratings)**  
+- 🚗 **Real-time travel time** (using the **OpenRoute API**)  
+- 👥 **Occupancy data** (scraped from **Google Maps** for crowd analysis)  
+
+## 📝 Example Query  
+
+Here’s how you can ask the **IoT-Agentic Search Engine** for a service recommendation:  
+
+```plaintext
+I want to have dinner with my family at a Middle Eastern restaurant with a good reputation.
+
+This query will be processed by the Agentic workflow, and it will return results based on the available IoT data, Google Maps suggestions, and web-scraped information.
+
+🚀 Feel free to try out our demo and explore the capabilities of the IoT-Agentic Search Engine!
+
+## Installaion
+This repository provides the IoT-Agentic-Search-Engine project that leverages a 
+[DevContainer](https://code.visualstudio.com/docs/devcontainers/containers) for a seamless development environment setup. Follow the instructions below to install and start the demo.
 
 ## Prerequisites
 
@@ -42,7 +99,9 @@ code .
    - Select **Dev Containers: Reopen in Container**.
 
 ### 4. Build and Start the DevContainer
+
 VS Code will automatically build the DevContainer using the provided `.devcontainer/devcontainer.json` file. This process may take a few minutes during the first run.
+
 ### 5. Activate IoT-Engine Conda Environment
 
 1. Open a terminal inside the DevContainer.
@@ -60,7 +119,6 @@ VS Code will automatically build the DevContainer using the provided `.devcontai
    ```
 
 4. Close and reopen the terminal to ensure the changes take effect.
-
 
 VS Code will automatically build the DevContainer using the provided `.devcontainer/devcontainer.json` file. This process may take a few minutes during the first run.
 
@@ -84,20 +142,23 @@ Before running the project, ensure you have the following environment variables 
 2. Copy the environment variables listed in .env.example into your `.env` file.
 3. Replace the empty values with the appropriate keys and URLs.
 
-Run the following command to export environment variables from a `.env` file into your system environment. 
+Run the following command to export environment variables from a `.env` file into your system environment.
 
 ```bash
 bash export_env.sh
 source ~/.bashrc
 ```
 
+### 7. create services descriptions vectorDB
 
-### 7. create services descriptions vectorDB:
 1. Navigate to the vector_db folder:
+
 ```bash
 cd src/vector_db/
 ```
+
 2. Create services descriptions vector database:
+
 ```bash
 python create_vectordb.py
 ```
@@ -114,14 +175,15 @@ uvicorn main:app --reload
 
 1. Follow the instructions provided in the terminal output to access the application, usually via `http://127.0.0.1:8000/docs`.
 2. To try the IoT- Agentic Search Engine (IoT-ASE), click the try button on the query API and replace `"string"` in the `text` value with your query and put a random `threadid` value, for instance
+
 ```json
 {
   "text": "I want to get coffee",
   "threadId": "1234"
 }
 ```
-3. Click on the execute button and wait until you receive the response.
 
+3. Click on the execute button and wait until you receive the response.
 
 ## Configuration
 
@@ -137,9 +199,11 @@ Feel free to adjust these files to fit your needs.
 
 - Ensure Docker is running on your system.
 - If the container build fails, clear the cache and try again:
+
   ```bash
   Dev Containers: Rebuild Container
   ```
+
   (accessible via `Ctrl+Shift+P` or `F1`).
 
 - Check for common issues in the [Dev Containers documentation](https://code.visualstudio.com/docs/devcontainers/containers).
@@ -150,4 +214,4 @@ Feel free to open issues or submit pull requests if you find any bugs or have su
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
