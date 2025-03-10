@@ -141,7 +141,12 @@ Before running the project, ensure you have the following environment variables 
 
 1. Create a `.env` file in the root directory of the project (if not already present).
 2. Copy the environment variables listed in .env.example into your `.env` file.
-3. Replace the empty values with the appropriate keys and URLs.
+
+
+> **Warning:** ⚠️ You need the MongoDB key to access real-time IoT data. As the data used in this demo was scraped from Google Maps, we can't publicly release it. Please reach out to us.
+
+
+
 
 Run the following command to export environment variables from a `.env` file into your system environment.
 
