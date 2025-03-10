@@ -51,6 +51,7 @@ Here’s how you can ask the **IoT-Agentic Search Engine** for a service recomme
 
 ```plaintext
 I want to have dinner with my family at a Middle Eastern restaurant with a good reputation.
+```
 
 This query will be processed by the Agentic workflow, and it will return results based on the available IoT data, Google Maps suggestions, and web-scraped information.
 
