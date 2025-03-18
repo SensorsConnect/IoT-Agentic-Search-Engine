@@ -221,3 +221,19 @@ Feel free to open issues or submit pull requests if you find any bugs or have su
 ## License
 
 This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+
+## Citation
+
+We now have a paper you can cite for 🤗 the IoT Agentic Search Engine
+
+```bibtex
+@misc{elewah2025agenticsearchenginerealtime,
+      title={Agentic Search Engine for Real-Time IoT Data}, 
+      author={Abdelrahman Elewah and Khalid Elgazzar},
+      year={2025},
+      eprint={2503.12255},
+      archivePrefix={arXiv},
+      primaryClass={cs.NI},
+      url={https://arxiv.org/abs/2503.12255}, 
+}
+```
