@@ -1,7 +1,31 @@
+# 🌐 IoT Agentic Search Engine (IoT-ASE)
 
-# IoT-Agentic Search Engine  
+Welcome to the official implementation of the **IoT Agentic Search Engine (IoT-ASE)** — a cutting-edge, real-time search engine for Internet of Things (IoT) environments. This project bridges the gap between fragmented IoT systems and user-friendly, intelligent access to live sensor data using the power of **Large Language Models (LLMs)**, **Retrieval-Augmented Generation (RAG)**, and **Agentic AI** workflows.
 
-This repository contains the implementation of an IoT search engine integrated with the **SensorsConnect** framework. The **IoT-Agentic Search Engine** leverages **Large Language Models (LLMs), Retrieval-Augmented Generation (RAG), and an Agentic workflow** to enhance search capabilities.  
+## 🚀 What This Project Does
+
+- Leverages LLMs + RAG to support natural language queries over diverse real-time IoT data streams.
+- Implements a multi-agent architecture (GA-RAG) with Classifier, Retriever, Generator, and Reviewer agents for robust, accurate, and context-aware responses.
+- Embeds service descriptions using **Sentence-BERT** and stores them in a **HNSW-based Vector Database** for fast semantic search.
+- Integrates with MongoDB to manage 37,000+ real-time IoT documents across 500 service types, with geospatial indexing for location-aware results.
+- Outperforms generic assistants like Gemini by understanding complex, preference-rich queries and generating actionable, human-like responses.
+- Built using modern tools like **LangGraph**, **Tavily API**, **OpenRouteService**, and **VectorDB**, optimized for low-latency applications in smart cities.
+
+## 📊 Use Cases
+
+- Find the nearest clinic with the shortest wait time.
+- Recommend restaurants with low occupancy and high ratings.
+- Suggest the cheapest nearby gas stations in real-time.
+- Discover uncrowded parks, events, or retail deals based on IoT streams.
+
+> **Accuracy**: 92% top-1 intent detection for complex user queries  
+> **Coverage**: Toronto region with 500 simulated services and 37,000+ IoT data points  
+> **Response Time**: 99% of queries processed under 4.12 seconds
+
+---
+
+Explore the code, adapt it to your region or IoT system, and contribute to making intelligent, responsive cities a reality.
+
 
 We have deployed this repository on a local machine for testing. You can try our demo using this [URL](https://iot-ase-demo-morning-brook-6041.fly.dev/IoT-ASE-Demo/chat).  
 
