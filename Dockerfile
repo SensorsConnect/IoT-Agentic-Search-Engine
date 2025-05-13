@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir flask langchain openai gunicorn streamlit request
     pip install --no-cache-dir tensorflow[and-cuda] accelerate bitsandbytes scipy && \
     pip install --no-cache-dir google-search-results pymongo openrouteservice sentencepiece && \
     pip install --no-cache-dir colorlog groq langgraph langchain_community langchain-groq && \
-    pip install --no-cache-dir tavily-python langgraph-checkpoint-sqlite geopy
+    pip install --no-cache-dir tavily-python langgraph-checkpoint-sqlite geopy vectordb
 
 # Download spaCy models
 RUN python -m spacy download en_core_web_lg && \
