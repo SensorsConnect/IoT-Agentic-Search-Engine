@@ -41,6 +41,7 @@ RUN python -m spacy download en_core_web_lg && \
     python -m spacy download en_core_web_sm && \
     python -m spacy download en
 
+RUN pip install --no-cache-dir "numpy<2"
 # Create scripts directory and copy entrypoint script
 RUN mkdir -p /app/scripts
 COPY scripts/docker-entrypoint.sh /app/scripts/
@@ -48,6 +49,9 @@ RUN chmod +x /app/scripts/docker-entrypoint.sh
 
 # Copy application code
 COPY . .
+
+# Expose the port your app runs on
+EXPOSE 8000
 
 # Set the working directory to src
 WORKDIR /app/src

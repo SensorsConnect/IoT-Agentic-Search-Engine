@@ -4,7 +4,7 @@ import logging
 from colorlog import ColoredFormatter
 from typing import Union
 
-from fastapi import FastAPI
+from fastapi import ( FastAPI, Request)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain_core.messages import HumanMessage
@@ -64,8 +64,16 @@ class Query(BaseModel):
 
 
 @app.get("/")
-def read_root():
-    return {"title": "World",  "userId": 1, "id": 1}
+
+async def root(request: Request):
+    """Root endpoint returning basic API information."""
+    return {
+        "name": "WebAssistant",
+        "version": "1.0.0",
+        "status": "healthy",
+        "environment": "development",
+        "swagger_url": "/docs"
+    }
 
 
 @app.get("/items/{item_id}")
