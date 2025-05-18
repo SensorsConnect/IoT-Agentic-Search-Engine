@@ -13,14 +13,6 @@ providers:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
 
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: "abdelrahman.elewah@gmail.com"
-      storage: "/etc/traefik/acme.json"
-      httpChallenge:
-        entryPoint: web
-
 log:
   level: INFO
 
