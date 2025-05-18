@@ -4,7 +4,10 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    TZ=America/Toronto
+    TZ=America/Toronto \
+    TF_CPP_MIN_LOG_LEVEL=2 \
+    TF_FORCE_GPU_ALLOW_GROWTH=true \
+    TF_ENABLE_AUTO_MIXED_PRECISION=1
 
 # Set working directory
 WORKDIR /app

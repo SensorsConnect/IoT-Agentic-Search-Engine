@@ -32,7 +32,7 @@ services:
     build: .
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`localelive.space`)"
+      - "traefik.http.routers.fastapi.rule=Host(`${DOMAIN_NAME}`)"
       - "traefik.http.routers.fastapi.entrypoints=websecure"
       - "traefik.http.routers.fastapi.tls=true"
       - "traefik.http.routers.fastapi.tls.certresolver=letsencrypt"
