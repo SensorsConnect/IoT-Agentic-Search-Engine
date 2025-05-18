@@ -1,17 +1,4 @@
 import ssl
-import os
-import tensorflow as tf
-
-# Configure TensorFlow to suppress warnings and handle GPU memory growth
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-gpus = tf.config.list_physical_devices('GPU')
-if gpus:
-    try:
-        for gpu in gpus:
-            tf.config.experimental.set_memory_growth(gpu, True)
-    except RuntimeError as e:
-        print(f"GPU configuration error: {e}")
-
 import logging
 from colorlog import ColoredFormatter
 from typing import Union
