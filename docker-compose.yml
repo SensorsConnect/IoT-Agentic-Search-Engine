@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=abdelrahman.elewah@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik
+      - ./acme.json:/etc/traefik/acme.json
+    networks:
+      - app-network
+    environment:
+      - TRAEFIK_ACME_EMAIL=abdelrahman.elewah@gmai.com
+      - TRAEFIK_ACME_STORAGE=/etc/traefik/acme.json
+
+  fastapi:
+    build: .
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(`localelive.space`)"
+      - "traefik.http.routers.fastapi.entrypoints=websecure"
+      - "traefik.http.routers.fastapi.tls=true"
+      - "traefik.http.routers.fastapi.tls.certresolver=letsencrypt"
+      - "traefik.http.services.fastapi.loadbalancer.server.port=8000"
+    networks:
+      - app-network
+    depends_on:
+      - traefik
+    environment:
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ORS_API_KEY=${ORS_API_KEY}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - MONGODB_URL=${MONGODB_URL}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2}
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=*
+      - TIMEZONE=America/Toronto
+
+networks:
+  app-network:
+    driver: bridge 
