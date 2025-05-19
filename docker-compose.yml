@@ -27,8 +27,16 @@ services:
     environment:
       - TRAEFIK_ACME_EMAIL=abdelrahman.elewah@gmai.com
       - TRAEFIK_ACME_STORAGE=/etc/traefik/acme.json
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
 
   fastapi:
+    image: elewah/localelive-backend
     build: .
     labels:
       - "traefik.enable=true"
