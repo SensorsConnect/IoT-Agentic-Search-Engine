@@ -14,7 +14,7 @@ providers:
     exposedByDefault: false
 
 certificatesResolvers:
-  letsencrypt:
+  myresolver:
     acme:
       email: "abdelrahman.elewah@gmail.com"
       storage: "/etc/traefik/acme.json"
