@@ -75,16 +75,6 @@ async def root(request: Request):
     }
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    print(item.title)
-    return item
-    return {"item_name": item.title, "item_id": item_id}
-
 @app.put("/query")
 def query_handler(query: Query):
     print(query)
@@ -110,19 +100,3 @@ def printResults(results):
         logging.info(result['location']['coordinates'])
         services_name_addresses.append([result['Service Name'],result['Service Address']])
     return services_name_addresses
-
-
-# while True:
-        
-#     user_query = input("Enter your query: ")
-#     refined_user_query=user_query
-#     # refined_user_query = query_refining_func(query=user_query)
-
-#     # query_type = query_type_func(query=refined_user_query)
-#     services_types, entities, addresses = query_understanding_engine(
-#         query=refined_user_query)
-
-#     # print("Query type: " + query_type)
-#     print("Services types (top 3 in semantic meaning): " + str(services_types))
-#     print("Entities mentioned: " + str(entities))
-#     print("Addresses: " + str(addresses))
