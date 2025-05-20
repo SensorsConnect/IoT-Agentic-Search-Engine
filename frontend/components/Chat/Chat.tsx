@@ -32,7 +32,7 @@ export interface ChatGPInstance {
 }
 
 const postChatOrQuestion = async (chat: Chat, messages: any[], input: string) => {
-  const url = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/query'
+  const url ='http://172.18.0.3:8000/query'
 
   const data = {
     "threadId": chat.id,
