@@ -29,18 +29,37 @@ services:
       - TRAEFIK_ACME_STORAGE=/etc/traefik/acme.json
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.dashboard.rule=Host(`${TRAFEIK_DOMAIN_NAME}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.tls=true"
       - "traefik.http.routers.dashboard.tls.certresolver=myresolver"
 
-  fastapi:
+  frontend:
+    image: elewah/localelive-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+    networks:
+      - app-network
+    depends_on:
+      - traefik
+    environment:
+      - NODE_ENV=production
+
+  backend:
     image: elewah/localelive-backend
     build: .
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`${DOMAIN_NAME}`)"
+      - "traefik.http.routers.fastapi.rule=Host(`${BACKEND_DOMAIN_NAME}`)"
       - "traefik.http.routers.fastapi.entrypoints=websecure"
       - "traefik.http.routers.fastapi.tls=true"
       - "traefik.http.routers.fastapi.tls.certresolver=myresolver"
