@@ -1,4 +1,9 @@
-# 🌐 IoT Agentic Search Engine (IoT-ASE)
+# 🌐 Localelive: IoT-Agentic Search Engine
+
+> The pulse of places lives at your fingertips.
+
+🌐 **Live Demo**: [localelive.space](https://localelive.space)  
+📦 **Deployment Branch**: [deployment](https://github.com/SensorsConnect/IoT-Agentic-Search-Engine/tree/deployment)
 
 Welcome to the official implementation of the **IoT Agentic Search Engine (IoT-ASE)** — a cutting-edge, real-time search engine for Internet of Things (IoT) environments. This project bridges the gap between fragmented IoT systems and user-friendly, intelligent access to live sensor data using the power of **Large Language Models (LLMs)**, **Retrieval-Augmented Generation (RAG)**, and **Agentic AI** workflows.
 
@@ -71,7 +76,7 @@ The **Agentic workflow** suggests places based on the following factors:
 
 ## 📝 Example Query  
 
-Here’s how you can ask the **IoT-Agentic Search Engine** for a service recommendation:  
+Here's how you can ask the **IoT-Agentic Search Engine** for a service recommendation:  
 
 ```plaintext
 I want to have dinner with my family at a Middle Eastern restaurant with a good reputation.
@@ -260,4 +265,122 @@ We now have a paper you can cite for 🤗 the IoT Agentic Search Engine
       primaryClass={cs.NI},
       url={https://arxiv.org/abs/2503.12255}, 
 }
+```
+
+## Deployment
+
+This project can be deployed in two ways: backend-only deployment or full-stack deployment using Docker Compose.
+
+### 1. Backend-Only Deployment (FastAPI)
+
+To deploy only the FastAPI backend:
+
+1. Pull the backend image from Docker Hub:
+```bash
+docker pull elewah/localelive-backend
+```
+
+2. Create a `.env` file with the required environment variables:
+```bash
+ORS_API_KEY=your_ors_api_key
+Google_Maps_API_Key=your_google_maps_api_key
+TAVILY_API_KEY=your_tavily_api_key
+GROQ_API_KEY=your_groq_api_key
+MONGODB_URL=your_mongodb_url
+LANGCHAIN_API_KEY=your_langchain_api_key
+LANGCHAIN_TRACING_V2=true
+ENVIRONMENT=production
+LOG_LEVEL=INFO
+CORS_ORIGINS=your_frontend_url
+TIMEZONE=America/Toronto
+```
+
+3. Run the backend container:
+```bash
+docker run -d \
+  --name iot-ase-backend \
+  -p 8000:8000 \
+  --env-file .env \
+  elewah/localelive-backend
+```
+
+The backend will be available at `http://localhost:8000`.
+
+### 2. Full-Stack Deployment (Docker Compose)
+
+To deploy the complete stack including frontend, backend, and Traefik reverse proxy:
+
+1. Clone the deployment branch of the repository:
+```bash
+git clone -b deployment https://github.com/SensorsConnect/IoT-Agentic-Search-Engine.git
+cd IoT-Agentic-Search-Engine
+```
+
+2. Create a `.env` file with all required environment variables:
+```bash
+# Domain Configuration
+DOMAIN_NAME=your_domain.com
+BACKEND_DOMAIN_NAME=api.your_domain.com
+TRAFEIK_DOMAIN_NAME=dashboard.your_domain.com
+
+# API Keys
+ORS_API_KEY=your_ors_api_key
+Google_Maps_API_Key=your_google_maps_api_key
+TAVILY_API_KEY=your_tavily_api_key
+GROQ_API_KEY=your_groq_api_key
+MONGODB_URL=your_mongodb_url
+LANGCHAIN_API_KEY=your_langchain_api_key
+LANGCHAIN_TRACING_V2=true
+
+# Environment Configuration
+ENVIRONMENT=production
+LOG_LEVEL=INFO
+CORS_ORIGINS=https://your_domain.com
+TIMEZONE=America/Toronto
+```
+
+3. Create required directories and files:
+```bash
+mkdir -p traefik
+touch acme.json
+chmod 600 acme.json
+```
+
+4. Pull the required images:
+```bash
+docker pull elewah/localelive-frontend
+docker pull elewah/localelive-backend
+docker pull traefik:v2.10
+```
+
+5. Start the stack:
+```bash
+docker-compose up -d
+```
+
+The services will be available at:
+- Frontend: `https://your_domain.com`
+- Backend API: `https://api.your_domain.com`
+- Traefik Dashboard: `https://dashboard.your_domain.com`
+
+### Monitoring and Logs
+
+To view logs for any service:
+```bash
+# For backend-only deployment
+docker logs iot-ase-backend
+
+# For full-stack deployment
+docker-compose logs -f [service_name]  # service_name can be frontend, backend, or traefik
+```
+
+### Stopping the Services
+
+```bash
+# For backend-only deployment
+docker stop iot-ase-backend
+docker rm iot-ase-backend
+
+# For full-stack deployment
+docker-compose down
 ```
