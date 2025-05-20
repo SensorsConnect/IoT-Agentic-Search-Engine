@@ -53,10 +53,13 @@ services:
       - traefik
     environment:
       - NODE_ENV=production
+      - NEXT_PUBLIC_BACKEND_URL=https://${BACKEND_DOMAIN_NAME}
 
   backend:
     image: elewah/localelive-backend
     build: .
+    ports:
+      - "8000:8000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.fastapi.rule=Host(`${BACKEND_DOMAIN_NAME}`)"
@@ -69,7 +72,6 @@ services:
     depends_on:
       - traefik
     environment:
-      # - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ORS_API_KEY=${ORS_API_KEY}
       - Google_Maps_API_Key=${GOOGLE_MAPS_API_KEY}
       - TAVILY_API_KEY=${TAVILY_API_KEY}
@@ -79,7 +81,7 @@ services:
       - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2}
       - ENVIRONMENT=production
       - LOG_LEVEL=INFO
-      - CORS_ORIGINS=*
+      - CORS_ORIGINS=https://${DOMAIN_NAME}
       - TIMEZONE=America/Toronto
 
 networks:
