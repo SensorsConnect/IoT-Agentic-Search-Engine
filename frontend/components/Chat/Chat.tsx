@@ -33,7 +33,7 @@ export interface ChatGPInstance {
 }
 
 const postChatOrQuestion = async (chat: Chat, messages: any[], input: string) => {
-  const url = `${config.apiUrl}/query`
+  const url = `https://backend.localelive.space/query`
   
   const data = {
     "threadId": chat.id,
