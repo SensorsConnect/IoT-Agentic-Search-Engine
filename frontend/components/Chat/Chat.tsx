@@ -17,6 +17,7 @@ import { FiSend } from 'react-icons/fi'
 import ChatContext from './chatContext'
 import type { Chat, ChatMessage } from './interface'
 import Message from './Message'
+import { config } from '@/utils/environment'
 
 import './index.scss'
 
@@ -32,15 +33,12 @@ export interface ChatGPInstance {
 }
 
 const postChatOrQuestion = async (chat: Chat, messages: any[], input: string) => {
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
-  // Ensure the URL uses HTTPS in production
-  const url = process.env.NODE_ENV === 'production' 
-    ? baseUrl.replace('http://', 'https://') + '/query'
-    : baseUrl + '/query'
-
+  const url = `${config.apiUrl}/query`
+  
   const data = {
     "threadId": chat.id,
-    text: input}
+    text: input
+  }
   //   messages: [...messages!],
   //   input
   // }
