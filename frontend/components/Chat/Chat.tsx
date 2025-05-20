@@ -33,19 +33,20 @@ export interface ChatGPInstance {
 }
 
 const postChatOrQuestion = async (chat: Chat, messages: any[], input: string) => {
-  const url = `https://backend.localelive.space/query`
+  const url = `${config.apiUrl}/query`
+  console.log('Making request to:', {
+    baseUrl: config.apiUrl,
+    fullUrl: url,
+    requestData: {
+      threadId: chat.id,
+      text: input
+    }
+  });
   
   const data = {
     "threadId": chat.id,
     text: input
   }
-  //   messages: [...messages!],
-  //   input
-  // }
-  // const data ={
-  //   "text": "hello",
-  //   "threadId":"asd2"
-  // }
 
   return await fetch(url, {
     method: 'PUT',
