@@ -3,7 +3,8 @@
 > The pulse of places lives at your fingertips.
 
 🌐 **Live Demo**: [localelive.space](https://localelive.space)  
-📦 **Deployment Branch**: [deployment](https://github.com/SensorsConnect/IoT-Agentic-Search-Engine/tree/deployment)
+📦 **Deployment Branch**: [deployment](https://github.com/SensorsConnect/IoT-Agentic-Search-Engine/tree/deployment)  
+📄 **Publications**: [Agentic Search Engine for Real-Time IoT Data](https://arxiv.org/abs/2503.12255), [SensorsConnect](https://ieeexplore.ieee.org/document/10752393)  
 
 Welcome to the official implementation of the **IoT Agentic Search Engine (IoT-ASE)** — a cutting-edge, real-time search engine for Internet of Things (IoT) environments. This project bridges the gap between fragmented IoT systems and user-friendly, intelligent access to live sensor data using the power of **Large Language Models (LLMs)**, **Retrieval-Augmented Generation (RAG)**, and **Agentic AI** workflows.
 
