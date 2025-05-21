@@ -80,11 +80,13 @@ const Theme = ({
     (theme) => {
       setThemeState(theme)
 
-      // Save to storage
+      // Save to storage with better error handling
       try {
-        localStorage.setItem(storageKey, theme)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(storageKey, theme)
+        }
       } catch (e) {
-        // Unsupported
+        console.warn('Failed to save theme preference:', e)
       }
     },
     [storageKey]
@@ -96,21 +98,39 @@ const Theme = ({
       setResolvedTheme(resolved)
 
       if (theme === 'system' && enableSystem && !forcedTheme) {
-        applyTheme('system')
+        // Add a small delay to prevent flickering on mobile
+        setTimeout(() => {
+          applyTheme('system')
+        }, 50)
       }
     },
     [theme, enableSystem, forcedTheme, applyTheme]
   )
 
-  // Always listen to System preference
+  // Always listen to System preference with better mobile support
   useEffect(() => {
-    const media = window.matchMedia(MEDIA)
+    if (typeof window === 'undefined') return
 
-    // Intentionally use deprecated listener methods to support iOS & old browsers
-    media.addEventListener('change', handleMediaQuery)
+    const media = window.matchMedia(MEDIA)
+    
+    // Use modern event listener if available
+    if (media.addEventListener) {
+      media.addEventListener('change', handleMediaQuery)
+    } else {
+      // Fallback for older browsers
+      media.addListener(handleMediaQuery)
+    }
+    
     handleMediaQuery(media)
 
-    return () => media.removeEventListener('change', handleMediaQuery)
+    return () => {
+      if (media.removeEventListener) {
+        media.removeEventListener('change', handleMediaQuery)
+      } else {
+        // Fallback for older browsers
+        media.removeListener(handleMediaQuery)
+      }
+    }
   }, [handleMediaQuery])
 
   // localStorage event handling

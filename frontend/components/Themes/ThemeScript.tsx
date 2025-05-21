@@ -79,7 +79,7 @@ const ThemeScript = ({
         value ? `var x=${JSON.stringify(value)};` : ''
       }${updateDOM(value ? `x[e]` : 'e', true)}}${
         !defaultSystem ? `else{` + updateDOM(defaultTheme, false, false) + '}' : ''
-      }${fallbackColorScheme}}catch(e){}}()`
+      }${fallbackColorScheme}}catch(e){console.warn('Theme initialization failed:',e)}}()`
     }
 
     return `!function(){try{${optimization}var e=localStorage.getItem('${storageKey}');if(e){${
@@ -88,10 +88,17 @@ const ThemeScript = ({
       defaultTheme,
       false,
       false
-    )};}${fallbackColorScheme}}catch(t){}}();`
+    )};}${fallbackColorScheme}}catch(t){console.warn('Theme initialization failed:',t)}}();`
   })()
 
-  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: scriptSrc }} />
+  return (
+    <script 
+      nonce={nonce} 
+      dangerouslySetInnerHTML={{ __html: scriptSrc }}
+      // Add async to prevent blocking mobile rendering
+      async
+    />
+  )
 }
 
 export default memo(ThemeScript, () => true)
