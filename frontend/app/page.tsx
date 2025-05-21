@@ -42,9 +42,6 @@ export default function Home() {
             Try Demo
           </Link>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">
-          ⚠️ iOS Support Notice: This demo is currently unavailable on iOS devices. We’re working to bring full compatibility soon.
-          </p>
       </div>
 
       {/* Features Section */}
@@ -155,9 +152,6 @@ export default function Home() {
           >
             Launch Demo
           </Link>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-          ⚠️ iOS Support Notice: This demo is currently unavailable on iOS devices. We’re working to bring full compatibility soon.
-          </p>
         </div>
       </div>
 
