@@ -5,22 +5,40 @@ import ThemesProvider from '@/providers/ThemesProvider'
 import '@/styles/globals.scss'
 import '@/styles/theme-config.css'
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover'
+}
+
 export const metadata = {
   title: {
-    default: 'IoT-ASE',
-    template: `%s - IoT-ASE`
+    default: 'localelive',
+    template: `%s - localelive`
   },
   description: 'AI assistant powered by ChatGPT',
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png'
+    icon: '/localelive-light-icon.png',
+    shortcut: '/localelive-light-icon.png',
+    apple: '/localelive-light-icon.png'
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'localelive'
   }
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="format-detection" content="telephone=no" />
+      </head>
       <body>
         <ThemesProvider>
           <Header />

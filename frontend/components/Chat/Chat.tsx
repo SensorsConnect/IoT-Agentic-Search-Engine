@@ -12,7 +12,7 @@ import {
 import { Flex, Heading, IconButton, ScrollArea, Tooltip } from '@radix-ui/themes'
 import ContentEditable from 'react-contenteditable'
 import toast from 'react-hot-toast'
-import { AiOutlineClear, AiOutlineLoading3Quarters, AiOutlineUnorderedList } from 'react-icons/ai'
+import { AiOutlineClear, AiOutlineLoading3Quarters, AiOutlineUnorderedList, AiOutlineInfoCircle, AiOutlineEnvironment } from 'react-icons/ai'
 import { FiSend } from 'react-icons/fi'
 import ChatContext from './chatContext'
 import type { Chat, ChatMessage } from './interface'
@@ -310,6 +310,16 @@ const Chat = (props: ChatProps, ref: any) => {
             </Tooltip>
           </Flex>
         </Flex>
+        <div className="mt-2 text-sm text-gray-500 text-center space-y-1">
+          <p className="flex items-center justify-center gap-2">
+            <AiOutlineInfoCircle className="size-4 text-blue-500" />
+            This demo is an implementation for the Agentic Search Engine for Real-Time IoT Data
+          </p>
+          <p className="flex items-center justify-center gap-2">
+            <AiOutlineEnvironment className="size-4 text-green-500" />
+            Assistant assumes user location in downtown Toronto, but you can explicitly mention your location, city or region and localelive assistant can serve you
+          </p>
+        </div>
       </div>
     </Flex>
   )

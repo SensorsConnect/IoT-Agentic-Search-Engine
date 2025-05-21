@@ -10,9 +10,9 @@ import { Chat, ChatMessage, Persona } from './interface'
 
 export const DefaultPersonas: Persona[] = [
   {
-    id: 'chatgpt',
+    id: 'localelive-assistant',
     role: 'system',
-    name: 'IoT-ASE',
+    name: 'Localelive Assistant',
     prompt: 'You are an AI assistant that helps people find information.',
     isDefault: true
   },

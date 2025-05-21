@@ -10,14 +10,14 @@ export default function Home() {
           <div className="relative size-48">
             <Image
               src="/localelive-light-icon.png"
-              alt="IoT-ASE Logo"
+              alt="localelive"
               fill
               className="object-contain dark:hidden"
               priority
             />
             <Image
               src="/localelive-dark-icon.png"
-              alt="IoT-ASE Logo"
+              alt="localelive"
               fill
               className="object-contain hidden dark:block"
               priority
@@ -148,7 +148,7 @@ export default function Home() {
           </p>
           <Link
             href="/chat"
-            className="inline-block bg-blue-600 text-white  dark:text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            className="inline-block bg-blue-600 text-white  dark:text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700  dark:hover:bg-gray-600 transition-colors"
           >
             Launch Demo
           </Link>

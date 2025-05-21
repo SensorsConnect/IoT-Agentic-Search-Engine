@@ -18,6 +18,26 @@
   }
 }
 
+/* iOS-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  body {
+    min-height: -webkit-fill-available;
+  }
+  
+  html {
+    height: -webkit-fill-available;
+  }
+  
+  input, textarea {
+    font-size: 16px !important; /* Prevents zoom on focus */
+  }
+  
+  /* Fix for iOS momentum scrolling */
+  .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   font-family:
@@ -31,6 +51,7 @@ body {
     Apple Color Emoji,
     Segoe UI Emoji;
   @apply h-full;
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
 }
 
 .radix-themes {
