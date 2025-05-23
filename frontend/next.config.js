@@ -1,4 +1,4 @@
-require('path')
+const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -11,7 +11,16 @@ const nextConfig = {
     fetches: {
       fullUrl: true
     }
+  },
+  async redirects() {
+    return [
+      {
+        source: '/IoT-ASE-Demo/chat',
+        destination: '/',
+        permanent: true, // Use false if this is a temporary redirect
+      },
+    ];
   }
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
