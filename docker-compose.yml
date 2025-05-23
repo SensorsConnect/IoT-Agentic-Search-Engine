@@ -57,7 +57,9 @@ services:
 
   backend:
     image: elewah/localelive-backend
-    build: .
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     labels:
