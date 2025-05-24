@@ -5,12 +5,16 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 yarn.lock
+.pnp/
+.pnp.js
 
 # Build outputs
 dist/
 build/
 .next/
 out/
+.vercel/
+.turbo
 
 # Environment variables
 .env
@@ -19,6 +23,7 @@ out/
 .env.test.local
 .env.production.local
 .env.production
+.env*.local
 
 # IDE and editor files
 .idea/
@@ -27,16 +32,62 @@ out/
 *.swo
 .DS_Store
 Thumbs.db
+*.sublime-workspace
+*.sublime-project
 
 # Testing
 coverage/
 .nyc_output/
+__snapshots__/
+*.test.js.snap
 
 # Logs
 logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Cache directories
 .npm/
 .eslintcache
 .cache/
+.parcel-cache/
+.next/
+.nuxt/
+.output/
+.temp/
+.tmp/
+
+# Misc
+.DS_Store
+*.pem
+.vercel
+.turbo
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env*.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# PWA files
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map
