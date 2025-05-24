@@ -1,7 +1,61 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function Home() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [status, setStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setStatus({ type: null, message: '' });
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatus({
+          type: 'success',
+          message: 'Message sent successfully! We\'ll get back to you soon.',
+        });
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        throw new Error(data.message || 'Failed to send message');
+      }
+    } catch (error) {
+      setStatus({
+        type: 'error',
+        message: 'Failed to send message. Please try again later.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Logo Section */}
@@ -152,6 +206,26 @@ export default function Home() {
           >
             Launch Demo
           </Link>
+        </div>
+      </div>
+
+      {/* Contact Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">
+            📬 Contact Us
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-4">
+            Have questions about LocaleLive? We'd love to hear from you!
+          </p>
+          <div className="flex items-center justify-center space-x-2">
+            <svg className="size-6 text-blue-600  dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <a href="mailto:info@localelive.space" className="text-blue-600 dark:text-white hover:underline text-xl">
+              info@localelive.space
+            </a>
+          </div>
         </div>
       </div>
 

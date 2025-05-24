@@ -18,7 +18,7 @@ export const metadata = {
     default: 'localelive',
     template: `%s - localelive`
   },
-  description: 'AI assistant powered by ChatGPT',
+  description: 'AI assistant powered by Localelive',
   icons: {
     icon: '/localelive-light-icon.png',
     shortcut: '/localelive-light-icon.png',
