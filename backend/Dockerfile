@@ -44,7 +44,7 @@ RUN python -m spacy download en_core_web_lg && \
     python -m spacy download en_core_web_sm && \
     python -m spacy download en
 
-RUN pip install --no-cache-dir "numpy<2"
+RUN pip install --no-cache-dir "numpy<2" psycopg2-binary
 # Create scripts directory and copy entrypoint script
 RUN mkdir -p /app/scripts
 COPY scripts/docker-entrypoint.sh /app/scripts/

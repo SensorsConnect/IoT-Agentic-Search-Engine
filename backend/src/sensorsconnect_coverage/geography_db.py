@@ -2,9 +2,10 @@
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-
+import os
+POSTGRES_URL = os.environ.get('POSTGRES_URL')
 # Create an engine and a base class
-engine = create_engine('sqlite:///sensorsconnect_coverage/geography.db', echo=False)
+engine = create_engine(POSTGRES_URL, echo=False)
 Base = declarative_base()
 
 # Define the Country model

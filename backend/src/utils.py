@@ -4,10 +4,11 @@ from langchain_groq import ChatGroq  # Assuming this is the correct import
 from langchain_core.messages import AIMessage,filter_messages
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
+LLM_MODEL = os.environ.get('LLM_MODEL')
 parser = JsonOutputParser()
 
 # Initialize the language model
-llm = ChatGroq(model="llama3-8b-8192", temperature=0)
+llm = ChatGroq(model=LLM_MODEL, temperature=0)
 
 def prepaer_states(json_obj):
     """

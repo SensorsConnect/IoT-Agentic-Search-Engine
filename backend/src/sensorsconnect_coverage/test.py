@@ -24,6 +24,7 @@ from geography_db import check_city_country_exists, add_country, add_city, close
 # ]
 
 # for city in ontario_cities:
+# for city in ontario_cities:
 #     add_city(city, 'Canada')
 
 # Example check to see if a city-country pair exists
