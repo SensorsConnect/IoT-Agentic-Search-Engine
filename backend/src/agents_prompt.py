@@ -65,7 +65,7 @@ i- Service Recommendation: try to extract the service type and the city, country
   "coordinates": [extracted_latitude, extracted_longitude], // Array of Numbers: The latitude and longitude coordinates (e.g., [12.34, 56.78]) and set [0, 0] if not extracted.
   "question": "extracted question based on the context of the user conversation" // String: The user's question or request extracted based on context
 }
-ii- Hard Question/current events: extract the question from the user context and provide your response ONLY JSON object as shown:
+ii- Hard Question/current events or (questions requiring internet search or real-time information): extract the question from the user context and provide your response ONLY JSON object as shown:
 {
   "query-type": "hard-question", // String: Type of the query (e.g., what's happening now in Egypt? )
   "question": "extracted question based on the context of the user conversation" // String: The specific hard question extracted from the user's conversation context
