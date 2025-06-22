@@ -31,20 +31,14 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir wheel
 
 # Install Python dependencies in stages to avoid conflicts
-RUN pip install --no-cache-dir flask langchain openai gunicorn streamlit requests python-dotenv && \
-    pip install --no-cache-dir pandas spacy wikipedia transformers==4.35.2 torch && \
-    pip install --no-cache-dir docarray tqdm nltk fastapi uvicorn[standard] && \
-    pip install --no-cache-dir tensorflow[and-cuda] accelerate bitsandbytes scipy && \
-    pip install --no-cache-dir google-search-results pymongo openrouteservice sentencepiece && \
+RUN pip install --no-cache-dir langchain requests python-dotenv && \
+    pip install --no-cache-dir transformers torch && \
+    pip install --no-cache-dir docarray tqdm fastapi uvicorn[standard] && \
+    pip install --no-cache-dir accelerate && \
+    pip install --no-cache-dir pymongo openrouteservice && \
     pip install --no-cache-dir colorlog groq langgraph langchain_community langchain-groq && \
-    pip install --no-cache-dir tavily-python langgraph-checkpoint-sqlite geopy vectordb
-
-# Download spaCy models
-RUN python -m spacy download en_core_web_lg && \
-    python -m spacy download en_core_web_sm && \
-    python -m spacy download en
-
-RUN pip install --no-cache-dir "numpy<2" psycopg2-binary
+    pip install --no-cache-dir tavily-python langgraph-checkpoint-sqlite geopy vectordb && \
+    pip install --no-cache-dir "numpy<2" psycopg2-binary
 # Create scripts directory and copy entrypoint script
 RUN mkdir -p /app/scripts
 COPY scripts/docker-entrypoint.sh /app/scripts/
