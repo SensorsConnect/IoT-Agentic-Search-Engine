@@ -14,18 +14,32 @@ const LocationButton = ({ onLocationChange }: LocationButtonProps) => {
   const [showStatus, setShowStatus] = useState(false)
 
   const handleLocationClick = async () => {
+    console.log('=== LOCATION BUTTON CLICKED ===')
+    console.log('Current location:', location)
+    console.log('Is loading:', isLoading)
+    
     if (location) {
+      console.log('🗑️ Clearing location...')
       clearLocation()
       onLocationChange?.(null)
+      console.log('Location cleared, callback called with null')
       setShowStatus(true)
       setTimeout(() => setShowStatus(false), 2000)
     } else {
+      console.log('📍 Requesting new location...')
       const newLocation = await requestLocation()
+      console.log('Location received:', newLocation)
+      
       if (newLocation && newLocation.latitude && newLocation.longitude) {
-        onLocationChange?.({
+        const locationData = {
           latitude: newLocation.latitude,
           longitude: newLocation.longitude
-        })
+        }
+        console.log('✅ Calling onLocationChange with:', locationData)
+        onLocationChange?.(locationData)
+      } else {
+        console.log('❌ Invalid location data received:', newLocation)
+        onLocationChange?.(null)
       }
       setShowStatus(true)
       setTimeout(() => setShowStatus(false), 2000)

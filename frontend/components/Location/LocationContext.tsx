@@ -41,13 +41,31 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   // Check if geolocation is supported
   useEffect(() => {
     const supported = 'geolocation' in navigator
+    console.log('🔍 Checking geolocation support:', supported)
     setIsSupported(supported)
     
-    if (supported) {
-      checkPermissions()
+    const init = async () => {
+      if (supported) {
+        await checkPermissions()
+      }
       // Try to load cached location
       loadCachedLocation()
+      
+      // If no cached location, auto-request
+      const cachedLocation = localStorage.getItem('cached_location')
+      if (!cachedLocation) {
+        console.log('🌍 No cached location, auto-requesting...')
+        // Use setTimeout to avoid blocking render
+        setTimeout(async () => {
+          if (!location) { // Double check location is still null
+            await requestLocation()
+          }
+        }, 500)
+      }
     }
+    
+    init()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const checkPermissions = async () => {
@@ -73,10 +91,14 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         // Check if cached location is less than 1 hour old
         const oneHour = 60 * 60 * 1000
         if (Date.now() - locationData.timestamp < oneHour) {
+          console.log('📦 Loaded cached location:', locationData)
           setLocation(locationData)
         } else {
+          console.log('🕐 Cached location expired, removing...')
           localStorage.removeItem('cached_location')
         }
+      } else {
+        console.log('📦 No cached location found')
       }
     } catch (err) {
       console.warn('Failed to load cached location:', err)
@@ -92,14 +114,21 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   }
 
   const requestLocation = async (): Promise<LocationData | null> => {
+    console.log('=== REQUEST LOCATION CALLED ===')
+    console.log('Is supported:', isSupported)
+    console.log('Current permission:', permission)
+    
     if (!isSupported) {
       setError('Geolocation is not supported by this browser')
-      toast.error('Location access is not supported on this device')
-      return null
+      console.log('❌ Geolocation not supported, trying network-based location...')
+      toast('Detecting location from network...', { icon: '🌐' })
+      // Try network-based location instead
+      return await requestNetworkLocation()
     }
 
     setIsLoading(true)
     setError(null)
+    console.log('📍 Starting geolocation request...')
 
     return new Promise((resolve) => {
       const options: PositionOptions = {
@@ -118,6 +147,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
             source: 'gps'
           }
 
+          console.log('✅ GPS location received:', locationData)
           setLocation(locationData)
           cacheLocation(locationData)
           setIsLoading(false)
@@ -127,6 +157,10 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         },
         (err) => {
           setIsLoading(false)
+          console.log('❌ Geolocation error:', {
+            code: err.code,
+            message: err.message
+          })
           
           let errorMessage = 'Unable to access location'
           
@@ -137,11 +171,13 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
               break
             case err.POSITION_UNAVAILABLE:
               errorMessage = 'Location information unavailable'
+              console.log('🔄 Trying network-based location...')
               // Try network-based location as fallback
               requestNetworkLocation().then(resolve)
               return
             case err.TIMEOUT:
               errorMessage = 'Location request timed out'
+              console.log('🔄 Trying network-based location...')
               // Try network-based location as fallback
               requestNetworkLocation().then(resolve)
               return
@@ -159,11 +195,15 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   }
 
   const requestNetworkLocation = async (): Promise<LocationData | null> => {
+    setIsLoading(true)
     try {
+      console.log('🌐 Fetching location from IP address...')
       // Try to get location from IP-based services as fallback
       const response = await fetch('https://ipapi.co/json/')
       if (response.ok) {
         const data = await response.json()
+        console.log('✅ IP-based location data:', data)
+        
         const locationData: LocationData = {
           latitude: data.latitude,
           longitude: data.longitude,
@@ -174,24 +214,31 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         
         setLocation(locationData)
         cacheLocation(locationData)
+        setIsLoading(false)
         
-        toast.success('Location approximated from network')
+        toast.success(`Location detected: ${data.city}, ${data.region}`)
         return locationData
+      } else {
+        console.warn('❌ Network location API returned error:', response.status)
       }
     } catch (err) {
-      console.warn('Network location failed:', err)
+      console.warn('❌ Network location failed:', err)
+      toast.error('Could not detect location from network')
     }
     
+    setIsLoading(false)
     return null
   }
 
   const clearLocation = () => {
+    console.log('🗑️ Clearing location from context')
     setLocation(null)
     setError(null)
     localStorage.removeItem('cached_location')
   }
 
   const handleSetLocation = (locationData: LocationData) => {
+    console.log('📍 Setting location in context:', locationData)
     setLocation(locationData)
     cacheLocation(locationData)
   }
@@ -219,3 +266,4 @@ export const useLocation = (): LocationContextType => {
 }
 
 export default LocationContext
+
