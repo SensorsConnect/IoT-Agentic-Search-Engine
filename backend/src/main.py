@@ -1,7 +1,7 @@
 import ssl
 import logging
 from colorlog import ColoredFormatter
-from typing import Union
+from typing import Union, Optional
 
 from fastapi import ( FastAPI, Request)
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,9 +57,15 @@ class Item(BaseModel):
     id: int
     userId:int
 
+
+class LocationData(BaseModel):
+    latitude: float
+    longitude: float
+
 class Query(BaseModel):
-    text:str
-    threadId:str
+    text: str
+    threadId: str
+    location: Optional[LocationData] = None
 
 
 @app.get("/")
@@ -77,18 +83,30 @@ async def root(request: Request):
 
 @app.put("/query")
 def query_handler(query: Query):
-    print(query)
+    print(f"Query received: {query.text}")
+    print(f"Thread ID: {query.threadId}")
+    
+    if query.location:
+        print(f"Location data: lat={query.location.latitude}, lng={query.location.longitude}")
+        logging.info(f"User location: {query.location.latitude}, {query.location.longitude}")
+    else:
+        print("No location data provided")
+        logging.info("No user location data available")
+
     thread = {"configurable": {"thread_id": query.threadId}}
 
+    # Include location context in the message if available
+    message_content = query.text
+    if query.location:
+        message_content += f"\n\n[User Location: {query.location.latitude}, {query.location.longitude}]"
 
-    human_message = HumanMessage(content=query.text)
+    human_message = HumanMessage(content=message_content)
     messages = [human_message]
 
     result = runnable.invoke({"messages":messages}, thread)
     print(result["response"][-1])
 
-    return  {"answer": result["response"][-1]}
-    return {"item_name": item.title, "item_id": item_id}
+    return {"answer": result["response"][-1]}
 
 
 

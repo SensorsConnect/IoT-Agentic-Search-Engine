@@ -18,6 +18,7 @@ import ChatContext from './chatContext'
 import type { Chat, ChatMessage } from './interface'
 import Message from './Message'
 import { config } from '@/utils/environment'
+import { LocationButton } from '@/components/Location'
 
 import './index.scss'
 
@@ -32,20 +33,29 @@ export interface ChatGPInstance {
   focus: () => void
 }
 
-const postChatOrQuestion = async (chat: Chat, messages: any[], input: string) => {
+const postChatOrQuestion = async (chat: Chat, messages: any[], input: string, location?: { latitude: number; longitude: number } | null) => {
   const url = `${config.apiUrl}/query`
   console.log('Making request to:', {
     baseUrl: config.apiUrl,
     fullUrl: url,
     requestData: {
       threadId: chat.id,
-      text: input
+      text: input,
+      location: location
     }
   });
   
-  const data = {
+  const data: any = {
     "threadId": chat.id,
     text: input
+  }
+
+  // Add location data if available
+  if (location) {
+    data.location = {
+      latitude: location.latitude,
+      longitude: location.longitude
+    }
   }
 
   return await fetch(url, {
@@ -62,6 +72,7 @@ const Chat = (props: ChatProps, ref: any) => {
     useContext(ChatContext)
 
   const [isLoading, setIsLoading] = useState(false)
+  const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null)
 
   const conversationRef = useRef<ChatMessage[]>()
 
@@ -90,7 +101,7 @@ const Chat = (props: ChatProps, ref: any) => {
         setMessage('')
         setIsLoading(true)
         try {
-          const response = await postChatOrQuestion(currentChatRef?.current!, message, input)
+          const response = await postChatOrQuestion(currentChatRef?.current!, message, input, currentLocation)
 
           if (response.ok) {
             const data = response.body
@@ -310,6 +321,12 @@ const Chat = (props: ChatProps, ref: any) => {
             </Tooltip>
           </Flex>
         </Flex>
+        
+        {/* Location Button Row */}
+        <Flex justify="center" className="px-4 py-2">
+          <LocationButton onLocationChange={setCurrentLocation} />
+        </Flex>
+        
         <div className="mt-2 text-sm text-gray-500 text-center space-y-1">
           <p className="flex items-center justify-center gap-2">
             <AiOutlineInfoCircle className="size-4 text-blue-500" />
