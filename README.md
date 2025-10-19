@@ -384,3 +384,13 @@ docker rm iot-ase-backend
 # For full-stack deployment
 docker-compose down
 ```
+
+## Launching Current Local Development
+
+**Note:** You will need to fix some broken installations. This will be addressed in a future update.
+
+To launch the current local development environment, follow these steps:
+
+1. Ensure you define a `.env.local` file with development environment variables, especially the local backend API URL and port.
+2. For fast development, follow the installation instructions for the backend and frontend.
+3. To test the backend more quickly, use the interactive API documentation provided by FastAPI at `http://localhost:8000/docs`.
