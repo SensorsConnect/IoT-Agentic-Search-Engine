@@ -9,8 +9,8 @@ import NextLink from 'next/link'
 import { FaGithub, FaMoon, FaSun } from 'react-icons/fa'
 import { Link } from '../Link'
 import { useTheme } from '../Themes'
-import darkIcon from '/public/dark-icon.png'
-import lightIcon from '/public/light-icon.png'
+import darkIcon from '/public/localelive-dark-icon.png'
+import lightIcon from '/public/localelive-light-icon.png'
 
 export const Header = () => {
   const { theme, setTheme, resolvedTheme } = useTheme()

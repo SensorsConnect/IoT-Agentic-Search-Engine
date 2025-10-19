@@ -87,6 +87,22 @@ class GoogleMapsTextSearchClient:
 
         return ['N/A'] * len(destinations)
 
+    def get_formatted_address(self, place):
+        # If already present in the search result, use it
+        addr = (place.get('formatted_address') or
+                place.get('formattedAddress') or
+                place.get('vicinity'))
+        if addr:
+            return addr
+
+        # Otherwise, fetch via Place Details with fields=formatted_address
+        place_id = place.get('place_id') or place.get('id')
+        if not place_id:
+            return None
+        details = self.place_details(place_id, fields=['formatted_address'])  # make sure your method passes fields
+        result = details.get('result') or details.get('place') or {}
+        return result.get('formatted_address') or result.get('formattedAddress')
+
     def text_search_with_details(self, query, origin_latitude, origin_longitude, limit=3):
         # Use user's location coordinates to bias the search results
         print("Origin coordinates:", origin_latitude, origin_longitude)
@@ -97,18 +113,19 @@ class GoogleMapsTextSearchClient:
         ]
         
         # Get travel times for all destinations in one call
-        # travel_times = self.get_travel_times(origin_latitude, origin_longitude, destinations)
+        travel_times = self.get_travel_times(origin_latitude, origin_longitude, destinations)
         
         places_with_details = []
-        for place in places:
+        for i, place in enumerate(places):
             name = place.get('name', 'N/A')
-            address = place.get('formatted_address', 'N/A')
+            address = self.get_formatted_address(place)
+            print(f"Extracted address for {name}: {address}")
             rating = place.get('rating', 'N/A')
             places_with_details.append({
                 'entity_name': name,
                 'address': address,
                 'rate': rating,
-                # 'estimated_travel_time': f"{travel_time:.2f} mins" if travel_time != 'N/A' else 'N/A'
+                'estimated_travel_time': f"{travel_times[i]:.2f} mins" if travel_times[i] != 'N/A' else 'N/A'
             })
         
         return places_with_details

@@ -97,9 +97,7 @@ const LocationButton = ({ onLocationChange }: LocationButtonProps) => {
       
       {location && location.latitude !== null && location.longitude !== null && (
         <div className="text-xs text-gray-500">
-          <div>Lat: {location.latitude.toFixed(4)}</div>
-          <div>Lng: {location.longitude.toFixed(4)}</div>
-          <div className="capitalize">Via: {location.source}</div>
+          Lat: {location.latitude.toFixed(4)} | Lng: {location.longitude.toFixed(4)} | Via: <span className="capitalize">{location.source}</span>
         </div>
       )}
     </Flex>

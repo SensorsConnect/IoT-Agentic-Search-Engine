@@ -471,12 +471,6 @@ const Chat = (props: ChatProps, ref: any) => {
               <span>Detecting your location...</span>
             </Flex>
           )}
-          {!isLocationLoading && currentLocation && (
-            <Flex align="center" justify="center" gap="2" className="text-sm text-green-600">
-              <AiOutlineEnvironment className="size-4" />
-              <span>Location detected: {currentLocation.latitude.toFixed(4)}, {currentLocation.longitude.toFixed(4)}</span>
-            </Flex>
-          )}
           <Flex justify="center">
             <LocationButton onLocationChange={handleLocationChange} />
           </Flex>
@@ -486,10 +480,6 @@ const Chat = (props: ChatProps, ref: any) => {
           <p className="flex items-center justify-center gap-2">
             <AiOutlineInfoCircle className="size-4 text-blue-500" />
             This demo is an implementation for the Agentic Search Engine for Real-Time IoT Data
-          </p>
-          <p className="flex items-center justify-center gap-2">
-            <AiOutlineEnvironment className="size-4 text-green-500" />
-            Assistant assumes user location in downtown Toronto, but you can explicitly mention your location, city or region and localelive assistant can serve you
           </p>
         </div>
       </div>
