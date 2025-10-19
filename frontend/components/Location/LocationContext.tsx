@@ -121,7 +121,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     if (!isSupported) {
       setError('Geolocation is not supported by this browser')
       console.log('❌ Geolocation not supported, trying network-based location...')
-      toast('Detecting location from network...', { icon: '🌐' })
+      // toast('Detecting location from network...', { icon: '🌐' })
       // Try network-based location instead
       return await requestNetworkLocation()
     }
@@ -152,7 +152,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
           cacheLocation(locationData)
           setIsLoading(false)
           
-          toast.success('Location accessed successfully!')
+          // toast.success('Location accessed successfully!')
           resolve(locationData)
         },
         (err) => {
@@ -167,7 +167,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
           switch (err.code) {
             case err.PERMISSION_DENIED:
               errorMessage = 'Location access denied by user'
-              toast.error('Please enable location access in your browser settings')
+              // toast.error('Please enable location access in your browser settings')
               break
             case err.POSITION_UNAVAILABLE:
               errorMessage = 'Location information unavailable'
@@ -216,14 +216,14 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         cacheLocation(locationData)
         setIsLoading(false)
         
-        toast.success(`Location detected: ${data.city}, ${data.region}`)
+        // toast.success(`Location detected: ${data.city}, ${data.region}`)
         return locationData
       } else {
         console.warn('❌ Network location API returned error:', response.status)
       }
     } catch (err) {
       console.warn('❌ Network location failed:', err)
-      toast.error('Could not detect location from network')
+      // toast.error('Could not detect location from network')
     }
     
     setIsLoading(false)

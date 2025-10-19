@@ -153,7 +153,7 @@ const Chat = (props: ChatProps, ref: any) => {
           // The context will be updated automatically, which will trigger the sync effect
         } else {
           console.log('❌ Location request returned null')
-          toast.error('Could not detect location. Please click the location button or mention your location.')
+          // toast.error('Could not detect location. Please click the location button or mention your location.')
         }
       } else {
         console.log('📍 Context location already available:', contextLocation)
@@ -305,7 +305,7 @@ const Chat = (props: ChatProps, ref: any) => {
         // Prevent sending if location is still loading
         if (isLocationLoading) {
           console.log('⏸️ Cannot send while location is loading')
-          toast('Please wait, detecting your location...', { icon: '🔄' })
+          // toast('Please wait, detecting your location...', { icon: '🔄' })
           e.preventDefault()
           return
         }

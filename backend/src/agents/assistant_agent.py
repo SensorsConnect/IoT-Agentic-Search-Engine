@@ -31,10 +31,14 @@ def assistant_agent(state: AgentState):
         agent_state["call"] = "reviewer_agent"
         agent_state["response"] = [response_json["response"]]
     elif response_json["query-type"] == "service-recommendation":
-        result = finder.process_location_query(response_json)
-        logging.info(result)
-        if result:
-            covered_by_sensorsconnect = check_city_country_exists(result["city"], result["country"])
+        if response_json.get("coordinates"):
+            agent_state["call"] = "GoogleMaps"
+            agent_state["query"] = response_json["question"]
+            agent_state["location_finder_results"] = {"coordinates":response_json["coordinates"]}
+        elif response_json.get('city') or response_json.get('country'):
+            result = finder.process_location_query(response_json)
+            logging.info(result)
+            covered_by_sensorsconnect = check_city_country_exists(result.get("city", ""), result.get("country", ""))
             agent_state["location_finder_results"]=result
             if covered_by_sensorsconnect:
                 logging.info('Iot_engine')

@@ -5,9 +5,11 @@ from utils import prepaer_states
 from langchain_core.messages import ToolMessage
 def GoogleMaps(state: AgentState):
     logging.info("Using GoogleMaps")
-    location=state["location_finder_results"]
-    coordinates=location['coordinates']
-    query=state["query"]
+    location=state.get("location_finder_results", {})
+    coordinates=location.get('coordinates', [])
+    print("Coordinates in GoogleMaps agent:", coordinates)
+    print("coordinates type:", type(coordinates))
+    query=state.get("query", "")
     results= gmaps_text_search_client.text_search_with_details(query, coordinates[0], coordinates[1], limit=3)
     
     if results:
