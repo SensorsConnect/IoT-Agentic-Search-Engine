@@ -68,24 +68,40 @@ class GoogleMapsTextSearchClient:
         :param destinations: List of (latitude, longitude) tuples for the destinations.
         :return: List of travel times in minutes.
         """
-        coords = f"{origin_longitude},{origin_latitude};" + ";".join(
-            f"{lon},{lat}" for lat, lon in destinations
-        )
+        # Validate inputs - OSRM requires at least 2 coordinates (origin + destination)
+        if not destinations or len(destinations) == 0:
+            print("No destinations provided for travel time calculation - OSRM requires at least one destination")
+            return []
+        
+        # Build coordinates string: origin;dest1;dest2;...
+        coords = f"{origin_longitude},{origin_latitude}"
+        for lat, lon in destinations:
+            coords += f";{lon},{lat}"
+        
+        # Build URL with proper formatting (no trailing semicolon)
         url = f"{self.osrm_url}{coords}"
         params = {
             'annotations': 'duration'
         }
-        response = requests.get(url, params=params)
+        print(f"OSRM Request URL: {url}")
+        print(f"OSRM Request params: {params}")
         
-        if response.status_code == 200:
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            
             data = response.json()
             durations = data.get('durations', [[]])[0][1:]  # Skip the first value as it is the origin to origin
             travel_times = [duration / 60 for duration in durations]  # Convert seconds to minutes
             return travel_times
-        else:
-            response.raise_for_status()
-
-        return ['N/A'] * len(destinations)
+        except requests.exceptions.HTTPError as e:
+            print(f"OSRM HTTP Error: {e}")
+            print(f"Response content: {response.content}")
+            # Return N/A for all destinations if OSRM fails
+            return ['N/A'] * len(destinations)
+        except Exception as e:
+            print(f"OSRM Error: {e}")
+            return ['N/A'] * len(destinations)
 
     def get_formatted_address(self, place):
         # If already present in the search result, use it
@@ -107,6 +123,12 @@ class GoogleMapsTextSearchClient:
         # Use user's location coordinates to bias the search results
         print("Origin coordinates:", origin_latitude, origin_longitude)
         places = self.text_search(query, limit, latitude=origin_latitude, longitude=origin_longitude)
+        
+        # Check if we got any places from the search
+        if not places or len(places) == 0:
+            print("No places found from text search - returning empty results")
+            return []
+        
         destinations = [
             (place['geometry']['location']['lat'], place['geometry']['location']['lng'])
             for place in places

@@ -256,14 +256,32 @@ This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE
 We now have a paper you can cite for 🤗 the IoT Agentic Search Engine
 
 ```bibtex
-@misc{elewah2025agenticsearchenginerealtime,
-      title={Agentic Search Engine for Real-Time IoT Data}, 
-      author={Abdelrahman Elewah and Khalid Elgazzar},
-      year={2025},
-      eprint={2503.12255},
-      archivePrefix={arXiv},
-      primaryClass={cs.NI},
-      url={https://arxiv.org/abs/2503.12255}, 
+@article{elewah2025agentic,
+  title={Agentic Search Engine for Real-Time Internet of Things Data},
+  author={Elewah, Abdelrahman and Elgazzar, Khalid and Elnaffar, Said},
+  journal={Sensors},
+  volume={25},
+  number={19},
+  pages={5995},
+  year={2025},
+  publisher={MDPI}
+}
+
+@article{elewah2024sensorsconnect,
+  title={Sensorsconnect framework: World-wide web for internet of things},
+  author={Elewah, Abdelrahman and Elgazzar, Khalid},
+  journal={IEEE Access},
+  year={2024},
+  publisher={IEEE}
+}
+```
+
+here is the full thesis
+```bibtex
+@article{elewah2025sensorsconnect,
+  title={SensorsConnect: World Wide Web for Internet of Things},
+  author={Elewah, Abdelrahman},
+  year={2025}
 }
 ```
 
@@ -379,8 +397,6 @@ docker-compose logs -f [service_name]  # service_name can be frontend, backend, 
 ```bash
 # For backend-only deployment
 docker stop iot-ase-backend
-docker rm iot-ase-backend
-
 # For full-stack deployment
 docker-compose down
 ```

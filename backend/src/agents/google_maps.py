@@ -9,8 +9,30 @@ def GoogleMaps(state: AgentState):
     coordinates=location.get('coordinates', [])
     print("Coordinates in GoogleMaps agent:", coordinates)
     print("coordinates type:", type(coordinates))
+    
+    # Validate coordinates
+    if not coordinates or len(coordinates) < 2:
+        logging.error(f"Invalid coordinates received: {coordinates}")
+        return prepaer_states({
+            "handled": [False],
+            "node": ["GoogleMaps"],
+            "call":"generator_agent"
+        })
+    
+    # Ensure coordinates are numeric
+    try:
+        lat = float(coordinates[0])
+        lon = float(coordinates[1])
+    except (ValueError, TypeError) as e:
+        logging.error(f"Coordinates are not valid numbers: {e}")
+        return prepaer_states({
+            "handled": [False],
+            "node": ["GoogleMaps"],
+            "call":"generator_agent"
+        })
+    
     query=state.get("query", "")
-    results= gmaps_text_search_client.text_search_with_details(query, coordinates[0], coordinates[1], limit=3)
+    results= gmaps_text_search_client.text_search_with_details(query, lat, lon, limit=3)
     
     if results:
         return prepaer_states({
