@@ -31,7 +31,7 @@ def assistant_agent(state: AgentState):
         agent_state["call"] = "reviewer_agent"
         agent_state["response"] = [response_json["response"]]
     elif response_json["query-type"] == "service-recommendation":
-        if response_json.get("coordinates"):
+        if response_json.get("coordinates") and response_json.get("coordinates") != [0, 0]:
             agent_state["call"] = "GoogleMaps"
             agent_state["query"] = response_json["question"]
             agent_state["location_finder_results"] = {"coordinates":response_json["coordinates"]}
