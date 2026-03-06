@@ -12,18 +12,17 @@ class GoogleMapsTextSearchClient:
         self.text_search_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
         self.osrm_url = "http://router.project-osrm.org/table/v1/driving/"
     
-    def text_search(self, query, limit=3, latitude=None, longitude=None):
+    def text_search(self, query, limit=3, latitude=None, longitude=None, radius=50000):
         print("Origin coordinates:", latitude, longitude)
         print("Search query:", query)
-        
+
         # If location is provided, use nearbysearch with keyword for better location-based results
         if latitude is not None and longitude is not None:
             params = {
                 'location': f"{latitude},{longitude}",
-                'radius': 50000,  # 50km radius (cannot use with rankby)
+                'radius': radius,
                 'keyword': query,
                 'key': self.google_api_key
-                # Note: rankby and radius cannot be used together
             }
             url = self.nearby_search_url
             print(f"Using nearby search API with params: {params}")
@@ -35,10 +34,10 @@ class GoogleMapsTextSearchClient:
             }
             url = self.text_search_url
             print(f"Using text search API with params: {params}")
-        
+
         response = requests.get(url, params=params)
         print(f"Response status: {response.status_code}")
-        
+
         if response.status_code == 200:
             response_data = response.json()
             print("Full API response:", response_data)
@@ -46,17 +45,46 @@ class GoogleMapsTextSearchClient:
             status = response_data.get('status', 'UNKNOWN')
             print(f"API Status: {status}")
             print(f"Number of results: {len(results)}")
-            
+
             if status != 'OK' and status != 'ZERO_RESULTS':
                 print(f"API returned status: {status}")
                 if 'error_message' in response_data:
                     print(f"Error message: {response_data['error_message']}")
-            
+
             # Limit the number of results to the specified limit
             return results[:limit]
         else:
             print("Error occurred:", response.content)
             print("Response status:", response.status_code)
+            response.raise_for_status()
+
+    def nearby_search_ranked_by_distance(self, query, latitude, longitude, limit=5):
+        """Search nearby places ranked by distance (nearest first)."""
+        params = {
+            'location': f"{latitude},{longitude}",
+            'rankby': 'distance',
+            'keyword': query,
+            'key': self.google_api_key
+        }
+        print(f"Using nearby search (rankby=distance) with params: {params}")
+
+        response = requests.get(self.nearby_search_url, params=params)
+        print(f"Response status: {response.status_code}")
+
+        if response.status_code == 200:
+            response_data = response.json()
+            results = response_data.get('results', [])
+            status = response_data.get('status', 'UNKNOWN')
+            print(f"API Status: {status}, Results: {len(results)}")
+
+            if status != 'OK' and status != 'ZERO_RESULTS':
+                print(f"API returned status: {status}")
+                if 'error_message' in response_data:
+                    print(f"Error message: {response_data['error_message']}")
+
+            return results[:limit]
+        else:
+            print("Error occurred:", response.content)
             response.raise_for_status()
 
     def get_travel_times(self, origin_latitude, origin_longitude, destinations):
@@ -119,10 +147,10 @@ class GoogleMapsTextSearchClient:
         result = details.get('result') or details.get('place') or {}
         return result.get('formatted_address') or result.get('formattedAddress')
 
-    def text_search_with_details(self, query, origin_latitude, origin_longitude, limit=3):
+    def text_search_with_details(self, query, origin_latitude, origin_longitude, limit=3, radius=50000):
         # Use user's location coordinates to bias the search results
         print("Origin coordinates:", origin_latitude, origin_longitude)
-        places = self.text_search(query, limit, latitude=origin_latitude, longitude=origin_longitude)
+        places = self.text_search(query, limit, latitude=origin_latitude, longitude=origin_longitude, radius=radius)
         
         # Check if we got any places from the search
         if not places or len(places) == 0:

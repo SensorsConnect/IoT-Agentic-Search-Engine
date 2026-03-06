@@ -106,6 +106,32 @@ Act as an assistant, generate a like-human response and recommend only one or Tw
 """
 
 
+googlemaps_strategist_prompt = """
+You are a search strategist for a location-based service finder.
+
+The user searched for: "{query}"
+User location: ({latitude}, {longitude})
+
+Here is the search history so far:
+{search_history}
+
+Evaluate the results and decide the next action. Respond ONLY with a JSON object (no comments):
+
+If the results are good (at least 1 place with travel time under 20 minutes):
+{{"decision": "accept"}}
+
+If the results are poor and you want to retry with a different strategy:
+{{"decision": "retry", "strategy": "<strategy>", "new_query": "<query>", "radius": <radius>}}
+
+Strategies:
+- "narrow_radius": Search with a smaller radius (e.g., 5000-15000 meters)
+- "rephrase_query": Try a different search term that might yield better local results
+- "rank_by_distance": Use rankby=distance (already used in iteration 1, pick something else)
+
+If you believe no better results can be found:
+{{"decision": "give_up"}}
+"""
+
 GoogleMaps_prompt=  """
 Act as an assistant, generate a like-human response and recommend only one or Two services, giving the suggested service details in this list of JSON objects.
     List of JSON objects.: {JsonObject}
