@@ -12,7 +12,7 @@ import {
 import { Flex, Heading, IconButton, ScrollArea, Tooltip } from '@radix-ui/themes'
 import ContentEditable from 'react-contenteditable'
 import toast from 'react-hot-toast'
-import { AiOutlineClear, AiOutlineLoading3Quarters, AiOutlineUnorderedList, AiOutlineInfoCircle, AiOutlineEnvironment } from 'react-icons/ai'
+import { AiOutlineClear, AiOutlineLoading3Quarters, AiOutlineUnorderedList, AiOutlineInfoCircle } from 'react-icons/ai'
 import { FiSend } from 'react-icons/fi'
 import ChatContext from './chatContext'
 import type { Chat, ChatMessage } from './interface'
@@ -35,29 +35,20 @@ export interface ChatGPInstance {
 
 const postChatOrQuestion = async (chat: Chat, messages: any[], input: string, location?: { latitude: number; longitude: number } | null) => {
   const url = `${config.apiUrl}/query`
-  
+
   const data: any = {
     "threadId": chat.id,
     text: input
   }
 
-  // Add location data if available and valid
   if (location && location.latitude !== null && location.longitude !== null) {
     data.location = {
       latitude: location.latitude,
       longitude: location.longitude
     }
-    console.log('✅ Adding location to request:', data.location)
   } else {
     data.location = null
-    console.log('❌ No valid location to add. Location value:', location)
   }
-
-  console.log('=== FINAL REQUEST PAYLOAD ===')
-  console.log('URL:', url)
-  console.log('Method: PUT')
-  console.log('Payload:', JSON.stringify(data, null, 2))
-  console.log('============================')
 
   return await fetch(url, {
     method: 'PUT',
@@ -72,65 +63,34 @@ const Chat = (props: ChatProps, ref: any) => {
   const { debug, currentChatRef, saveMessages, onToggleSidebar, forceUpdate } =
     useContext(ChatContext)
 
-  // Get location from context as a fallback
   const { location: contextLocation, requestLocation } = useLocation()
 
   const [isLoading, setIsLoading] = useState(false)
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null)
-  const [isLocationLoading, setIsLocationLoading] = useState(true) // Track location loading state
+  const [isLocationLoading, setIsLocationLoading] = useState(true)
 
-  // Wrapped setter to log when location is set
   const handleLocationChange = useCallback((location: { latitude: number; longitude: number } | null) => {
-    console.log('📍 handleLocationChange called with:', location)
     setCurrentLocation(location)
-    setIsLocationLoading(false) // Location is ready
+    setIsLocationLoading(false)
   }, [])
 
-  // Debug: Log when currentLocation changes
-  useEffect(() => {
-    console.log('🔄 Location state changed (via setState):', currentLocation)
-    if (currentLocation) {
-      console.log('   ✅ State has location:', {
-        lat: currentLocation.latitude,
-        lng: currentLocation.longitude
-      })
-    }
-  }, [currentLocation])
-
-  // Debug: Log when context location changes
-  useEffect(() => {
-    console.log('🔄 Context location changed:', contextLocation)
-    if (contextLocation) {
-      console.log('   ✅ Context has location:', {
-        lat: contextLocation.latitude,
-        lng: contextLocation.longitude,
-        source: contextLocation.source
-      })
-    }
-  }, [contextLocation])
-
-  // Auto-sync context location to local state when context changes
+  // Auto-sync context location to local state
   useEffect(() => {
     if (contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null) {
-      console.log('🔄 Auto-syncing context location to local state:', contextLocation)
-      // Always sync from context to state, not just when currentLocation is null
       setCurrentLocation({
         latitude: contextLocation.latitude,
         longitude: contextLocation.longitude
       })
-      setIsLocationLoading(false) // Location is ready
+      setIsLocationLoading(false)
     } else if (!contextLocation && currentLocation) {
-      // Clear local state if context location is cleared
-      console.log('🔄 Clearing local state as context location is null')
       setCurrentLocation(null)
     }
-  }, [contextLocation]) // Remove currentLocation from dependencies to avoid circular updates
+  }, [contextLocation])
 
   // Stop loading after 3 seconds even if location fails
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (isLocationLoading) {
-        console.log('⏱️ Location loading timeout - allowing user to send without location')
         setIsLocationLoading(false)
       }
     }, 3000)
@@ -141,47 +101,21 @@ const Chat = (props: ChatProps, ref: any) => {
   // Auto-request location when chat page loads
   useEffect(() => {
     const autoRequestLocation = async () => {
-      console.log('� Auto-requesting location on page load...')
-      console.log('Initial state - contextLocation:', contextLocation, 'currentLocation:', currentLocation)
-      
-      // Only auto-request if we don't already have a location
       if (!contextLocation) {
-        console.log('📍 No context location found, requesting...')
         const location = await requestLocation()
-        if (location && location.latitude !== null && location.longitude !== null) {
-          console.log('✅ Auto-location obtained from requestLocation:', location)
-          // The context will be updated automatically, which will trigger the sync effect
-        } else {
-          console.log('❌ Location request returned null')
-          // toast.error('Could not detect location. Please click the location button or mention your location.')
+        if (!location || location.latitude === null || location.longitude === null) {
+          // Location unavailable — user can still chat
         }
-      } else {
-        console.log('📍 Context location already available:', contextLocation)
       }
     }
 
-    // Add a small delay to ensure context is initialized
     const timer = setTimeout(() => {
       autoRequestLocation()
     }, 100)
 
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Run only once on mount
-
-  // Debug: Log current state every 2 seconds (remove after debugging)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      console.log('⏰ PERIODIC CHECK:', {
-        currentLocation,
-        contextLocation,
-        hasStateLocation: currentLocation !== null,
-        hasContextLocation: contextLocation !== null
-      })
-    }, 5000) // Every 5 seconds
-
-    return () => clearInterval(interval)
-  }, [currentLocation, contextLocation])
+  }, [])
 
   const conversationRef = useRef<ChatMessage[]>()
 
@@ -205,25 +139,10 @@ const Chat = (props: ChatProps, ref: any) => {
           return
         }
 
-        // Debug: Log current location state before sending
-        console.log('=== SENDING MESSAGE ===')
-        console.log('Current location state (from state):', currentLocation)
-        console.log('Context location:', contextLocation)
-        
-        // Use currentLocation from state if available, otherwise fall back to context location
         const effectiveLocation = currentLocation || (contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null ? {
           latitude: contextLocation.latitude,
           longitude: contextLocation.longitude
         } : null)
-        
-        console.log('Effective location to send:', effectiveLocation)
-        console.log('Location exists:', effectiveLocation !== null)
-        if (effectiveLocation) {
-          console.log('Location details:', {
-            latitude: effectiveLocation.latitude,
-            longitude: effectiveLocation.longitude
-          })
-        }
 
         const message = [...conversation.current]
         conversation.current = [...conversation.current, { content: input, role: 'user' }]
@@ -261,14 +180,9 @@ const Chat = (props: ChatProps, ref: any) => {
                 done = true
               }
             }
-            // The delay of timeout can not be 0 as it will cause the message to not be rendered in racing condition
             setTimeout(() => {
-                 // Parse the accumulated resultContent as JSON and access the 'answer' key
               const parsedData = JSON.parse(resultContent);
               const answer = parsedData.answer;
-              if (debug) {
-                console.log({ resultContent })
-              }
               conversation.current = [
                 ...conversation.current,
                 { content: answer, role: 'assistant' }
@@ -284,7 +198,7 @@ const Chat = (props: ChatProps, ref: any) => {
                 result.redirect +
                 `?callbackUrl=${encodeURIComponent(location.pathname + location.search)}`
             } else {
-              toast.error(result.error)
+              toast.error(result.error || 'An error occurred')
             }
           }
 
@@ -302,10 +216,7 @@ const Chat = (props: ChatProps, ref: any) => {
   const handleKeypress = useCallback(
     (e: any) => {
       if (e.keyCode == 13 && !e.shiftKey) {
-        // Prevent sending if location is still loading
         if (isLocationLoading) {
-          console.log('⏸️ Cannot send while location is loading')
-          // toast('Please wait, detecting your location...', { icon: '🔄' })
           e.preventDefault()
           return
         }
@@ -462,7 +373,7 @@ const Chat = (props: ChatProps, ref: any) => {
             </Tooltip>
           </Flex>
         </Flex>
-        
+
         {/* Location Status and Button Row */}
         <Flex direction="column" gap="2" className="px-4 py-2">
           {isLocationLoading && (
@@ -475,7 +386,7 @@ const Chat = (props: ChatProps, ref: any) => {
             <LocationButton onLocationChange={handleLocationChange} />
           </Flex>
         </Flex>
-        
+
         <div className="mt-2 text-sm text-gray-500 text-center space-y-1">
           <p className="flex items-center justify-center gap-2">
             <AiOutlineInfoCircle className="size-4 text-blue-500" />

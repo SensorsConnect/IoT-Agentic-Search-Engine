@@ -1,33 +1,58 @@
-import ssl
+import os
 import logging
-from colorlog import ColoredFormatter
-from typing import Union, Optional
+from typing import Optional
 
-from fastapi import ( FastAPI, Request)
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from langchain_core.messages import HumanMessage
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
+# --- Env var validation ---
+REQUIRED_ENV_VARS = ["GROQ_API_KEY", "LLM_MODEL", "MONGODB_URL"]
+OPTIONAL_ENV_VARS = ["POSTGRES_URL", "Google_Maps_API_Key", "ORS_API_KEY", "TAVILY_API_KEY",
+                     "LANGCHAIN_API_KEY", "CORS_ORIGINS"]
+
+missing = [v for v in REQUIRED_ENV_VARS if not os.environ.get(v)]
+if missing:
+    raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
+
+for v in OPTIONAL_ENV_VARS:
+    if not os.environ.get(v):
+        logging.warning(f"Optional environment variable {v} is not set")
+
+# --- Structured logging ---
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s %(levelname)-8s %(name)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger(__name__)
+
+# Import graph after env validation
 from graph import runnable
 
-# Reset the logging configuration to ensure only the new settings apply
-for handler in logging.root.handlers[:]:
-    logging.root.removeHandler(handler)
+# --- Rate limiting ---
+limiter = Limiter(key_func=get_remote_address)
 
-handler = logging.StreamHandler()
-# Configure logging to show only INFO level and higher
-handler.setFormatter(ColoredFormatter('%(log_color)s%(levelname)-8s%(reset)s %(message)s'))
-logging.basicConfig(level=logging.INFO)
-# logging.disable()
-app = FastAPI()
-#  This part achive secure connection to your server need to be done latw
-# https://medium.com/@mariovanrooij/adding-https-to-fastapi-ad5e0f9e084e#:~:text=To%20use%20HTTPS%2C%20simply%20change,.com%2Fapi%2Fendpoint%20.
-# ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-# ssl_context.load_cert_chain('cert.pem', keyfile='key.pem')
-origins = ["*"]
-# for security purpose, you might need to define certain IPs that can request a service
-# origins = ["http://localhost",
-#     "http://localhost:37889"]
+app = FastAPI(title="LocaleLive API", version="1.0.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# --- CORS ---
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "development")
+CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "")
+
+if ENVIRONMENT == "production" and CORS_ORIGINS:
+    origins = [origin.strip() for origin in CORS_ORIGINS.split(",")]
+else:
+    origins = ["*"]
+    if ENVIRONMENT == "production":
+        logger.warning("CORS_ORIGINS not set in production, allowing all origins")
 
 app.add_middleware(
     CORSMiddleware,
@@ -36,26 +61,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Configure the logging module
-# Configure the logging settings
-    # logging.getLogger().handlers = []  # Remove any existing handlers
-    # handler = logging.StreamHandler()
-    # handler.setFormatter(ColoredFormatter('%(log_color)s%(levelname)-8s%(reset)s %(message)s'))
-    # logging.getLogger().addHandler(handler)
-# Configure logging to show only INFO level and higher
-
-#turn off debugger
-# logging.disable()
-# class Item(BaseModel):
-#     title: str
-#     price: float
-#     is_offer: Union[bool, None] = None
-
-class Item(BaseModel):
-    title: str
-    id: int
-    userId:int
 
 
 class LocationData(BaseModel):
@@ -69,52 +74,57 @@ class Query(BaseModel):
 
 
 @app.get("/")
-
-async def root(request: Request):
-    """Root endpoint returning basic API information."""
+async def root():
     return {
-        "name": "WebAssistant",
+        "name": "LocaleLive API",
         "version": "1.0.0",
         "status": "healthy",
-        "environment": "development",
+        "environment": ENVIRONMENT,
         "swagger_url": "/docs"
     }
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.put("/query")
-def query_handler(query: Query):
-    print(f"Query received: {query.text}")
-    print(f"Thread ID: {query.threadId}")
-    
-    if query.location:
-        print(f"Location data: lat={query.location.latitude}, lng={query.location.longitude}")
-        logging.info(f"User location: {query.location.latitude}, {query.location.longitude}")
-    else:
-        print("No location data provided")
-        logging.info("No user location data available")
+@limiter.limit("30/minute")
+def query_handler(query: Query, request: Request):
+    logger.info(f"Query received: text='{query.text[:100]}', threadId='{query.threadId}', has_location={query.location is not None}")
 
-    thread = {"configurable": {"thread_id": query.threadId}}
+    try:
+        thread = {"configurable": {"thread_id": query.threadId}}
 
-    # Include location context in the message if available
-    message_content = query.text
-    if query.location:
-        message_content += f"\n\n[User Location: {query.location.latitude}, {query.location.longitude}]"
+        message_content = query.text
+        if query.location:
+            message_content += f"\n\n[User Location: {query.location.latitude}, {query.location.longitude}]"
 
-    human_message = HumanMessage(content=message_content)
-    messages = [human_message]
+        human_message = HumanMessage(content=message_content)
+        messages = [human_message]
 
-    result = runnable.invoke({"messages":messages}, thread)
-    print(result["response"][-1])
+        result = runnable.invoke({"messages": messages}, thread)
 
-    return {"answer": result["response"][-1]}
+        response_text = result.get("response", [""])[-1] if result.get("response") else ""
+        if not response_text:
+            logger.warning(f"Empty response for query: {query.text[:100]}")
+            return JSONResponse(
+                status_code=200,
+                content={"answer": "I'm sorry, I couldn't process your request. Please try again."}
+            )
 
+        return {"answer": response_text}
 
-
-def printResults(results):
-    services_name_addresses=[]
-    for result in results:
-        logging.info(result['Service Address'])
-        logging.info(result['Service Name'])
-        logging.info(result['location']['coordinates'])
-        services_name_addresses.append([result['Service Name'],result['Service Address']])
-    return services_name_addresses
+    except ValueError as e:
+        logger.error(f"Validation error processing query: {e}")
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid request", "detail": str(e)}
+        )
+    except Exception as e:
+        logger.exception(f"Error processing query: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Internal server error", "detail": "An unexpected error occurred. Please try again."}
+        )

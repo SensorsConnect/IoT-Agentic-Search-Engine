@@ -4,19 +4,17 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    TZ=America/Toronto \
-    TF_CPP_MIN_LOG_LEVEL=2 \
-    TF_FORCE_GPU_ALLOW_GROWTH=true \
-    TF_ENABLE_AUTO_MIXED_PRECISION=1
+    TZ=America/Toronto
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (including libpq for psycopg2)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     curl \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements files
@@ -30,15 +28,9 @@ ENV PATH="/app/.venv/bin:$PATH"
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir wheel
 
-# Install Python dependencies in stages to avoid conflicts
-RUN pip install --no-cache-dir langchain requests python-dotenv && \
-    pip install --no-cache-dir transformers torch && \
-    pip install --no-cache-dir docarray tqdm fastapi uvicorn[standard] && \
-    pip install --no-cache-dir accelerate && \
-    pip install --no-cache-dir pymongo openrouteservice && \
-    pip install --no-cache-dir colorlog groq langgraph langchain_community langchain-groq && \
-    pip install --no-cache-dir tavily-python langgraph-checkpoint-sqlite geopy vectordb && \
-    pip install --no-cache-dir "numpy<2" psycopg2-binary
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements_pip.txt
+
 # Create scripts directory and copy entrypoint script
 RUN mkdir -p /app/scripts
 COPY scripts/docker-entrypoint.sh /app/scripts/
@@ -55,4 +47,4 @@ WORKDIR /app/src
 
 # Command to run the application
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
-CMD ["/app/.venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 
+CMD ["/app/.venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

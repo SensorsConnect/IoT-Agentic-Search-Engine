@@ -4,12 +4,8 @@ def assitant_router(state: AgentState):
     return state["call"]
 
 def scrapper_router(state: AgentState):
-    logging.info("STATE at assistant_router:", state)
-    last_handled = state["handled"]
-    if last_handled:
-        return "generator_agent"
-    else:
-        return "generator_agent"
+    logging.info("STATE at scrapper_router: %s", state.get("call"))
+    return state.get("call", "generator_agent")
 
 # def reviewer_router(state: AgentState):
 #     logging.info("I'm in reviewer router")

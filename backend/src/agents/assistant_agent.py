@@ -20,7 +20,8 @@ def assistant_agent(state: AgentState):
             logging.info(response)
             response_json = parser.parse(response.content)
             isParsed=True
-        except:
+        except (ValueError, KeyError, TypeError) as e:
+            logging.warning(f"Failed to parse assistant response as JSON: {e}")
             response_json={
                 "query-type" : "greeting-general",
                 "response" : response.content

@@ -7,21 +7,27 @@ from utils import prepaer_states
 from langchain_core.messages import ToolMessage
 
 def IoT_engine(state: AgentState):
-    print("IoT_engine insde here")
     logging.info("Using IoT_engine agent")
     user_query= state["query"]
     logging.info(f"user_query:  {user_query}")
-    print(f"user_query:  {user_query}")
-
 
     services_types= vector_search(user_query= user_query, limit= 3)
-    # print("Query type: " + query_type)
     logging.debug("Services types (top 3 in semantic meaning): " + str(services_types))
 
-
     collection = services_types[0]
-    latitude= 43.6914028
-    longitude= -79.4037579
+
+    # Use actual user coordinates from location_finder_results
+    location_data = state.get("location_finder_results", {})
+    coordinates = location_data.get("coordinates", [])
+    if coordinates and len(coordinates) >= 2:
+        latitude = float(coordinates[0])
+        longitude = float(coordinates[1])
+    else:
+        # Default fallback to Toronto center if no location provided
+        latitude = 43.6914028
+        longitude = -79.4037579
+        logging.warning("No user coordinates found, using default Toronto center")
+
     results= get_nearByPlaces(latitude, longitude, collection, search_range=10000)
     
     ###################

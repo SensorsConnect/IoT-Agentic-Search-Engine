@@ -26,17 +26,18 @@ def mean_pooling(model_output, attention_mask):
     input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
     return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
 
+# Load embedding model once at startup
+_tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/all-mpnet-base-v2')
+_model = AutoModel.from_pretrained('sentence-transformers/all-mpnet-base-v2')
+
 # Embedding Model
 def embedding_model(doc: str):
-    tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/all-mpnet-base-v2')
-    model = AutoModel.from_pretrained('sentence-transformers/all-mpnet-base-v2')
-
     # Tokenize the document
-    encoded_input = tokenizer(doc, padding=True, truncation=True, return_tensors='pt')
+    encoded_input = _tokenizer(doc, padding=True, truncation=True, return_tensors='pt')
 
     # Compute token embeddings
     with torch.no_grad():
-        model_output = model(**encoded_input)
+        model_output = _model(**encoded_input)
 
     # Perform pooling
     doc_embedding = mean_pooling(model_output, encoded_input['attention_mask'])

@@ -76,20 +76,23 @@ def get_recommendedSerivce(longitude,latitude ,result, preference='Estimated Ove
     Estimated_serviceTime= [(x*serviceTime) + y for x, y in zip(occpancyFactors,durations)]
     logging.info(f"Estimated_serviceTime: {Estimated_serviceTime}")
     #########
+    # Add computed metrics to each result
+    for x, y in zip(result, occpancyFactors):
+        x["Occupancy"] = y
+    for x, y in zip(result, durations):
+        x["Estimated Travel Time (min)"] = round(y / 60, 1)
+    for x, y in zip(result, Estimated_serviceTime):
+        x["Estimated Overall Service Time (min)"] = round(y / 60, 1)
+
+    # Remove internal/unnecessary fields but keep useful data
+    keys_to_remove = ["Unnamed: 0", "_id", "Service URL", "About",
+                      "Latitude", "Longitude", "location", "collection_name"]
     weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    for  dic in result:
-        del dic["Unnamed: 0"]
-        del dic['_id']
-        del dic['Service URL']
-        # del dic['Service Type']
-        del dic['About']
-        for day in weekdays:
-            del dic[day]
-        del dic['Opening/Closing Time']
-        del dic['Latitude']
-        del dic['Longitude']
-        del dic['location']
-        del dic['collection_name']
+    keys_to_remove.extend(weekdays)
+
+    for dic in result:
+        for key in keys_to_remove:
+            dic.pop(key, None)
     #########
     return result
     # for x,y in zip(result, occpancyFactors):

@@ -38,7 +38,8 @@ def reviewer_agent(state: AgentState):
                 logging.info(response)
                 response_json = parser.parse(response.content)
                 isParsed=True
-            except:
+            except (ValueError, KeyError, TypeError) as e:
+                logging.warning(f"Failed to parse reviewer response as JSON: {e}")
                 response_json={"query-type" : "answered"}
                 isParsed=True
                 
@@ -67,10 +68,10 @@ def reviewer_agent(state: AgentState):
             agent_state["call"] = "scrapper"
         agent_state["messages"] = [response]
         logging.info(agent_state)
-        return agent_state
+        return prepaer_states(agent_state)
     elif state["response"][-1] == "":
-        return agent_state
+        return prepaer_states(agent_state)
     else:
         agent_state["call"] = "END"
-    print("end of reviwer")
-    return agent_state
+    logging.info("end of reviewer")
+    return prepaer_states(agent_state)
