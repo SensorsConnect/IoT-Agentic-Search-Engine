@@ -148,6 +148,7 @@ const useChatHook = () => {
 
       onChangeChat(newChat)
       onClosePersonaPanel()
+      setToggleSidebar(false)
     },
     [setChatList, onChangeChat, onClosePersonaPanel]
   )
