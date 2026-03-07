@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Request
@@ -52,7 +53,30 @@ async def query_handler(
         human_message = HumanMessage(content=message_content)
         messages = [human_message]
 
-        result = runnable.invoke({"messages": messages, "query": message_content}, thread)
+        result = None
+        last_exc = None
+        for attempt in range(3):
+            try:
+                result = runnable.invoke({"messages": messages, "query": message_content}, thread)
+                break
+            except Exception as exc:
+                exc_str = str(exc).lower()
+                is_conn_err = any(k in exc_str for k in (
+                    "ssl connection has been closed",
+                    "consuming input failed",
+                    "connection is closed",
+                    "server closed the connection",
+                    "could not connect to server",
+                ))
+                if is_conn_err and attempt < 2:
+                    wait = 1.5 ** attempt
+                    logger.warning(f"DB connection error on attempt {attempt + 1}, retrying in {wait:.1f}s: {exc}")
+                    time.sleep(wait)
+                    last_exc = exc
+                else:
+                    raise
+        if result is None:
+            raise last_exc
 
         response_text = result.get("response", "")
         if not response_text:

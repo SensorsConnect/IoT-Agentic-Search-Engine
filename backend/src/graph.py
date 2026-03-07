@@ -16,8 +16,17 @@ if POSTGRES_URL and POSTGRES_URL.startswith(("postgresql://", "postgres://")):
         conninfo=POSTGRES_URL,
         min_size=1,
         max_size=5,
-        kwargs={"autocommit": True, "prepare_threshold": 0},
-        max_idle=280,
+        kwargs={
+            "autocommit": True,
+            "prepare_threshold": 0,
+            "keepalives": 1,
+            "keepalives_idle": 30,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+        },
+        max_idle=60,
+        reconnect_timeout=30,
+        open=True,
     )
     memory = PostgresSaver(pool)
     memory.setup()
