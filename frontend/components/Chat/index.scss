@@ -13,7 +13,7 @@
 }
 
 .chat-side-bar {
-  @apply overflow-hidden w-64 z-10;
+  @apply overflow-hidden w-64 z-[1000];
 
   background-color: var(--color-background);
   transition: 0.5s;

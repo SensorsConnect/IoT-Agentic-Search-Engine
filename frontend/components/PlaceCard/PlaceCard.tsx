@@ -10,8 +10,13 @@ interface PlaceCardProps {
 }
 
 function getDirectionsUrl(place: Place): string {
+  if (place.latitude != null && place.longitude != null) {
+    const dest = `${place.latitude},${place.longitude}`
+    const name = place.name ? `&destination_place_name=${encodeURIComponent(place.name)}` : ''
+    return `https://www.google.com/maps/dir/?api=1&destination=${dest}${name}`
+  }
   if (place.google_maps_url) return place.google_maps_url
-  return `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`
 }
 
 export default function PlaceCard({ place, isSelected, onClick }: PlaceCardProps) {

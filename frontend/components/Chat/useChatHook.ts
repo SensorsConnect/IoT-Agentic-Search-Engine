@@ -131,6 +131,7 @@ const useChatHook = () => {
     }
 
     chatRef.current?.focus()
+    setTimeout(() => setToggleSidebar(false), 50)
     forceUpdate()
   }, [getToken])
 
