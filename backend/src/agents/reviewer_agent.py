@@ -24,7 +24,7 @@ def reviewer_agent(state: AgentState):
             print("empty query detected")
             messages = state["messages"]
             human_messages = filter_messages(messages, include_types="human")
-            query=human_messages[-1],
+            query=human_messages[-1]
         response =state["response"][-1]
         thread=[]
         thread.append(query)
