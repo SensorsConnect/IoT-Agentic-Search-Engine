@@ -29,10 +29,10 @@ def IoT_engine(state: AgentState):
         logging.warning("No user coordinates found, using default Toronto center")
 
     results= get_nearByPlaces(latitude, longitude, collection, search_range=10000)
-    
+
     ###################
     services=[service for service in results]
-    
+
     for result in results:
         logging.info(result['Service Address'])
         logging.info(result['Service Name'])
@@ -44,10 +44,9 @@ def IoT_engine(state: AgentState):
     if ResponseInJson:
         return prepaer_states({
             "messages": [ToolMessage(content=str(ResponseInJson), name="IoT_engine", tool_call_id="call_IoT_engine")],
-            "handled": [True],
-            "node": ["IoT_engine"],
+            "node": "IoT_engine",
             "context": str(ResponseInJson),
             "call":"generator_agent"
         })
     else:
-        return prepaer_states({"handled": [False], "call":"generator_agent"})
+        return prepaer_states({"node": "IoT_engine", "call":"generator_agent"})

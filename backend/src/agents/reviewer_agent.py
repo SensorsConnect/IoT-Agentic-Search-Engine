@@ -1,22 +1,17 @@
 import logging
 from state_graph import AgentState
 from utils import prepaer_states
-from langchain_core.messages import SystemMessage,AIMessage,HumanMessage,filter_messages      
+from langchain_core.messages import SystemMessage,AIMessage,HumanMessage,filter_messages
 from agents_prompt import reviewer_prompt
 from utils import llm,parser
 from sensorsconnect_coverage.location_finder import finder
 from sensorsconnect_coverage.geography_db import check_city_country_exists
-# def reviewer_agent(state: AgentState):
-#     logging.info("entering reviewer node")
-#     dictionary = {"handled": [True], "make_sense": [True]}
-#     return prepaer_states(dictionary)
+
 def reviewer_agent(state: AgentState):
-    agent_state = {"node": ["reviewer"]}
+    agent_state = {"node": "reviewer"}
     logging.info("entering reviewer node")
-    
-    if state["node"][-1]=="assistant_agent":
-        # question = state["query"]
-        # if state["query"]!=None:
+
+    if state["node"]=="assistant_agent":
         if state.get("query") is not None:
             print(state["query"])
             query= HumanMessage(content=state["query"])
@@ -25,7 +20,7 @@ def reviewer_agent(state: AgentState):
             messages = state["messages"]
             human_messages = filter_messages(messages, include_types="human")
             query=human_messages[-1]
-        response =state["response"][-1]
+        response =state["response"]
         thread=[]
         thread.append(query)
         thread.append(response)
@@ -42,7 +37,7 @@ def reviewer_agent(state: AgentState):
                 logging.warning(f"Failed to parse reviewer response as JSON: {e}")
                 response_json={"query-type" : "answered"}
                 isParsed=True
-                
+
         if response_json["query-type"] == "answered":
             agent_state["call"] = "END"
         elif response_json["query-type"] == "service-recommendation":
@@ -58,7 +53,7 @@ def reviewer_agent(state: AgentState):
                 else:
                     logging.info("GoogleMaps")
                     agent_state["call"] = "GoogleMaps"
-                    agent_state["query"] = response_json["question"]   
+                    agent_state["query"] = response_json["question"]
             else:
                 logging.info("Iot_engine")
                 agent_state["call"] = "IoT_engine"
@@ -69,7 +64,7 @@ def reviewer_agent(state: AgentState):
         agent_state["messages"] = [response]
         logging.info(agent_state)
         return prepaer_states(agent_state)
-    elif state["response"][-1] == "":
+    elif state["response"] == "":
         return prepaer_states(agent_state)
     else:
         agent_state["call"] = "END"

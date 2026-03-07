@@ -9,6 +9,7 @@ from agents import (
     scrapper,
     reviewer_agent
 )
+from agents.finalize import finalize_turn
 from routers import (
     assitant_router,
     scrapper_router,
@@ -27,6 +28,7 @@ def initialize_graph():
     graph.add_node("GoogleKnowledgeGraph", GoogleKnowledgeGraph)
     graph.add_node("scrapper", scrapper)
     graph.add_node("reviewer_agent", reviewer_agent)
+    graph.add_node("finalize_turn", finalize_turn)
 
     graph.add_conditional_edges(
         "assistant_agent", assitant_router, {"reviewer_agent": "reviewer_agent",
@@ -54,9 +56,11 @@ def initialize_graph():
     graph.add_edge("generator_agent", "reviewer_agent")
 
     graph.add_conditional_edges(
-        "reviewer_agent", reviewer_router, {"IoT_engine": "IoT_engine", "scrapper": "scrapper", "GoogleMaps": "GoogleMaps", "END": END}
+        "reviewer_agent", reviewer_router, {"IoT_engine": "IoT_engine", "scrapper": "scrapper", "GoogleMaps": "GoogleMaps", "END": "finalize_turn"}
     )
 
+    graph.add_edge("finalize_turn", END)
+
     graph.set_entry_point("assistant_agent")
-    
+
     return graph

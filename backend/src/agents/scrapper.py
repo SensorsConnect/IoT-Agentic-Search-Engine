@@ -21,10 +21,9 @@ def scrapper(state: AgentState):
         search_result = response["results"]
         return prepaer_states({
             "messages": [ToolMessage(content=str(search_result[0]), name="scrapper", tool_call_id="call_scrapper")],
-            "handled": [True],
-            "node": ["scrapper"],
+            "node": "scrapper",
             "context": str(search_result[0]),
             "call": "generator_agent"
         })
     else:
-        return prepaer_states({"handled": [False], "node": ["scrapper"], "call": "generator_agent"})
+        return prepaer_states({"node": "scrapper", "call": "generator_agent"})

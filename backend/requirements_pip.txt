@@ -23,6 +23,7 @@ groq==0.11.0
 pymongo==4.9.1
 SQLAlchemy==2.0.35
 psycopg2-binary>=2.9.9
+psycopg_pool>=3.1.0
 
 # Vector DB & ML
 docarray==0.40.0

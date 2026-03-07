@@ -72,8 +72,7 @@ def GoogleMaps(state: AgentState):
     if not coordinates or len(coordinates) < 2:
         logging.error(f"Invalid coordinates received: {coordinates}")
         return prepaer_states({
-            "handled": [False],
-            "node": ["GoogleMaps"],
+            "node": "GoogleMaps",
             "call": "generator_agent"
         })
 
@@ -83,8 +82,7 @@ def GoogleMaps(state: AgentState):
     except (ValueError, TypeError) as e:
         logging.error(f"Coordinates are not valid numbers: {e}")
         return prepaer_states({
-            "handled": [False],
-            "node": ["GoogleMaps"],
+            "node": "GoogleMaps",
             "call": "generator_agent"
         })
 
@@ -201,14 +199,12 @@ def GoogleMaps(state: AgentState):
         final_results = _sort_by_travel_time(best_results)[:3]
         return prepaer_states({
             "messages": [ToolMessage(content=str(final_results), name="GoogleMaps", tool_call_id="call_IoT_engine")],
-            "handled": [True],
-            "node": ["GoogleMaps"],
+            "node": "GoogleMaps",
             "context": str(final_results),
             "call": "generator_agent"
         })
     else:
         return prepaer_states({
-            "handled": [False],
-            "node": ["GoogleMaps"],
+            "node": "GoogleMaps",
             "call": "generator_agent"
         })

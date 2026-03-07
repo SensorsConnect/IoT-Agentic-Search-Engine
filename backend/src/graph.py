@@ -10,11 +10,28 @@ POSTGRES_URL = os.environ.get("POSTGRES_URL", "")
 
 if POSTGRES_URL and POSTGRES_URL.startswith(("postgresql://", "postgres://")):
     from langgraph.checkpoint.postgres import PostgresSaver
-    from psycopg import Connection
+    from psycopg_pool import ConnectionPool
 
-    conn = Connection.connect(POSTGRES_URL, autocommit=True, prepare_threshold=0)
-    memory = PostgresSaver(conn)
+    pool = ConnectionPool(
+        conninfo=POSTGRES_URL,
+        min_size=1,
+        max_size=5,
+        kwargs={"autocommit": True, "prepare_threshold": 0},
+        max_idle=280,
+    )
+    memory = PostgresSaver(pool)
     memory.setup()
+
+    # One-time cleanup: clear stale checkpoints after schema migration
+    try:
+        with pool.connection() as conn_:
+            conn_.execute("DELETE FROM checkpoints")
+            conn_.execute("DELETE FROM checkpoint_writes")
+            conn_.execute("DELETE FROM checkpoint_blobs")
+        logging.info("Cleared stale LangGraph checkpoints for schema migration")
+    except Exception as e:
+        logging.warning(f"Could not clear old checkpoints: {e}")
+
     logging.info("Using PostgreSQL checkpointer for conversation persistence")
 else:
     from langgraph.checkpoint.sqlite import SqliteSaver

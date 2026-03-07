@@ -5,7 +5,6 @@ from utils import prepaer_states
 def GoogleKnowledgeGraph(state: AgentState):
     logging.warning("GoogleKnowledgeGraph is deprecated and should not be called")
     return prepaer_states({
-        "handled": [False],
-        "node": ["GoogleKnowledgeGraph"],
+        "node": "GoogleKnowledgeGraph",
         "call": "generator_agent"
     })

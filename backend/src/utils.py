@@ -1,7 +1,7 @@
 from langchain_core.output_parsers import JsonOutputParser
 import os
 from langchain_groq import ChatGroq  # Assuming this is the correct import
-from langchain_core.messages import AIMessage,filter_messages
+from langchain_core.messages import AIMessage, HumanMessage, filter_messages
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 LLM_MODEL = os.environ.get('LLM_MODEL')
@@ -11,35 +11,17 @@ parser = JsonOutputParser()
 llm = ChatGroq(model=LLM_MODEL, temperature=0)
 
 def prepaer_states(json_obj):
-    """
-    Ensure all keys are present in the JSON object. 
-    If a key is missing, set its value to None.
-
-    Args:
-        json_obj (dict): The JSON object to check.
-        keys (list): List of keys to ensure in the JSON object.
-
-    Returns:
-        dict: The updated JSON object with all specified keys.
-    """
-    keys = [ "handled", "make_sense", "node"]
-    for key in keys:
-        if key not in json_obj:
-            json_obj[key] = [None]
     return json_obj
 
 def get_thread(state):
-    messages = state["messages"]
-    human_messages = filter_messages(messages, include_types="human")
-    if(len(human_messages)>1):
-        index =0
-        responses = state["response"]
-        thread=[]
-        for response in responses:
-            thread.append(human_messages[index])
-            thread.append(AIMessage(content=response))
-            index+=1
-        thread.append(human_messages[-1])
-    else:
-        thread= human_messages
+    thread_summary = state.get("thread_summary", [])
+    thread = []
+    for entry in thread_summary:
+        if entry and entry.get("role") == "user":
+            thread.append(HumanMessage(content=entry["content"]))
+        elif entry and entry.get("role") == "assistant":
+            thread.append(AIMessage(content=entry["content"]))
+    current_query = state.get("query", "")
+    if current_query:
+        thread.append(HumanMessage(content=current_query))
     return thread

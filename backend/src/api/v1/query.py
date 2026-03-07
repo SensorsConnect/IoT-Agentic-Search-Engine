@@ -54,7 +54,7 @@ async def query_handler(
 
         result = runnable.invoke({"messages": messages}, thread)
 
-        response_text = result.get("response", [""])[-1] if result.get("response") else ""
+        response_text = result.get("response", "")
         if not response_text:
             logger.warning(f"Empty response for query: {query.text[:100]}")
             return JSONResponse(

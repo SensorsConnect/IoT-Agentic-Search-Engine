@@ -53,7 +53,7 @@ def override_get_db():
 
 # Mock the graph runnable to avoid actual LLM calls
 mock_runnable = MagicMock()
-mock_runnable.invoke.return_value = {"response": ["This is a test response."]}
+mock_runnable.invoke.return_value = {"response": "This is a test response."}
 
 # Patch graph import before importing main
 with patch.dict("sys.modules", {}):

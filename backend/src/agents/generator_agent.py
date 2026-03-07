@@ -13,48 +13,27 @@ def generator_agent(state: AgentState):
     question= state.get("query", "")
     context= state.get("context", "")
     if context=="":
-        if state["node"][-1]=='IoT_engine':
-            return prepaer_states({"node": ["generator_agent"], "response": [""], "call": "GoogleMaps"})
-        elif state["node"][-1]=='GoogleMaps':
-            return prepaer_states({"node": ["generator_agent"], "response": [""], "call": "scrapper"})
+        if state["node"]=='IoT_engine':
+            return prepaer_states({"node": "generator_agent", "response": "", "call": "GoogleMaps"})
+        elif state["node"]=='GoogleMaps':
+            return prepaer_states({"node": "generator_agent", "response": "", "call": "scrapper"})
         else:
-            return prepaer_states({"node": ["generator_agent"], "response": ["I can't handle this query"], "call": "scrapper"})
+            return prepaer_states({"node": "generator_agent", "response": "I can't handle this query", "call": "scrapper"})
 
 
-    if state["node"][-1]=='scrapper':
-        # question = state["query"]
-        # context = state["context"]
-        node =state["node"][-1]
+    if state["node"]=='scrapper':
+        node =state["node"]
 
         thread= get_thread(state)
         prompt = [SystemMessage(content=scrapper_prompt.format(context=context, node=node))] + list(thread)
-    elif state["node"][-1]=='IoT_engine':
-        # question = state["query"]
-        # context = state["context"]
-        node =state["node"][-1]
-        
+    elif state["node"]=='IoT_engine':
+        node =state["node"]
+
         thread= get_thread(state)
         prompt = [SystemMessage(content=IoT_engine_prompt.format(JsonObject=context, node=node))] + list(thread)
-    elif state["node"][-1]=='GoogleMaps':
-        # question = state["query"]
-        # context = state["context"]
-        node =state["node"][-1]
+    elif state["node"]=='GoogleMaps':
+        node =state["node"]
         thread= get_thread(state)
-        prompt = [SystemMessage(content=GoogleMaps_prompt.format(JsonObject=context, node=node))] + list(thread) 
-        # messages = [
-        #     SystemMessage(
-        #         content=IoT_engine_prompt.format(JsonObject=context, query=question, node=node)
-        #     )
-        # ]
+        prompt = [SystemMessage(content=GoogleMaps_prompt.format(JsonObject=context, node=node))] + list(thread)
     response = llm.invoke(prompt)
-    return prepaer_states({"messages": [response], "node": ["generator_agent"], "response": [response.content]})
-
-# def reviewer_agent(state: AgentState):
-#     logging.info("entering reviewer node")
-#     dictionary = {"handled": [True], "make_sense": [True]}
-#     return prepaer_states(dictionary)
-
-
-
-
-
+    return prepaer_states({"messages": [response], "node": "generator_agent", "response": response.content})

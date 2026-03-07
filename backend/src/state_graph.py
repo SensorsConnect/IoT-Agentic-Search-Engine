@@ -4,11 +4,10 @@ from langchain_core.messages import BaseMessage
 
 class AgentState(TypedDict):
     messages: Annotated[Sequence[BaseMessage], operator.add]
-    handled: Annotated[List[bool], operator.add]
-    make_sense: Annotated[List[bool], operator.add]
-    node: Annotated[List[str], operator.add]
-    query: str = ""
-    response: Annotated[List[str], operator.add]
-    context: str = ""
-    call: str = ""
-    location_finder_results: dict= {}
+    query: str
+    context: str
+    response: str
+    call: str
+    node: str
+    location_finder_results: dict
+    thread_summary: Annotated[List[dict], operator.add]

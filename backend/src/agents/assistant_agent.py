@@ -8,7 +8,7 @@ from sensorsconnect_coverage.geography_db import check_city_country_exists
 from sensorsconnect_coverage.location_finder import finder
 def assistant_agent(state: AgentState):
     logging.info("entering assistant node")
-    agent_state = {"node": ["assistant_agent"]}
+    agent_state = {"node": "assistant_agent"}
 
     thread= get_thread(state)
 
@@ -30,7 +30,7 @@ def assistant_agent(state: AgentState):
 
     if response_json["query-type"] == "greeting-general":
         agent_state["call"] = "reviewer_agent"
-        agent_state["response"] = [response_json["response"]]
+        agent_state["response"] = response_json["response"]
     elif response_json["query-type"] == "service-recommendation":
         if response_json.get("coordinates") and response_json.get("coordinates") != [0, 0]:
             agent_state["call"] = "GoogleMaps"
@@ -48,7 +48,7 @@ def assistant_agent(state: AgentState):
             else:
                 logging.info("GoogleMaps")
                 agent_state["call"] = "GoogleMaps"
-                agent_state["query"] = response_json["question"]   
+                agent_state["query"] = response_json["question"]
         else:
             logging.info("Iot_engine")
             agent_state["call"] = "IoT_engine"
