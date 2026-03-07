@@ -106,7 +106,7 @@ const useChatHook = () => {
     if (chat.conversationId) {
       try {
         const token = await getToken()
-        const data = await apiJson<{ messages: { role: string; content: string }[] }>(
+        const data = await apiJson<{ messages: { role: string; content: string; metadata?: { places?: any[]; userLocation?: any } | null }[] }>(
           `/conversations/${chat.conversationId}`,
           {},
           token
@@ -114,6 +114,8 @@ const useChatHook = () => {
         const msgs: ChatMessage[] = data.messages.map((m) => ({
           role: m.role as 'user' | 'assistant',
           content: m.content,
+          places: m.metadata?.places,
+          userLocation: m.metadata?.userLocation,
         }))
         messagesMap.current.set(chat.id, msgs)
         chatRef.current?.setConversation(msgs)

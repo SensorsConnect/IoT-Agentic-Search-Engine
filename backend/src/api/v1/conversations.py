@@ -29,6 +29,7 @@ class MessageOut(BaseModel):
     id: str
     role: str
     content: str
+    metadata: Optional[dict] = None
     created_at: str
 
     class Config:
@@ -106,6 +107,7 @@ async def get_conversation(
                 id=str(m.id),
                 role=m.role,
                 content=m.content,
+                metadata=m.metadata_ if m.metadata_ else None,
                 created_at=m.created_at.isoformat(),
             )
             for m in msgs

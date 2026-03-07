@@ -1,4 +1,5 @@
 import logging
+import os
 from state_graph import AgentState
 from vector_db.vector_database import vector_search
 from mongo_db.database_connection import get_nearByPlaces
@@ -68,13 +69,25 @@ def IoT_engine(state: AgentState):
         for service in ResponseInJson:
             name = service.get("Service Name", "")
             raw = raw_data.get(name, {})
+            # Build Street View photo URL for IoT places
+            place_lat = raw.get("latitude")
+            place_lng = raw.get("longitude")
+            gmaps_key = os.environ.get("GOOGLE_MAPS_API_KEY", "")
+            photo_url = None
+            if place_lat and place_lng and gmaps_key:
+                photo_url = (
+                    f"https://maps.googleapis.com/maps/api/streetview"
+                    f"?size=400x200&location={place_lat},{place_lng}&key={gmaps_key}"
+                )
+
             places.append({
                 "id": raw.get("id", ""),
                 "name": name,
                 "address": raw.get("address") or service.get("Service Address", ""),
-                "latitude": raw.get("latitude"),
-                "longitude": raw.get("longitude"),
+                "latitude": place_lat,
+                "longitude": place_lng,
                 "rating": raw.get("rating") or service.get("Rate"),
+                "photo_url": photo_url,
                 "about": raw.get("about"),
                 "opening_hours": raw.get("opening_hours"),
                 "google_maps_url": raw.get("google_maps_url"),
