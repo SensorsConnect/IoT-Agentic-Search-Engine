@@ -288,7 +288,7 @@ class TestGreetingRoute:
         r = _build_graph(_default_nodes(
             assistant_agent=make_assistant_greeting("Hi there!"),
         ))
-        result = r.invoke({"messages": [HumanMessage(content="Hello")]}, _thread("g1"))
+        result = r.invoke({"messages": [HumanMessage(content="Hello")], "query": "Hello"}, _thread("g1"))
 
         assert isinstance(result["response"], str)
         assert result["response"] == "Hi there!"
@@ -302,7 +302,7 @@ class TestGreetingRoute:
         r = _build_graph(_default_nodes(
             assistant_agent=make_assistant_greeting(""),
         ))
-        result = r.invoke({"messages": [HumanMessage(content="Hello")]}, _thread("g2"))
+        result = r.invoke({"messages": [HumanMessage(content="Hello")], "query": "Hello"}, _thread("g2"))
         assert result["node"] == "finalize_turn"
         # No thread_summary since response was empty
         assert "thread_summary" not in result or len(result.get("thread_summary", [])) == 0
@@ -319,7 +319,7 @@ class TestIoTRoute:
             IoT_engine=make_iot_engine(has_results=True, context="[{name:'Tim Hortons'}]"),
             generator_agent=make_generator("Coffee shops near you."),
         ))
-        result = r.invoke({"messages": [HumanMessage(content="coffee shops")]}, _thread("iot1"))
+        result = r.invoke({"messages": [HumanMessage(content="coffee shops")], "query": "coffee shops"}, _thread("iot1"))
 
         assert result["response"] == "Coffee shops near you."
         assert result["node"] == "finalize_turn"
@@ -348,7 +348,7 @@ class TestIoTRoute:
             GoogleMaps=make_google_maps(has_results=True, context="[{place:'Pizza'}]"),
             reviewer_agent=reviewer_fallback,
         ))
-        result = r.invoke({"messages": [HumanMessage(content="restaurants")]}, _thread("iot2"))
+        result = r.invoke({"messages": [HumanMessage(content="restaurants")], "query": "restaurants"}, _thread("iot2"))
         assert result["response"] == "Generated response"
         assert result["node"] == "finalize_turn"
 
@@ -364,7 +364,7 @@ class TestGoogleMapsRoute:
             GoogleMaps=make_google_maps(has_results=True, context="[{place:'CVS'}]"),
             generator_agent=make_generator("Pharmacies nearby."),
         ))
-        result = r.invoke({"messages": [HumanMessage(content="pharmacies")]}, _thread("gm1"))
+        result = r.invoke({"messages": [HumanMessage(content="pharmacies")], "query": "pharmacies"}, _thread("gm1"))
         assert result["response"] == "Pharmacies nearby."
         assert result["node"] == "finalize_turn"
 
@@ -389,7 +389,7 @@ class TestGoogleMapsRoute:
             scrapper=make_scrapper(has_results=True, context="Bookstore found online"),
             reviewer_agent=reviewer_fallback,
         ))
-        result = r.invoke({"messages": [HumanMessage(content="rare bookstore")]}, _thread("gm2"))
+        result = r.invoke({"messages": [HumanMessage(content="rare bookstore")], "query": "rare bookstore"}, _thread("gm2"))
         assert result["response"] == "Generated response"
         assert result["node"] == "finalize_turn"
 
@@ -403,7 +403,7 @@ class TestScrapperRoute:
             scrapper=make_scrapper(has_results=True, context="Quantum uses qubits..."),
             generator_agent=make_generator("Quantum computing is..."),
         ))
-        result = r.invoke({"messages": [HumanMessage(content="quantum?")]}, _thread("sc1"))
+        result = r.invoke({"messages": [HumanMessage(content="quantum?")], "query": "quantum?"}, _thread("sc1"))
         assert result["response"] == "Quantum computing is..."
         assert result["node"] == "finalize_turn"
 
@@ -419,7 +419,7 @@ class TestReviewerLoopRoute:
             reviewer_agent=make_reviewer_reject_to(target="scrapper", query="gyms web"),
             scrapper=make_scrapper(has_results=True, context="More gyms"),
         ))
-        result = r.invoke({"messages": [HumanMessage(content="gyms")]}, _thread("rl1"))
+        result = r.invoke({"messages": [HumanMessage(content="gyms")], "query": "gyms"}, _thread("rl1"))
         assert result["node"] == "finalize_turn"
         assert isinstance(result["response"], str)
 
@@ -430,7 +430,7 @@ class TestReviewerLoopRoute:
             reviewer_agent=make_reviewer_reject_to(target="GoogleMaps", query="pizza"),
             GoogleMaps=make_google_maps(has_results=True, context="[{place:'Dominos'}]"),
         ))
-        result = r.invoke({"messages": [HumanMessage(content="pizza")]}, _thread("rl2"))
+        result = r.invoke({"messages": [HumanMessage(content="pizza")], "query": "pizza"}, _thread("rl2"))
         assert result["node"] == "finalize_turn"
 
     def test_reviewer_rejects_to_iot(self):
@@ -440,7 +440,7 @@ class TestReviewerLoopRoute:
             reviewer_agent=make_reviewer_reject_to(target="IoT_engine", query="parking"),
             IoT_engine=make_iot_engine(has_results=True, context="[{service:'parking'}]"),
         ))
-        result = r.invoke({"messages": [HumanMessage(content="parking")]}, _thread("rl3"))
+        result = r.invoke({"messages": [HumanMessage(content="parking")], "query": "parking"}, _thread("rl3"))
         assert result["node"] == "finalize_turn"
 
 
@@ -451,7 +451,7 @@ class TestStateSchema:
         r = _build_graph(_default_nodes(
             assistant_agent=make_assistant_greeting("Hi!"),
         ))
-        return r, r.invoke({"messages": [HumanMessage(content="hi")]}, _thread(tid))
+        return r, r.invoke({"messages": [HumanMessage(content="hi")], "query": "hi"}, _thread(tid))
 
     def test_response_is_string(self):
         _, result = self._run_greeting("ss1")
@@ -474,10 +474,10 @@ class TestStateSchema:
         ))
         thread = _thread("ss4")
 
-        result1 = r.invoke({"messages": [HumanMessage(content="Hi")]}, thread)
+        result1 = r.invoke({"messages": [HumanMessage(content="Hi")], "query": "Hi"}, thread)
         assert len(result1["thread_summary"]) == 2
 
-        result2 = r.invoke({"messages": [HumanMessage(content="How are you?")]}, thread)
+        result2 = r.invoke({"messages": [HumanMessage(content="How are you?")], "query": "How are you?"}, thread)
         assert len(result2["thread_summary"]) == 4
         assert result2["thread_summary"][0]["role"] == "user"
         assert result2["thread_summary"][2]["role"] == "user"
@@ -538,7 +538,7 @@ class TestFullFallbackCascade:
             "reviewer_agent": reviewer,
             "GoogleKnowledgeGraph": make_google_knowledge_graph(),
         })
-        result = r.invoke({"messages": [HumanMessage(content="sushi")]}, _thread("fc1"))
+        result = r.invoke({"messages": [HumanMessage(content="sushi")], "query": "sushi"}, _thread("fc1"))
 
         assert "IoT_engine" in call_log
         assert "GoogleMaps" in call_log
@@ -610,5 +610,5 @@ class TestReviewerEmptyResponse:
             "reviewer_agent": reviewer,
             "GoogleKnowledgeGraph": make_google_knowledge_graph(),
         })
-        result = r.invoke({"messages": [HumanMessage(content="parks")]}, _thread("re1"))
+        result = r.invoke({"messages": [HumanMessage(content="parks")], "query": "parks"}, _thread("re1"))
         assert result["node"] == "finalize_turn"

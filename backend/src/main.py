@@ -9,7 +9,7 @@ from slowapi.errors import RateLimitExceeded
 
 # --- Env var validation ---
 REQUIRED_ENV_VARS = ["GROQ_API_KEY", "LLM_MODEL", "MONGODB_URL"]
-OPTIONAL_ENV_VARS = ["POSTGRES_URL", "Google_Maps_API_Key", "ORS_API_KEY", "TAVILY_API_KEY",
+OPTIONAL_ENV_VARS = ["POSTGRES_URL", "GOOGLE_MAPS_API_KEY", "ORS_API_KEY", "TAVILY_API_KEY",
                      "LANGCHAIN_API_KEY", "CORS_ORIGINS", "CLERK_JWKS_URL"]
 
 missing = [v for v in REQUIRED_ENV_VARS if not os.environ.get(v)]

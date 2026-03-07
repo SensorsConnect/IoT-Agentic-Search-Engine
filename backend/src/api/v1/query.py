@@ -52,7 +52,7 @@ async def query_handler(
         human_message = HumanMessage(content=message_content)
         messages = [human_message]
 
-        result = runnable.invoke({"messages": messages}, thread)
+        result = runnable.invoke({"messages": messages, "query": message_content}, thread)
 
         response_text = result.get("response", "")
         if not response_text:

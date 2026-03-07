@@ -20,7 +20,7 @@ def reviewer_agent(state: AgentState):
             messages = state["messages"]
             human_messages = filter_messages(messages, include_types="human")
             query=human_messages[-1]
-        response =state["response"]
+        response = AIMessage(content=state["response"])
         thread=[]
         thread.append(query)
         thread.append(response)
