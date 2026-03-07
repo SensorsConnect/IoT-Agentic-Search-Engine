@@ -1,3 +1,4 @@
+import { ClerkProvider } from '@clerk/nextjs'
 import { Analytics } from '@vercel/analytics/react'
 import { Toaster } from 'react-hot-toast'
 import { Header } from '@/components/Header'
@@ -40,12 +41,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="format-detection" content="telephone=no" />
       </head>
       <body>
-        <ThemesProvider>
-          <Header />
-          {children}
-          <Toaster />
-        </ThemesProvider>
-        <Analytics />
+        <ClerkProvider>
+          <ThemesProvider>
+            <Header />
+            {children}
+            <Toaster />
+          </ThemesProvider>
+          <Analytics />
+        </ClerkProvider>
       </body>
     </html>
   )

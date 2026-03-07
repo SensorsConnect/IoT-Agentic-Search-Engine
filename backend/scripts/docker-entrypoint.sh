@@ -7,9 +7,10 @@ source /app/.venv/bin/activate
 # Change to src directory
 cd /app/src
 
-# Run database migrations or other startup tasks here if needed
-# For example:
-# python manage.py migrate
+# Run Alembic migrations
+cd /app
+alembic upgrade head
+cd /app/src
 
 # Execute the command passed to docker run
 exec "$@" 

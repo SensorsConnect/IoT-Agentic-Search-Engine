@@ -1,12 +1,8 @@
 # geography_db.py
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-import os
-POSTGRES_URL = os.environ.get('POSTGRES_URL')
-# Create an engine and a base class
-engine = create_engine(POSTGRES_URL, echo=False)
-Base = declarative_base()
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+
+from db.engine import Base, engine, SessionLocal
 
 # Define the Country model
 class Country(Base):
@@ -23,12 +19,8 @@ class City(Base):
     country_id = Column(Integer, ForeignKey('countries.id'), nullable=False)
     country = relationship('Country', back_populates='cities')
 
-# Create all tables
-Base.metadata.create_all(engine)
-
 # Create a session
-Session = sessionmaker(bind=engine)
-session = Session()
+session = SessionLocal()
 
 # Function to add a country
 def add_country(name):

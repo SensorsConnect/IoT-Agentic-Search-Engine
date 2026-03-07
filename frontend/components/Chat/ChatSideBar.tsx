@@ -48,7 +48,7 @@ export const ChatSideBar = () => {
                 <Flex gap="2" align="center" className="overflow-hidden whitespace-nowrap">
                   <BiMessageDetail className="size-4" />
                   <Text as="p" className="truncate">
-                    {chat.persona?.name}
+                    {chat.title || chat.persona?.name || 'New Chat'}
                   </Text>
                 </Flex>
                 <IconButton

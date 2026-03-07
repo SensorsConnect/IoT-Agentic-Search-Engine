@@ -17,6 +17,7 @@ import { FiSend } from 'react-icons/fi'
 import ChatContext from './chatContext'
 import type { Chat, ChatMessage } from './interface'
 import Message from './Message'
+import { useAuth } from '@clerk/nextjs'
 import { config } from '@/utils/environment'
 import { LocationButton, useLocation } from '@/components/Location'
 
@@ -33,8 +34,8 @@ export interface ChatGPInstance {
   focus: () => void
 }
 
-const postChatOrQuestion = async (chat: Chat, messages: any[], input: string, location?: { latitude: number; longitude: number } | null) => {
-  const url = `${config.apiUrl}/query`
+const postChatOrQuestion = async (chat: Chat, messages: any[], input: string, location?: { latitude: number; longitude: number } | null, token?: string | null) => {
+  const url = `${config.apiUrl}/api/v1/query`
 
   const data: any = {
     "threadId": chat.id,
@@ -50,11 +51,16 @@ const postChatOrQuestion = async (chat: Chat, messages: any[], input: string, lo
     data.location = null
   }
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
   return await fetch(url, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers,
     body: JSON.stringify(data)
   })
 }
@@ -63,6 +69,7 @@ const Chat = (props: ChatProps, ref: any) => {
   const { debug, currentChatRef, saveMessages, onToggleSidebar, forceUpdate } =
     useContext(ChatContext)
 
+  const { getToken } = useAuth()
   const { location: contextLocation, requestLocation } = useLocation()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -149,7 +156,8 @@ const Chat = (props: ChatProps, ref: any) => {
         setMessage('')
         setIsLoading(true)
         try {
-          const response = await postChatOrQuestion(currentChatRef?.current!, message, input, effectiveLocation)
+          const token = await getToken()
+          const response = await postChatOrQuestion(currentChatRef?.current!, message, input, effectiveLocation, token)
 
           if (response.ok) {
             const data = response.body
@@ -210,7 +218,7 @@ const Chat = (props: ChatProps, ref: any) => {
         }
       }
     },
-    [currentChatRef, debug, isLoading, currentLocation, contextLocation]
+    [currentChatRef, debug, isLoading, currentLocation, contextLocation, getToken]
   )
 
   const handleKeypress = useCallback(

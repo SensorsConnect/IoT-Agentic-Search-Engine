@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import axios from 'axios'
 import { useSearchParams } from 'next/navigation'
+import { useAuth } from '@clerk/nextjs'
 import toast from 'react-hot-toast'
 import { v4 as uuid } from 'uuid'
 import { ChatGPInstance } from './Chat'
 import { Chat, ChatMessage, Persona } from './interface'
+import { apiJson } from '@/lib/api'
 
 export const DefaultPersonas: Persona[] = [
   {
@@ -27,7 +29,6 @@ export const DefaultPersonas: Persona[] = [
 ]
 
 enum StorageKeys {
-  Chat_List = 'chatList',
   Chat_Current_ID = 'chatCurrentID'
 }
 
@@ -50,6 +51,7 @@ let isInit = false
 
 const useChatHook = () => {
   const searchParams = useSearchParams()
+  const { getToken } = useAuth()
 
   const debug = searchParams.get('debug') === 'true'
 
@@ -95,15 +97,38 @@ const useChatHook = () => {
     setIsOpenPersonaModal(false)
   }
 
-  const onChangeChat = useCallback((chat: Chat) => {
+  const onChangeChat = useCallback(async (chat: Chat) => {
     const oldMessages = chatRef.current?.getConversation() || []
-    const newMessages = messagesMap.current.get(chat.id) || []
-    chatRef.current?.setConversation(newMessages)
-    chatRef.current?.focus()
     messagesMap.current.set(currentChatRef.current?.id!, oldMessages)
     currentChatRef.current = chat
+
+    // Try to load messages from API if this chat has a conversationId
+    if (chat.conversationId) {
+      try {
+        const token = await getToken()
+        const data = await apiJson<{ messages: { role: string; content: string }[] }>(
+          `/conversations/${chat.conversationId}`,
+          {},
+          token
+        )
+        const msgs: ChatMessage[] = data.messages.map((m) => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        }))
+        messagesMap.current.set(chat.id, msgs)
+        chatRef.current?.setConversation(msgs)
+      } catch {
+        const cached = messagesMap.current.get(chat.id) || []
+        chatRef.current?.setConversation(cached)
+      }
+    } else {
+      const cached = messagesMap.current.get(chat.id) || []
+      chatRef.current?.setConversation(cached)
+    }
+
+    chatRef.current?.focus()
     forceUpdate()
-  }, [])
+  }, [getToken])
 
   const onCreateChat = useCallback(
     (persona: Persona) => {
@@ -127,11 +152,21 @@ const useChatHook = () => {
     setToggleSidebar((state) => !state)
   }, [])
 
-  const onDeleteChat = (chat: Chat) => {
+  const onDeleteChat = async (chat: Chat) => {
+    // Delete from API if it has a conversationId
+    if (chat.conversationId) {
+      try {
+        const token = await getToken()
+        await apiJson(`/conversations/${chat.conversationId}`, { method: 'DELETE' }, token)
+      } catch (e) {
+        console.error('Failed to delete conversation:', e)
+      }
+    }
+
     const index = chatList.findIndex((item) => item.id === chat.id)
     chatList.splice(index, 1)
     setChatList([...chatList])
-    localStorage.removeItem(`ms_${chat.id}`)
+    messagesMap.current.delete(chat.id)
     if (currentChatRef.current?.id === chat.id) {
       currentChatRef.current = chatList[0]
     }
@@ -189,35 +224,44 @@ const useChatHook = () => {
     })
   }
 
-  const saveMessages = (messages: ChatMessage[]) => {
-    if (messages.length > 0) {
-      localStorage.setItem(`ms_${currentChatRef.current?.id}`, JSON.stringify(messages))
-    } else {
-      localStorage.removeItem(`ms_${currentChatRef.current?.id}`)
-    }
+  const saveMessages = (_messages: ChatMessage[]) => {
+    // No-op: backend persists messages during query
   }
 
   useEffect(() => {
-    const chatList = (JSON.parse(localStorage.getItem(StorageKeys.Chat_List) || '[]') ||
-      []) as Chat[]
-    const currentChatId = localStorage.getItem(StorageKeys.Chat_Current_ID)
-    if (chatList.length > 0) {
-      const currentChat = chatList.find((chat) => chat.id === currentChatId)
-      setChatList(chatList)
-
-      chatList.forEach((chat) => {
-        const messages = JSON.parse(localStorage.getItem(`ms_${chat?.id}`) || '[]') as ChatMessage[]
-        messagesMap.current.set(chat.id!, messages)
-      })
-
-      onChangeChat(currentChat || chatList[0])
-    } else {
-      onCreateChat(DefaultPersonas[0])
+    const loadConversations = async () => {
+      try {
+        const token = await getToken()
+        const convs = await apiJson<{ id: string; title: string | null; thread_id: string; created_at: string; updated_at: string }[]>(
+          '/conversations',
+          {},
+          token
+        )
+        if (convs.length > 0) {
+          const loaded: Chat[] = convs.map((c) => ({
+            id: c.thread_id,
+            conversationId: c.id,
+            title: c.title || undefined,
+            persona: DefaultPersonas[0],
+            created_at: c.created_at,
+            updated_at: c.updated_at,
+          }))
+          setChatList(loaded)
+          const currentChatId = localStorage.getItem(StorageKeys.Chat_Current_ID)
+          const current = loaded.find((c) => c.id === currentChatId) || loaded[0]
+          onChangeChat(current)
+        } else {
+          onCreateChat(DefaultPersonas[0])
+        }
+      } catch {
+        // If API fails, start fresh
+        onCreateChat(DefaultPersonas[0])
+      }
     }
+    loadConversations()
 
     return () => {
       document.body.removeAttribute('style')
-      localStorage.setItem(StorageKeys.Chat_List, JSON.stringify(chatList))
     }
   }, [])
 
@@ -226,10 +270,6 @@ const useChatHook = () => {
       localStorage.setItem(StorageKeys.Chat_Current_ID, currentChatRef.current.id)
     }
   }, [currentChatRef.current?.id])
-
-  useEffect(() => {
-    localStorage.setItem(StorageKeys.Chat_List, JSON.stringify(chatList))
-  }, [chatList])
 
   useEffect(() => {
     const loadedPersonas = JSON.parse(localStorage.getItem('Personas') || '[]') as Persona[]

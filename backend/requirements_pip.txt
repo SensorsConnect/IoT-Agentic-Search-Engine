@@ -55,3 +55,9 @@ typing_extensions==4.12.2
 
 # Google Maps
 google_search_results==2.4.2
+
+# Auth
+pyjwt[crypto]>=2.8.0
+
+# Migrations
+alembic>=1.13.0

@@ -1,12 +1,8 @@
 import os
 import logging
-from typing import Optional
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from langchain_core.messages import HumanMessage
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -14,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 # --- Env var validation ---
 REQUIRED_ENV_VARS = ["GROQ_API_KEY", "LLM_MODEL", "MONGODB_URL"]
 OPTIONAL_ENV_VARS = ["POSTGRES_URL", "Google_Maps_API_Key", "ORS_API_KEY", "TAVILY_API_KEY",
-                     "LANGCHAIN_API_KEY", "CORS_ORIGINS"]
+                     "LANGCHAIN_API_KEY", "CORS_ORIGINS", "CLERK_JWKS_URL"]
 
 missing = [v for v in REQUIRED_ENV_VARS if not os.environ.get(v)]
 if missing:
@@ -33,11 +29,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Import graph after env validation
-from graph import runnable
 
 # --- Rate limiting ---
-limiter = Limiter(key_func=get_remote_address)
+def _rate_limit_key(request: Request) -> str:
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        import jwt
+        try:
+            payload = jwt.decode(auth_header[7:], options={"verify_signature": False})
+            clerk_id = payload.get("sub", "")
+            if clerk_id:
+                return f"user:{clerk_id}"
+        except Exception:
+            pass
+    return f"ip:{get_remote_address(request)}"
+
+
+limiter = Limiter(key_func=_rate_limit_key)
 
 app = FastAPI(title="LocaleLive API", version="1.0.0")
 app.state.limiter = limiter
@@ -62,15 +70,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-class LocationData(BaseModel):
-    latitude: float
-    longitude: float
-
-class Query(BaseModel):
-    text: str
-    threadId: str
-    location: Optional[LocationData] = None
+# --- API v1 Router ---
+from api.v1 import v1_router
+app.include_router(v1_router)
 
 
 @app.get("/")
@@ -87,44 +89,3 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
-
-
-@app.put("/query")
-@limiter.limit("30/minute")
-def query_handler(query: Query, request: Request):
-    logger.info(f"Query received: text='{query.text[:100]}', threadId='{query.threadId}', has_location={query.location is not None}")
-
-    try:
-        thread = {"configurable": {"thread_id": query.threadId}}
-
-        message_content = query.text
-        if query.location:
-            message_content += f"\n\n[User Location: {query.location.latitude}, {query.location.longitude}]"
-
-        human_message = HumanMessage(content=message_content)
-        messages = [human_message]
-
-        result = runnable.invoke({"messages": messages}, thread)
-
-        response_text = result.get("response", [""])[-1] if result.get("response") else ""
-        if not response_text:
-            logger.warning(f"Empty response for query: {query.text[:100]}")
-            return JSONResponse(
-                status_code=200,
-                content={"answer": "I'm sorry, I couldn't process your request. Please try again."}
-            )
-
-        return {"answer": response_text}
-
-    except ValueError as e:
-        logger.error(f"Validation error processing query: {e}")
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Invalid request", "detail": str(e)}
-        )
-    except Exception as e:
-        logger.exception(f"Error processing query: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Internal server error", "detail": "An unexpected error occurred. Please try again."}
-        )

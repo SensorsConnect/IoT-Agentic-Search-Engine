@@ -6,6 +6,7 @@ import { Avatar, Flex, Heading, IconButton } from '@radix-ui/themes'
 import cs from 'classnames'
 import Image from 'next/image'
 import NextLink from 'next/link'
+import { SignInButton, UserButton, SignedIn, SignedOut } from '@clerk/nextjs'
 import { FaGithub, FaMoon, FaSun } from 'react-icons/fa'
 import { Link } from '../Link'
 import { useTheme } from '../Themes'
@@ -69,12 +70,22 @@ export const Header = () => {
               </Link>
             }
           />
-          <div 
+          <div
             onClick={toggleTheme}
             className="cursor-pointer text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
           >
             {currentTheme === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
           </div>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="text-sm px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                Sign In
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
         </Flex>
         <IconButton
           size="3"
