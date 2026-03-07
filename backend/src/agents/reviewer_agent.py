@@ -65,6 +65,7 @@ def reviewer_agent(state: AgentState):
         logging.info(agent_state)
         return prepaer_states(agent_state)
     elif state["response"] == "":
+        agent_state["call"] = "END"
         return prepaer_states(agent_state)
     else:
         agent_state["call"] = "END"

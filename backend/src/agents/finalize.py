@@ -10,9 +10,11 @@ def finalize_turn(state: AgentState):
 
     response_text = state.get("response", "")
     if not response_text:
-        return {}
+        # Must always write at least one key — LangGraph rejects empty dicts
+        return {"node": "finalize_turn"}
 
     return {
+        "node": "finalize_turn",
         "thread_summary": [
             {"role": "user", "content": query_text},
             {"role": "assistant", "content": response_text},
