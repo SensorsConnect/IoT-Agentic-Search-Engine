@@ -252,12 +252,8 @@ const useChatHook = () => {
             updated_at: c.updated_at,
           }))
           setChatList(loaded)
-          const currentChatId = localStorage.getItem(StorageKeys.Chat_Current_ID)
-          const current = loaded.find((c) => c.id === currentChatId) || loaded[0]
-          onChangeChat(current)
-        } else {
-          onCreateChat(DefaultPersonas[0])
         }
+        onCreateChat(DefaultPersonas[0])
       } catch {
         // If API fails, start fresh
         onCreateChat(DefaultPersonas[0])
