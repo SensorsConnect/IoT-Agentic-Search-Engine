@@ -102,8 +102,12 @@ const useChatHook = () => {
     messagesMap.current.set(currentChatRef.current?.id!, oldMessages)
     currentChatRef.current = chat
 
-    // Try to load messages from API if this chat has a conversationId
-    if (chat.conversationId) {
+    // Use in-memory cache if available (preserves places/map data within session).
+    // Only fetch from API when no cache exists (e.g. page refresh).
+    const cached = messagesMap.current.get(chat.id)
+    if (cached && cached.length > 0) {
+      chatRef.current?.setConversation(cached)
+    } else if (chat.conversationId) {
       try {
         const token = await getToken()
         const data = await apiJson<{ messages: { role: string; content: string; metadata?: { places?: any[]; userLocation?: any } | null }[] }>(
@@ -120,12 +124,10 @@ const useChatHook = () => {
         messagesMap.current.set(chat.id, msgs)
         chatRef.current?.setConversation(msgs)
       } catch {
-        const cached = messagesMap.current.get(chat.id) || []
-        chatRef.current?.setConversation(cached)
+        chatRef.current?.setConversation([])
       }
     } else {
-      const cached = messagesMap.current.get(chat.id) || []
-      chatRef.current?.setConversation(cached)
+      chatRef.current?.setConversation([])
     }
 
     chatRef.current?.focus()
