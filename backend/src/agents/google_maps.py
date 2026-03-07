@@ -1,4 +1,5 @@
 import logging
+import os
 from state_graph import AgentState
 from googleMaps.google_maps_client import gmaps_text_search_client
 from utils import prepaer_states, llm, parser
@@ -27,10 +28,44 @@ def _avg_travel_time(results):
     return sum(valid_times) / len(valid_times)
 
 
+def _build_place_dict(place, travel_time_str):
+    """Build a structured place dict from a raw Google Places API result."""
+    photo_url = None
+    photos = place.get('photos', [])
+    if photos:
+        ref = photos[0].get('photo_reference')
+        if ref:
+            photo_url = gmaps_text_search_client.get_photo_url(ref)
+
+    place_id = place.get('place_id', '')
+    address = gmaps_text_search_client.get_formatted_address(place)
+
+    # Fetch phone and website from Place Details API (disabled by default — costs ~$0.017/call)
+    details = {}
+    if os.environ.get("ENABLE_PLACE_DETAILS", "").lower() == "true":
+        details = gmaps_text_search_client.get_place_details(place_id, ["formatted_phone_number", "website"])
+
+    return {
+        "id": place_id,
+        "name": place.get('name', ''),
+        "address": address,
+        "latitude": place.get('geometry', {}).get('location', {}).get('lat'),
+        "longitude": place.get('geometry', {}).get('location', {}).get('lng'),
+        "rating": place.get('rating'),
+        "photo_url": photo_url,
+        "open_now": place.get('opening_hours', {}).get('open_now'),
+        "phone": details.get('formatted_phone_number'),
+        "website": details.get('website'),
+        "google_maps_url": f"https://www.google.com/maps/place/?q=place_id:{place_id}" if place_id else None,
+        "travel_time_min": _parse_travel_time(travel_time_str),
+        "source": "google_maps"
+    }
+
+
 def _build_results_from_places(places, lat, lon):
     """Fetch travel times and build detailed result dicts for a list of places."""
     if not places:
-        return []
+        return [], []
 
     destinations = [
         (place['geometry']['location']['lat'], place['geometry']['location']['lng'])
@@ -40,18 +75,21 @@ def _build_results_from_places(places, lat, lon):
     travel_times = gmaps_text_search_client.get_travel_times(lat, lon, destinations)
 
     results = []
+    place_dicts = []
     for i, place in enumerate(places):
         name = place.get('name', 'N/A')
         address = gmaps_text_search_client.get_formatted_address(place)
         rating = place.get('rating', 'N/A')
         tt = travel_times[i] if i < len(travel_times) else 'N/A'
+        tt_str = f"{tt:.2f} mins" if tt != 'N/A' else 'N/A'
         results.append({
             'entity_name': name,
             'address': address,
             'rate': rating,
-            'estimated_travel_time': f"{tt:.2f} mins" if tt != 'N/A' else 'N/A'
+            'estimated_travel_time': tt_str
         })
-    return results
+        place_dicts.append(_build_place_dict(place, tt_str))
+    return results, place_dicts
 
 
 def _sort_by_travel_time(results):
@@ -60,6 +98,14 @@ def _sort_by_travel_time(results):
         t = _parse_travel_time(r.get('estimated_travel_time', 'N/A'))
         return t if t is not None else float('inf')
     return sorted(results, key=sort_key)
+
+
+def _sort_places_by_travel_time(places):
+    """Sort place dicts by travel_time_min ascending. None goes to end."""
+    def sort_key(p):
+        t = p.get('travel_time_min')
+        return t if t is not None else float('inf')
+    return sorted(places, key=sort_key)
 
 
 def GoogleMaps(state: AgentState):
@@ -88,6 +134,7 @@ def GoogleMaps(state: AgentState):
 
     query = state.get("query", "")
     best_results = []
+    best_places = []
     best_avg_time = float('inf')
     search_history = []
 
@@ -139,20 +186,21 @@ def GoogleMaps(state: AgentState):
                 radius = decision.get("radius", 10000)
 
                 if strategy == "narrow_radius":
-                    places = gmaps_text_search_client.text_search_with_details(
-                        new_query, lat, lon, limit=5, radius=radius
+                    raw_places = gmaps_text_search_client.text_search(
+                        new_query, limit=5, latitude=lat, longitude=lon, radius=radius
                     )
-                    # text_search_with_details already returns formatted results
+                    nr_results, nr_places = _build_results_from_places(raw_places, lat, lon)
                     search_history.append({
                         "iteration": iteration,
                         "strategy": strategy_used,
-                        "results": places if places else []
+                        "results": nr_results if nr_results else []
                     })
-                    if places:
-                        avg = _avg_travel_time(places)
+                    if nr_results:
+                        avg = _avg_travel_time(nr_results)
                         if avg < best_avg_time:
                             best_avg_time = avg
-                            best_results = places
+                            best_results = nr_results
+                            best_places = nr_places
                     continue
                 elif strategy == "rephrase_query":
                     places = gmaps_text_search_client.nearby_search_ranked_by_distance(
@@ -170,7 +218,7 @@ def GoogleMaps(state: AgentState):
                 break
 
         # Build results from raw places (iteration 1 and non-narrow_radius retries)
-        iteration_results = _build_results_from_places(places, lat, lon)
+        iteration_results, iteration_places = _build_results_from_places(places, lat, lon)
 
         search_history.append({
             "iteration": iteration,
@@ -183,6 +231,7 @@ def GoogleMaps(state: AgentState):
             if avg < best_avg_time:
                 best_avg_time = avg
                 best_results = iteration_results
+                best_places = iteration_places
 
         # If first iteration got good results (any place under 15 min), no need to continue
         if iteration == 1 and best_results:
@@ -197,11 +246,13 @@ def GoogleMaps(state: AgentState):
     # Sort by travel time and return top 3
     if best_results:
         final_results = _sort_by_travel_time(best_results)[:3]
+        final_places = _sort_places_by_travel_time(best_places)[:3]
         return prepaer_states({
             "messages": [ToolMessage(content=str(final_results), name="GoogleMaps", tool_call_id="call_IoT_engine")],
             "node": "GoogleMaps",
             "context": str(final_results),
-            "call": "generator_agent"
+            "call": "generator_agent",
+            "places": final_places
         })
     else:
         return prepaer_states({

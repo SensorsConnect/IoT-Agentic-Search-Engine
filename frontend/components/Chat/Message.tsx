@@ -8,13 +8,14 @@ import { RiRobot2Line } from 'react-icons/ri'
 import { Markdown } from '@/components'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { ChatMessage } from './interface'
+import { MapWithCards } from '@/components/Map'
 
 export interface MessageProps {
   message: ChatMessage
 }
 
 const Message = (props: MessageProps) => {
-  const { role, content } = props.message
+  const { role, content, places, userLocation } = props.message
   const isUser = role === 'user'
   const copy = useCopyToClipboard()
   const [tooltipOpen, setTooltipOpen] = useState<boolean>(false)
@@ -49,6 +50,9 @@ const Message = (props: MessageProps) => {
         ) : (
           <Flex direction="column" gap="4">
             <Markdown>{content}</Markdown>
+            {places && places.length > 0 && (
+              <MapWithCards places={places} userLocation={userLocation} />
+            )}
             <Flex gap="4" align="center">
               <Tooltip open={tooltipOpen} content="Copied!">
                 <IconButton

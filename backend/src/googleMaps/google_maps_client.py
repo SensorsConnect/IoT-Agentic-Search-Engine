@@ -131,6 +131,35 @@ class GoogleMapsTextSearchClient:
             print(f"OSRM Error: {e}")
             return ['N/A'] * len(destinations)
 
+    def get_photo_url(self, photo_reference, max_width=400):
+        """Build a Google Places photo URL from a photo_reference. No API call."""
+        if not photo_reference:
+            return None
+        return (
+            f"https://maps.googleapis.com/maps/api/place/photo"
+            f"?maxwidth={max_width}&photo_reference={photo_reference}&key={self.google_api_key}"
+        )
+
+    def get_place_details(self, place_id, fields=None):
+        """Fetch place details from the Place Details API."""
+        if not place_id:
+            return {}
+        if fields is None:
+            fields = ["formatted_phone_number", "website"]
+        url = "https://maps.googleapis.com/maps/api/place/details/json"
+        params = {
+            "place_id": place_id,
+            "fields": ",".join(fields),
+            "key": self.google_api_key,
+        }
+        try:
+            response = requests.get(url, params=params)
+            if response.status_code == 200:
+                return response.json().get("result", {})
+        except Exception as e:
+            print(f"Place Details API error: {e}")
+        return {}
+
     def get_formatted_address(self, place):
         # If already present in the search result, use it
         addr = (place.get('formatted_address') or

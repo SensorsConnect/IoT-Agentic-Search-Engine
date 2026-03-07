@@ -32,6 +32,8 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     answer: str
     conversationId: str
+    places: list = []
+    userLocation: Optional[dict] = None
 
 
 @router.put("/query")
@@ -83,8 +85,24 @@ async def query_handler(
             logger.warning(f"Empty response for query: {query.text[:100]}")
             return JSONResponse(
                 status_code=200,
-                content={"answer": "I'm sorry, I couldn't process your request. Please try again.", "conversationId": ""}
+                content={"answer": "I'm sorry, I couldn't process your request. Please try again.", "conversationId": "", "places": [], "userLocation": None}
             )
+
+        # Extract and deduplicate places
+        raw_places = result.get("places", []) or []
+        seen_ids = set()
+        places_data = []
+        for p in raw_places:
+            pid = p.get("id", "")
+            if pid and pid in seen_ids:
+                continue
+            if pid:
+                seen_ids.add(pid)
+            places_data.append(p)
+
+        user_location = None
+        if query.location:
+            user_location = {"latitude": query.location.latitude, "longitude": query.location.longitude}
 
         # Upsert conversation
         conversation = db.query(Conversation).filter(Conversation.thread_id == query.threadId).first()
@@ -113,11 +131,12 @@ async def query_handler(
             conversation_id=conversation.id,
             role="assistant",
             content=response_text,
+            metadata_={"places": places_data, "userLocation": user_location} if places_data else None,
         )
         db.add(assistant_msg)
         db.commit()
 
-        return {"answer": response_text, "conversationId": str(conversation.id)}
+        return {"answer": response_text, "conversationId": str(conversation.id), "places": places_data, "userLocation": user_location}
 
     except ValueError as e:
         logger.error(f"Validation error processing query: {e}")

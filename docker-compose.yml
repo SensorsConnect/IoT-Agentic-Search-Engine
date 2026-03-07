@@ -90,6 +90,7 @@ services:
       - CORS_ORIGINS=https://${DOMAIN_NAME}
       - TIMEZONE=America/Toronto
       - CLERK_JWKS_URL=${CLERK_JWKS_URL}
+      - ENABLE_PLACE_DETAILS=${ENABLE_PLACE_DETAILS}
 
   # PostgreSQL — uncomment when ready for Phase 1
   # postgres:

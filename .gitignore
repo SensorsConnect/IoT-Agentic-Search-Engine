@@ -4,3 +4,5 @@ react_agent.ipynb
 config.py
 /.ipynb_checkpoints
 /__pycache__
+docker-compose.local.yml
+frontend/Dockerfile.local

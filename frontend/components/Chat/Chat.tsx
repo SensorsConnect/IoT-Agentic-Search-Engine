@@ -191,9 +191,11 @@ const Chat = (props: ChatProps, ref: any) => {
             setTimeout(() => {
               const parsedData = JSON.parse(resultContent);
               const answer = parsedData.answer;
+              const places = parsedData.places || [];
+              const userLoc = parsedData.userLocation || null;
               conversation.current = [
                 ...conversation.current,
-                { content: answer, role: 'assistant' }
+                { content: answer, role: 'assistant', places, userLocation: userLoc }
               ]
 
               setCurrentMessage('')
