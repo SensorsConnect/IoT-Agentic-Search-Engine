@@ -97,16 +97,16 @@ const useChatHook = () => {
     setIsOpenPersonaModal(false)
   }
 
-  const onChangeChat = useCallback(async (chat: Chat) => {
-    const oldMessages = chatRef.current?.getConversation() || []
-    messagesMap.current.set(currentChatRef.current?.id!, oldMessages)
+  const onChangeChat = useCallback(async (chat: Chat): Promise<ChatMessage[]> => {
     currentChatRef.current = chat
 
     // Use in-memory cache if available (preserves places/map data within session).
     // Only fetch from API when no cache exists (e.g. page refresh).
     const cached = messagesMap.current.get(chat.id)
     if (cached && cached.length > 0) {
-      chatRef.current?.setConversation(cached)
+      setTimeout(() => setToggleSidebar(false), 50)
+      forceUpdate()
+      return cached
     } else if (chat.conversationId) {
       try {
         const token = await getToken()
@@ -122,17 +122,17 @@ const useChatHook = () => {
           userLocation: m.metadata?.userLocation,
         }))
         messagesMap.current.set(chat.id, msgs)
-        chatRef.current?.setConversation(msgs)
+        setTimeout(() => setToggleSidebar(false), 50)
+        forceUpdate()
+        return msgs
       } catch {
-        chatRef.current?.setConversation([])
+        // fall through
       }
-    } else {
-      chatRef.current?.setConversation([])
     }
 
-    chatRef.current?.focus()
     setTimeout(() => setToggleSidebar(false), 50)
     forceUpdate()
+    return []
   }, [getToken])
 
   const onCreateChat = useCallback(

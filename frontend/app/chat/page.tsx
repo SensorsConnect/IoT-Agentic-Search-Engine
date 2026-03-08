@@ -1,9 +1,9 @@
 'use client'
 import { Suspense } from 'react'
-import { Flex } from '@radix-ui/themes'
-import { Chat, ChatContext, ChatSideBar, useChatHook, LocationProvider } from '@/components'
+import { ChatContext, useChatHook, LocationProvider } from '@/components'
+import { MapProvider } from '@/components/Explorer'
+import { ExplorerLayout } from '@/components/Explorer'
 import PersonaModal from './PersonaModal'
-import PersonaPanel from './PersonaPanel'
 
 const ChatProvider = () => {
   const provider = useChatHook()
@@ -11,13 +11,11 @@ const ChatProvider = () => {
   return (
     <LocationProvider>
       <ChatContext.Provider value={provider}>
-        <Flex style={{ height: 'calc(100% - 56px)' }} className="relative">
-          <ChatSideBar />
-          <div className="flex-1 relative">
-            <Chat ref={provider.chatRef} />
-            <PersonaPanel />
+        <MapProvider>
+          <div className="relative">
+            <ExplorerLayout />
           </div>
-        </Flex>
+        </MapProvider>
         <PersonaModal />
       </ChatContext.Provider>
     </LocationProvider>

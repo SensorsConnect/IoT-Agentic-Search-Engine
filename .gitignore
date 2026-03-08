@@ -6,3 +6,4 @@ config.py
 /__pycache__
 docker-compose.local.yml
 frontend/Dockerfile.local
+docker-compose.dev.yml

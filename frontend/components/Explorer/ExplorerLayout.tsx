@@ -1,0 +1,44 @@
+'use client'
+
+import { useState } from 'react'
+import MapPanel from './MapPanel'
+import SearchBar from './SearchBar'
+import AIResponsePanel from './AIResponsePanel'
+import PlaceCardStrip from './PlaceCardStrip'
+import PlaceDetailSheet from './PlaceDetailSheet'
+import HistoryDrawer from './HistoryDrawer'
+import MobileSearchSheet from './MobileSearchSheet'
+import { useMapContext } from './MapContext'
+
+const SEARCH_BAR_H = 56 // px – idle mobile search bar height
+
+export default function ExplorerLayout() {
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const { mobileMapRatio, aiResponse, activePlaces } = useMapContext()
+
+  const hasResults = !!(aiResponse || activePlaces.length > 0)
+
+  return (
+    <div className="flex flex-col md:block relative w-full h-[calc(100dvh-56px)] bg-surface-dark overflow-hidden">
+      {/* Map container — explicit height on mobile, absolute on desktop */}
+      <div
+        className="relative flex-shrink-0 md:absolute md:inset-0 md:!h-full transition-[height] duration-200"
+        style={{ height: hasResults ? `${mobileMapRatio}%` : `calc(100% - ${SEARCH_BAR_H}px)` }}
+      >
+        <MapPanel />
+      </div>
+
+      {/* Desktop floating panels (hidden on mobile) */}
+      <SearchBar onToggleHistory={() => setHistoryOpen(true)} />
+      <AIResponsePanel />
+      <PlaceCardStrip />
+      <PlaceDetailSheet />
+
+      {/* Mobile split panel (hidden on desktop) */}
+      <MobileSearchSheet onToggleHistory={() => setHistoryOpen(true)} />
+
+      {/* History drawer */}
+      <HistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
+    </div>
+  )
+}

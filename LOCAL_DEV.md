@@ -32,7 +32,25 @@ Wait until you see:
 INFO:     Uvicorn running on http://0.0.0.0:8000
 ```
 
-## Rebuild after code changes
+## Hot Reload (fastest iteration)
+
+Use `docker-compose.dev.yml` to run the frontend in dev mode with hot reload. Source files are volume-mounted so changes appear instantly — no rebuild needed.
+
+```bash
+# First time — build the dev image (installs node_modules):
+docker compose -f docker-compose.dev.yml up --build -d
+
+# After that, just start (no build needed):
+docker compose -f docker-compose.dev.yml up -d
+```
+
+Edit any file under `frontend/app`, `frontend/components`, `frontend/styles`, etc. and the browser refreshes automatically.
+
+> **Note**: If you add/remove npm packages, rebuild with `docker compose -f docker-compose.dev.yml up --build -d` to update `node_modules`.
+
+To stop: `docker compose -f docker-compose.dev.yml down`
+
+## Rebuild after code changes (production mode)
 
 ```bash
 # Rebuild everything
