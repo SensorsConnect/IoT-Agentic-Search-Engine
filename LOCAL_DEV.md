@@ -45,6 +45,45 @@ docker compose -f docker-compose.local.yml up --build -d backend
 docker compose -f docker-compose.local.yml up --build -d frontend
 ```
 
+## Force rebuild (no cache)
+
+Use this when code changes aren't reflected in the running containers:
+
+```bash
+# Full no-cache rebuild + recreate
+docker compose -f docker-compose.local.yml build --no-cache && docker compose -f docker-compose.local.yml up -d --force-recreate
+
+# No-cache rebuild frontend only
+docker compose -f docker-compose.local.yml build --no-cache frontend && docker compose -f docker-compose.local.yml up -d --force-recreate frontend
+```
+
+## Testing on a physical phone (mobile view)
+
+Your phone must be on the **same Wi-Fi network** as your computer.
+
+1. Find your machine's local IP:
+   ```bash
+   hostname -I | awk '{print $1}'
+   ```
+
+2. Update `docker-compose.local.yml` build args and CORS with your IP:
+   ```yaml
+   frontend:
+     build:
+       args:
+         - NEXT_PUBLIC_BACKEND_URL=http://<YOUR_IP>:8001
+   backend:
+     environment:
+       - CORS_ORIGINS=http://localhost:3000,http://<YOUR_IP>:3000
+   ```
+
+3. Rebuild with no cache and start:
+   ```bash
+   docker compose -f docker-compose.local.yml build --no-cache frontend && docker compose -f docker-compose.local.yml up -d --force-recreate
+   ```
+
+4. Open on your phone: `http://<YOUR_IP>:3000`
+
 ## View logs
 
 ```bash
