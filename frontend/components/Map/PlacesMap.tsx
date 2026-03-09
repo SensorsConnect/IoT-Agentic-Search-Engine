@@ -4,6 +4,7 @@ import { useRef, useCallback, useEffect, useState } from 'react'
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { Place } from '@/components/Chat/interface'
+import { MdMyLocation } from 'react-icons/md'
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
@@ -187,6 +188,25 @@ export default function PlacesMap({
       pitch={isExplorer ? 60 : 45}
     >
       <NavigationControl position="top-right" />
+
+      {/* Recenter on my location button */}
+      {userLocation && (
+        <div className="absolute bottom-6 right-2.5 z-10">
+          <button
+            onClick={() => {
+              mapRef.current?.flyTo({
+                center: [userLocation.longitude, userLocation.latitude],
+                zoom: 14,
+                pitch: isExplorer ? 60 : 45,
+              })
+            }}
+            className="bg-white rounded-md shadow-md p-1.5 hover:bg-gray-100 transition-colors"
+            title="Center on my location"
+          >
+            <MdMyLocation className="size-5 text-gray-700" />
+          </button>
+        </div>
+      )}
 
       {/* User location marker */}
       {userLocation && (

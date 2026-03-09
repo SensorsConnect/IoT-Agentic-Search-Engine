@@ -11,4 +11,4 @@ class AgentState(TypedDict):
     node: str
     location_finder_results: dict
     thread_summary: Annotated[List[dict], operator.add]
-    places: Annotated[List[dict], operator.add]
+    places: List[dict]

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useContext } from 'react'
+import { useState, useCallback, useRef, useContext, useEffect } from 'react'
 import { FiSearch, FiSend, FiMenu } from 'react-icons/fi'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import toast from 'react-hot-toast'
@@ -26,8 +26,15 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const { getToken } = useAuth()
   const { location: contextLocation } = useLocation()
-  const { setActivePlaces, setActiveUserLocation, setAiResponse, isQuerying, setIsQuerying, setSelectedPlaceId } = useMapContext()
+  const { activeUserLocation, setActivePlaces, setActiveUserLocation, setAiResponse, isQuerying, setIsQuerying, setSelectedPlaceId } = useMapContext()
   const { currentChatRef } = useContext(ChatContext)
+
+  // Sync GPS location into MapContext so the map centers on the user before any query
+  useEffect(() => {
+    if (!activeUserLocation && contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null) {
+      setActiveUserLocation({ latitude: contextLocation.latitude, longitude: contextLocation.longitude })
+    }
+  }, [contextLocation, activeUserLocation, setActiveUserLocation])
 
   const handleSubmit = useCallback(async (text?: string) => {
     const query = text || input.trim()

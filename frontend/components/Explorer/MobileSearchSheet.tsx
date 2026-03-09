@@ -22,10 +22,17 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
   const { location: contextLocation } = useLocation()
   const {
     activePlaces, aiResponse, isQuerying, selectedPlaceId, mobileMapRatio,
-    setActivePlaces, setActiveUserLocation, setAiResponse, setIsQuerying,
-    setSelectedPlaceId, setMobileMapRatio
+    activeUserLocation, setActivePlaces, setActiveUserLocation, setAiResponse,
+    setIsQuerying, setSelectedPlaceId, setMobileMapRatio
   } = useMapContext()
   const { currentChatRef } = useContext(ChatContext)
+
+  // Sync GPS location into MapContext so the map centers on the user before any query
+  useEffect(() => {
+    if (!activeUserLocation && contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null) {
+      setActiveUserLocation({ latitude: contextLocation.latitude, longitude: contextLocation.longitude })
+    }
+  }, [contextLocation, activeUserLocation, setActiveUserLocation])
   const containerRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 

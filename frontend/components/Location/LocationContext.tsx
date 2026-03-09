@@ -117,80 +117,88 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     console.log('=== REQUEST LOCATION CALLED ===')
     console.log('Is supported:', isSupported)
     console.log('Current permission:', permission)
-    
+
     if (!isSupported) {
       setError('Geolocation is not supported by this browser')
       console.log('❌ Geolocation not supported, trying network-based location...')
-      // toast('Detecting location from network...', { icon: '🌐' })
-      // Try network-based location instead
       return await requestNetworkLocation()
     }
 
     setIsLoading(true)
     setError(null)
-    console.log('📍 Starting geolocation request...')
+    console.log('📍 Starting geolocation watch...')
 
     return new Promise((resolve) => {
-      const options: PositionOptions = {
-        enableHighAccuracy: true, // Try GPS first
-        timeout: 15000, // 15 seconds timeout
-        maximumAge: 300000 // 5 minutes cache
+      let bestReading: LocationData | null = null
+      let settled = false
+
+      const finish = (result: LocationData | null) => {
+        if (settled) return
+        settled = true
+        navigator.geolocation.clearWatch(watchId)
+        clearTimeout(timerId)
+        if (result) {
+          console.log('✅ Best GPS reading:', result)
+          setLocation(result)
+          cacheLocation(result)
+        }
+        setIsLoading(false)
+        resolve(result)
       }
 
-      navigator.geolocation.getCurrentPosition(
+      const watchId = navigator.geolocation.watchPosition(
         (position) => {
-          const locationData: LocationData = {
+          const reading: LocationData = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy,
             timestamp: Date.now(),
             source: 'gps'
           }
+          console.log(`📍 GPS reading: accuracy=${position.coords.accuracy}m`)
 
-          console.log('✅ GPS location received:', locationData)
-          setLocation(locationData)
-          cacheLocation(locationData)
-          setIsLoading(false)
-          
-          // toast.success('Location accessed successfully!')
-          resolve(locationData)
+          if (!bestReading || (reading.accuracy !== null && (bestReading.accuracy === null || reading.accuracy < bestReading.accuracy))) {
+            bestReading = reading
+          }
+
+          // Good enough GPS fix — stop early
+          if (reading.accuracy !== null && reading.accuracy <= 20) {
+            finish(bestReading)
+          }
         },
         (err) => {
-          setIsLoading(false)
-          console.log('❌ Geolocation error:', {
-            code: err.code,
-            message: err.message
-          })
-          
-          let errorMessage = 'Unable to access location'
-          
-          switch (err.code) {
-            case err.PERMISSION_DENIED:
-              errorMessage = 'Location access denied by user'
-              // toast.error('Please enable location access in your browser settings')
-              break
-            case err.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information unavailable'
-              console.log('🔄 Trying network-based location...')
-              // Try network-based location as fallback
-              requestNetworkLocation().then(resolve)
-              return
-            case err.TIMEOUT:
-              errorMessage = 'Location request timed out'
-              console.log('🔄 Trying network-based location...')
-              // Try network-based location as fallback
-              requestNetworkLocation().then(resolve)
-              return
-            default:
-              errorMessage = `Location error: ${err.message}`
+          console.log('❌ Watch error:', { code: err.code, message: err.message })
+
+          if (err.code === err.PERMISSION_DENIED) {
+            setError('Location access denied by user')
+            finish(null)
           }
-          
-          setError(errorMessage)
-          console.warn('Geolocation error:', err)
-          resolve(null)
+          // TIMEOUT and POSITION_UNAVAILABLE: keep waiting for more readings
         },
-        options
+        {
+          enableHighAccuracy: true,
+          maximumAge: 0, // Force fresh hardware readings
+          timeout: 10000,
+        }
       )
+
+      // After 10 seconds, use best reading or fall back to IP
+      const timerId = setTimeout(() => {
+        if (settled) return
+        if (bestReading) {
+          finish(bestReading)
+        } else {
+          navigator.geolocation.clearWatch(watchId)
+          console.log('🔄 No GPS readings, trying network-based location...')
+          requestNetworkLocation().then((networkResult) => {
+            if (!settled) {
+              settled = true
+              setIsLoading(false)
+              resolve(networkResult)
+            }
+          })
+        }
+      }, 10000)
     })
   }
 
