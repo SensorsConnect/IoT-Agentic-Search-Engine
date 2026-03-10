@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import toast from 'react-hot-toast'
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react'
+import { useGeolocated } from 'react-geolocated'
 
 export interface LocationData {
   latitude: number | null
@@ -36,44 +36,102 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [permission, setPermission] = useState<PermissionState | null>(null)
-  const [isSupported, setIsSupported] = useState(false)
 
-  // Check if geolocation is supported
+  // Promise resolver for requestLocation()
+  const resolveRef = useRef<((value: LocationData | null) => void) | null>(null)
+
+  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition, positionError } = useGeolocated({
+    positionOptions: {
+      enableHighAccuracy: false,
+      maximumAge: 60000,
+      timeout: 10000,
+    },
+    userDecisionTimeout: 5000,
+    watchPosition: false,
+    watchLocationPermissionChange: true,
+    suppressLocationOnMount: false,
+  })
+
+  const isSupported = isGeolocationAvailable
+
+  // Cache location to localStorage
+  const cacheLocation = useCallback((locationData: LocationData) => {
+    try {
+      localStorage.setItem('cached_location', JSON.stringify(locationData))
+    } catch (err) {
+      console.warn('Failed to cache location:', err)
+    }
+  }, [])
+
+  // Sync coords from react-geolocated to our state
   useEffect(() => {
-    const supported = 'geolocation' in navigator
-    console.log('🔍 Checking geolocation support:', supported)
-    setIsSupported(supported)
-    
-    const init = async () => {
-      if (supported) {
-        await checkPermissions()
+    if (coords) {
+      const locationData: LocationData = {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy,
+        timestamp: Date.now(),
+        source: 'gps',
       }
-      // Try to load cached location
-      loadCachedLocation()
-      
-      // If no cached location, auto-request
-      const cachedLocation = localStorage.getItem('cached_location')
-      if (!cachedLocation) {
-        console.log('🌍 No cached location, auto-requesting...')
-        // Use setTimeout to avoid blocking render
-        setTimeout(async () => {
-          if (!location) { // Double check location is still null
-            await requestLocation()
-          }
-        }, 500)
+      console.log('GPS location detected:', locationData)
+      setLocation(locationData)
+      cacheLocation(locationData)
+      setIsLoading(false)
+      setError(null)
+
+      // Resolve any pending requestLocation() promise
+      if (resolveRef.current) {
+        resolveRef.current(locationData)
+        resolveRef.current = null
       }
     }
-    
-    init()
+  }, [coords, cacheLocation])
+
+  // Handle geolocation errors
+  useEffect(() => {
+    if (positionError) {
+      console.warn('Geolocation error:', positionError.message)
+      setIsLoading(false)
+
+      if (positionError.code === positionError.PERMISSION_DENIED) {
+        setError('Location access denied by user')
+        if (resolveRef.current) {
+          resolveRef.current(null)
+          resolveRef.current = null
+        }
+      } else {
+        // Timeout or position unavailable — fall back to network
+        requestNetworkLocation().then((networkResult) => {
+          if (resolveRef.current) {
+            resolveRef.current(networkResult)
+            resolveRef.current = null
+          }
+        })
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [positionError])
+
+  // Check permissions and load cached location on mount
+  useEffect(() => {
+    checkPermissions()
+    loadCachedLocation()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Derive loading state: loading if geolocation is enabled but we have no coords and no error yet
+  useEffect(() => {
+    if (!coords && isGeolocationEnabled && !positionError) {
+      setIsLoading(true)
+    }
+  }, [coords, isGeolocationEnabled, positionError])
 
   const checkPermissions = async () => {
     if ('permissions' in navigator) {
       try {
         const permissionStatus = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
         setPermission(permissionStatus.state)
-        
+
         permissionStatus.addEventListener('change', () => {
           setPermission(permissionStatus.state)
         })
@@ -88,165 +146,92 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
       const cachedLocation = localStorage.getItem('cached_location')
       if (cachedLocation) {
         const locationData = JSON.parse(cachedLocation) as LocationData
-        // Check if cached location is less than 1 hour old
         const oneHour = 60 * 60 * 1000
         if (Date.now() - locationData.timestamp < oneHour) {
-          console.log('📦 Loaded cached location:', locationData)
+          console.log('Loaded cached location:', locationData)
           setLocation(locationData)
         } else {
-          console.log('🕐 Cached location expired, removing...')
+          console.log('Cached location expired, removing...')
           localStorage.removeItem('cached_location')
         }
-      } else {
-        console.log('📦 No cached location found')
       }
     } catch (err) {
       console.warn('Failed to load cached location:', err)
     }
   }
 
-  const cacheLocation = (locationData: LocationData) => {
+  const requestNetworkLocation = async (): Promise<LocationData | null> => {
+    setIsLoading(true)
     try {
-      localStorage.setItem('cached_location', JSON.stringify(locationData))
+      console.log('Fetching location from IP address...')
+      const response = await fetch('https://ipapi.co/json/')
+      if (response.ok) {
+        const data = await response.json()
+        console.log('IP-based location data:', data)
+
+        const locationData: LocationData = {
+          latitude: data.latitude,
+          longitude: data.longitude,
+          accuracy: null,
+          timestamp: Date.now(),
+          source: 'network'
+        }
+
+        setLocation(locationData)
+        cacheLocation(locationData)
+        setIsLoading(false)
+        return locationData
+      } else {
+        console.warn('Network location API returned error:', response.status)
+      }
     } catch (err) {
-      console.warn('Failed to cache location:', err)
+      console.warn('Network location failed:', err)
     }
+
+    setIsLoading(false)
+    return null
   }
 
   const requestLocation = async (): Promise<LocationData | null> => {
-    console.log('=== REQUEST LOCATION CALLED ===')
-    console.log('Is supported:', isSupported)
-    console.log('Current permission:', permission)
-
     if (!isSupported) {
       setError('Geolocation is not supported by this browser')
-      console.log('❌ Geolocation not supported, trying network-based location...')
       return await requestNetworkLocation()
     }
 
     setIsLoading(true)
     setError(null)
-    console.log('📍 Starting geolocation watch...')
 
-    return new Promise((resolve) => {
-      let bestReading: LocationData | null = null
-      let settled = false
-
-      const finish = (result: LocationData | null) => {
-        if (settled) return
-        settled = true
-        navigator.geolocation.clearWatch(watchId)
-        clearTimeout(timerId)
-        if (result) {
-          console.log('✅ Best GPS reading:', result)
-          setLocation(result)
-          cacheLocation(result)
-        }
-        setIsLoading(false)
-        resolve(result)
+    // If we already have coords from the hook, return them immediately
+    if (coords) {
+      const locationData: LocationData = {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy,
+        timestamp: Date.now(),
+        source: 'gps',
       }
+      setLocation(locationData)
+      cacheLocation(locationData)
+      setIsLoading(false)
+      return locationData
+    }
 
-      const watchId = navigator.geolocation.watchPosition(
-        (position) => {
-          const reading: LocationData = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-            timestamp: Date.now(),
-            source: 'gps'
-          }
-          console.log(`📍 GPS reading: accuracy=${position.coords.accuracy}m`)
-
-          if (!bestReading || (reading.accuracy !== null && (bestReading.accuracy === null || reading.accuracy < bestReading.accuracy))) {
-            bestReading = reading
-          }
-
-          // Good enough GPS fix — stop early
-          if (reading.accuracy !== null && reading.accuracy <= 20) {
-            finish(bestReading)
-          }
-        },
-        (err) => {
-          console.log('❌ Watch error:', { code: err.code, message: err.message })
-
-          if (err.code === err.PERMISSION_DENIED) {
-            setError('Location access denied by user')
-            finish(null)
-          }
-          // TIMEOUT and POSITION_UNAVAILABLE: keep waiting for more readings
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 0, // Force fresh hardware readings
-          timeout: 10000,
-        }
-      )
-
-      // After 10 seconds, use best reading or fall back to IP
-      const timerId = setTimeout(() => {
-        if (settled) return
-        if (bestReading) {
-          finish(bestReading)
-        } else {
-          navigator.geolocation.clearWatch(watchId)
-          console.log('🔄 No GPS readings, trying network-based location...')
-          requestNetworkLocation().then((networkResult) => {
-            if (!settled) {
-              settled = true
-              setIsLoading(false)
-              resolve(networkResult)
-            }
-          })
-        }
-      }, 10000)
+    // Otherwise, trigger a new position request and wait for coords via useEffect
+    getPosition()
+    return new Promise((resolve) => {
+      resolveRef.current = resolve
     })
   }
 
-  const requestNetworkLocation = async (): Promise<LocationData | null> => {
-    setIsLoading(true)
-    try {
-      console.log('🌐 Fetching location from IP address...')
-      // Try to get location from IP-based services as fallback
-      const response = await fetch('https://ipapi.co/json/')
-      if (response.ok) {
-        const data = await response.json()
-        console.log('✅ IP-based location data:', data)
-        
-        const locationData: LocationData = {
-          latitude: data.latitude,
-          longitude: data.longitude,
-          accuracy: null, // IP-based location has low accuracy
-          timestamp: Date.now(),
-          source: 'network'
-        }
-        
-        setLocation(locationData)
-        cacheLocation(locationData)
-        setIsLoading(false)
-        
-        // toast.success(`Location detected: ${data.city}, ${data.region}`)
-        return locationData
-      } else {
-        console.warn('❌ Network location API returned error:', response.status)
-      }
-    } catch (err) {
-      console.warn('❌ Network location failed:', err)
-      // toast.error('Could not detect location from network')
-    }
-    
-    setIsLoading(false)
-    return null
-  }
-
   const clearLocation = () => {
-    console.log('🗑️ Clearing location from context')
+    console.log('Clearing location from context')
     setLocation(null)
     setError(null)
     localStorage.removeItem('cached_location')
   }
 
   const handleSetLocation = (locationData: LocationData) => {
-    console.log('📍 Setting location in context:', locationData)
+    console.log('Setting location in context:', locationData)
     setLocation(locationData)
     cacheLocation(locationData)
   }
@@ -274,4 +259,3 @@ export const useLocation = (): LocationContextType => {
 }
 
 export default LocationContext
-
