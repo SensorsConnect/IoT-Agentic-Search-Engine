@@ -7,3 +7,4 @@ config.py
 docker-compose.local.yml
 frontend/Dockerfile.local
 docker-compose.dev.yml
+frontend/.next.bak
