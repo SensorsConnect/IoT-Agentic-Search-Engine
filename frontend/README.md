@@ -2,7 +2,7 @@
 
 The web interface for the **Localelive IoT Agentic Search Engine** — an AI-powered, location-aware search engine that recommends nearby services using real-time IoT data, map visualization, and multi-agent reasoning.
 
-- [Research Paper (arXiv)](https://arxiv.org/abs/2503.12255)
+- [Research Paper (arXiv)](https://www.mdpi.com/1424-8220/25/19/5995)
 - [GitHub Repository](https://github.com/SensorsConnect/IoT-Agentic-Search-Engine)
 
 ---

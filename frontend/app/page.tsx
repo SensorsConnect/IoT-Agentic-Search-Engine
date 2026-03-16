@@ -207,7 +207,7 @@ export default function Home() {
                     GitHub Repository
                   </a>
                   <a 
-                    href="https://arxiv.org/abs/2503.12255" 
+                    href="https://www.mdpi.com/1424-8220/25/19/5995" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-blue-600 dark:text-white hover:underline flex items-center"

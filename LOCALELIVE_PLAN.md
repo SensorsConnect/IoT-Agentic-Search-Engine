@@ -2,7 +2,7 @@
 
 ## Context
 
-LocaleLive (live at https://localelive.space/) is currently a research demo for the paper "Agentic Search Engine for Real-Time IoT Data" (https://arxiv.org/abs/2503.12255). The existing codebase has a FastAPI + LangGraph multi-agent backend and a Next.js chat frontend, with 37k+ IoT documents covering 500 service types in Toronto via MongoDB.
+LocaleLive (live at https://localelive.space/) is currently a research demo for the paper "Agentic Search Engine for Real-Time IoT Data" (https://www.mdpi.com/1424-8220/25/19/5995). The existing codebase has a FastAPI + LangGraph multi-agent backend and a Next.js chat frontend, with 37k+ IoT documents covering 500 service types in Toronto via MongoDB.
 
 The goal is to transform this demo into a **production-ready hyperlocal discovery platform** where users discover real-time local offers, events, and crowd levels, and businesses publish real-time offers and updates. Solo founder, MVP-first, cost-aware.
 
