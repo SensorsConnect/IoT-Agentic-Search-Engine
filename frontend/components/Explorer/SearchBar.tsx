@@ -116,14 +116,14 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
   return (
     <div className="hidden md:block absolute top-4 left-4 md:w-[420px] z-20">
       {/* Search input */}
-      <div className="glass-panel flex items-center gap-3 px-4 py-3 focus-within:border-neon-cyan/50 focus-within:shadow-[0_0_15px_rgba(34,211,238,0.15)] transition-all">
+      <div className="glass-panel flex items-center gap-3 px-4 py-3 focus-within:border-blue-400/50 dark:focus-within:border-neon-cyan/50 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] dark:focus-within:shadow-[0_0_15px_rgba(34,211,238,0.15)] transition-all">
         <button
           onClick={onToggleHistory}
-          className="text-gray-400 hover:text-gray-200 transition-colors flex-shrink-0"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors flex-shrink-0"
         >
           <FiMenu className="size-5" />
         </button>
-        <FiSearch className="size-4 text-gray-500 flex-shrink-0" />
+        <FiSearch className="size-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
         <input
           ref={inputRef}
           type="text"
@@ -132,12 +132,12 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
           onKeyDown={handleKeyDown}
           placeholder="Search for places, services..."
           disabled={isQuerying}
-          className="flex-1 bg-transparent text-gray-200 placeholder-gray-500 outline-none text-sm"
+          className="flex-1 bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none text-sm"
         />
         <button
           onClick={() => handleSubmit()}
           disabled={isQuerying || !input.trim()}
-          className="text-neon-cyan hover:text-cyan-300 disabled:text-gray-600 transition-colors flex-shrink-0"
+          className="text-blue-600 dark:text-neon-cyan hover:text-blue-500 dark:hover:text-cyan-300 disabled:text-gray-400 dark:disabled:text-gray-600 transition-colors flex-shrink-0"
         >
           {isQuerying ? (
             <AiOutlineLoading3Quarters className="size-4 animate-spin" />
@@ -157,7 +157,7 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
               handleSubmit(s)
             }}
             disabled={isQuerying}
-            className="px-3 py-1.5 rounded-full text-xs text-gray-400 border border-white/10 bg-surface/80 backdrop-blur-sm hover:border-neon-cyan/30 hover:text-gray-200 transition-all disabled:opacity-50"
+            className="px-3 py-1.5 rounded-full text-xs text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-surface/80 backdrop-blur-sm hover:border-blue-400/30 dark:hover:border-neon-cyan/30 hover:text-gray-800 dark:hover:text-gray-200 transition-all disabled:opacity-50"
           >
             {s}
           </button>

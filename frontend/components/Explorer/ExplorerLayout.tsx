@@ -19,7 +19,7 @@ export default function ExplorerLayout() {
   const hasResults = !!(aiResponse || activePlaces.length > 0)
 
   return (
-    <div className="flex flex-col md:block relative w-full h-[calc(100dvh-56px)] bg-surface-dark overflow-hidden">
+    <div className="flex flex-col md:block relative w-full h-[calc(100dvh-56px)] bg-gray-100 dark:bg-surface-dark overflow-hidden">
       {/* Map container — explicit height on mobile, absolute on desktop */}
       <div
         className="relative flex-shrink-0 md:absolute md:inset-0 md:!h-full transition-[height] duration-200"

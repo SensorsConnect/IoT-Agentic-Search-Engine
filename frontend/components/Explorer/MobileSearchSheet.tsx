@@ -11,6 +11,7 @@ import { useLocation } from '@/components/Location'
 import { config } from '@/utils/environment'
 import PlaceCard from '../PlaceCard/PlaceCard'
 import { Markdown } from '@/components'
+import { useTheme } from '@/components/Themes'
 
 interface MobileSearchSheetProps {
   onToggleHistory: () => void
@@ -26,6 +27,8 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
     setIsQuerying, setSelectedPlaceId, setMobileMapRatio
   } = useMapContext()
   const { currentChatRef } = useContext(ChatContext)
+  const { resolvedTheme } = useTheme()
+  const cardVariant = resolvedTheme === 'dark' ? 'dark' : 'light'
 
   // Sync GPS location into MapContext so the map centers on the user before any query
   useEffect(() => {
@@ -123,7 +126,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
   return (
     <div
       ref={containerRef}
-      className="flex flex-col min-h-0 md:hidden bg-surface/95 backdrop-blur-xl border-t border-white/10"
+      className="flex flex-col min-h-0 md:hidden bg-white/95 dark:bg-surface/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/10"
       style={{ height: hasResults ? `${100 - mobileMapRatio}%` : '56px' }}
     >
       {/* Drag handle — only when results are showing */}
@@ -133,26 +136,26 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
         >
-          <div className="w-10 h-1 rounded-full bg-white/20" />
+          <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
         </div>
       )}
 
       {/* Search input */}
       <div className="flex items-center gap-2 px-4 py-2 flex-shrink-0">
-        <button onClick={onToggleHistory} className="text-gray-400">
+        <button onClick={onToggleHistory} className="text-gray-500 dark:text-gray-400">
           <FiMenu className="size-5" />
         </button>
-        <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
-          <FiSearch className="size-4 text-gray-500" />
+        <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+          <FiSearch className="size-4 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="Search places..."
-            className="flex-1 bg-transparent text-gray-200 placeholder-gray-500 outline-none text-sm"
+            className="flex-1 bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none text-sm"
           />
-          <button onClick={handleSubmit} disabled={isQuerying} className="text-neon-cyan">
+          <button onClick={handleSubmit} disabled={isQuerying} className="text-blue-600 dark:text-neon-cyan">
             {isQuerying ? (
               <AiOutlineLoading3Quarters className="size-4 animate-spin" />
             ) : (
@@ -167,12 +170,12 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
         <div className="flex-1 overflow-y-auto dark-scrollbar px-4 pb-4 min-h-0">
           {/* AI Response */}
           {aiResponse && (
-            <div className="mb-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
+            <div className="mb-3 p-3 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/5">
               <div className="flex items-center gap-2 mb-2">
-                <span className="w-2 h-2 rounded-full bg-neon-cyan animate-live-pulse" />
+                <span className="w-2 h-2 rounded-full bg-blue-500 dark:bg-neon-cyan animate-live-pulse" />
                 <span className="text-xs text-gray-500 uppercase tracking-wider">AI Response</span>
               </div>
-              <div className="text-sm text-gray-300">
+              <div className="text-sm text-gray-700 dark:text-gray-300">
                 <Markdown>{aiResponse}</Markdown>
               </div>
             </div>
@@ -193,7 +196,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
                   }}
                   className={`transition-all duration-300 rounded-xl ${
                     selectedPlaceId === place.id
-                      ? 'ring-1 ring-neon-cyan/50 shadow-[0_0_12px_rgba(34,211,238,0.15)]'
+                      ? 'ring-1 ring-blue-400/50 dark:ring-neon-cyan/50 shadow-[0_0_12px_rgba(59,130,246,0.15)] dark:shadow-[0_0_12px_rgba(34,211,238,0.15)]'
                       : ''
                   }`}
                   style={{ animation: `cardEntrance 0.4s ease-out ${i * 75}ms both` }}
@@ -204,7 +207,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
                     onClick={() => setSelectedPlaceId(
                       selectedPlaceId === place.id ? null : place.id
                     )}
-                    variant="dark"
+                    variant={cardVariant}
                     index={i + 1}
                   />
                 </div>

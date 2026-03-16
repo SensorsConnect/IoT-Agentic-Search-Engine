@@ -28,7 +28,7 @@ function OccupancyMini({ occupancy }: { occupancy: number }) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+      <div className="flex-1 h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
         <div className={`h-full ${color} rounded-full animate-fill-bar`} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs text-gray-400 whitespace-nowrap">{(occupancy * 100).toFixed(0)}%</span>

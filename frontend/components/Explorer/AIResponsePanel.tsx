@@ -18,7 +18,7 @@ export default function AIResponsePanel() {
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="hidden md:flex absolute top-32 left-4 z-10 glass-panel px-4 py-2 items-center gap-2 text-sm text-gray-300 hover:text-gray-100 transition-colors cursor-pointer"
+        className="hidden md:flex absolute top-32 left-4 z-10 glass-panel px-4 py-2 items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors cursor-pointer"
       >
         <span className="w-2 h-2 rounded-full bg-neon-cyan animate-live-pulse" />
         AI Response
@@ -33,12 +33,12 @@ export default function AIResponsePanel() {
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-neon-cyan animate-live-pulse" />
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">AI Recommendation</span>
+            <span className="w-2 h-2 rounded-full bg-blue-500 dark:bg-neon-cyan animate-live-pulse" />
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">AI Recommendation</span>
           </div>
           <button
             onClick={() => setCollapsed(true)}
-            className="text-gray-500 hover:text-gray-300 transition-colors"
+            className="text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             <FiChevronUp className="size-4" />
           </button>
@@ -46,7 +46,7 @@ export default function AIResponsePanel() {
 
         {/* Loading state */}
         {isQuerying && !aiResponse && (
-          <div className="flex items-center gap-2 text-gray-400 text-sm">
+          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
             <div className="w-4 h-4 border-2 border-neon-cyan/30 border-t-neon-cyan rounded-full animate-spin" />
             Analyzing your query...
           </div>
@@ -54,14 +54,14 @@ export default function AIResponsePanel() {
 
         {/* Response text */}
         {aiResponse && (
-          <div className="text-gray-300 text-sm leading-relaxed">
+          <div className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
             <Markdown>{aiResponse}</Markdown>
           </div>
         )}
 
         {/* Footer stats */}
         {activePlaces.length > 0 && (
-          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/5">
+          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-200 dark:border-white/5">
             <span className="text-xs text-gray-500">
               {activePlaces.length} place{activePlaces.length !== 1 ? 's' : ''} found
             </span>
