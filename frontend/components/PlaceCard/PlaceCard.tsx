@@ -129,6 +129,17 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
               ~{place.overall_service_time_min.toFixed(0)} min service
             </div>
           )}
+
+          <a
+            href={getDirectionsUrl(place)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors w-full justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FiNavigation className="size-3" />
+            Get Directions
+          </a>
         </div>
       </div>
     )

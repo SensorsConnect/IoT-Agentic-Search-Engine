@@ -30,8 +30,8 @@ function syncMessagesToMap(
   // No assistant message found — clear
   ctx.setAiResponse(null)
   ctx.setActivePlaces([])
-  ctx.setActiveUserLocation(null)
   ctx.setSelectedPlaceId(null)
+  ctx.setMobileMapRatio(50)
 }
 
 export default function HistoryDrawer({ open, onClose }: HistoryDrawerProps) {
@@ -55,8 +55,8 @@ export default function HistoryDrawer({ open, onClose }: HistoryDrawerProps) {
       // New or empty chat — clear panels
       mapCtx.setAiResponse(null)
       mapCtx.setActivePlaces([])
-      mapCtx.setActiveUserLocation(null)
       mapCtx.setSelectedPlaceId(null)
+      mapCtx.setMobileMapRatio(50)
     }
     onClose()
   }
@@ -65,8 +65,8 @@ export default function HistoryDrawer({ open, onClose }: HistoryDrawerProps) {
     onCreateChat?.(DefaultPersonas[0])
     mapCtx.setAiResponse(null)
     mapCtx.setActivePlaces([])
-    mapCtx.setActiveUserLocation(null)
     mapCtx.setSelectedPlaceId(null)
+    mapCtx.setMobileMapRatio(50)
     onClose()
   }
 

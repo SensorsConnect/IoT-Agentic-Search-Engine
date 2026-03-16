@@ -120,23 +120,23 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
     const touch = e.touches[0]
     const parentRect = parent.getBoundingClientRect()
     const ratio = ((touch.clientY - parentRect.top) / parentRect.height) * 100
-    setMobileMapRatio(Math.min(85, Math.max(25, ratio)))
+    setMobileMapRatio(Math.min(85, Math.max(30, ratio)))
   }, [setMobileMapRatio])
 
   return (
     <div
       ref={containerRef}
-      className="flex flex-col min-h-0 md:hidden bg-white/95 dark:bg-surface/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/10"
+      className="flex flex-col min-h-0 md:hidden bg-white/95 dark:bg-surface/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/10 transition-[height] duration-200"
       style={{ height: hasResults ? `${100 - mobileMapRatio}%` : '56px' }}
     >
       {/* Drag handle — only when results are showing */}
       {hasResults && (
         <div
-          className="flex justify-center py-1.5 cursor-row-resize touch-none flex-shrink-0"
+          className="flex justify-center py-3 cursor-row-resize touch-none flex-shrink-0"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
         >
-          <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-white/20" />
+          <div className="w-12 h-1.5 rounded-full bg-gray-300 dark:bg-white/20" />
         </div>
       )}
 
