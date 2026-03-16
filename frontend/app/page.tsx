@@ -183,10 +183,7 @@ export default function Home() {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">About This Demo</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                This is a demonstration of the Agentic Search Engine paper implementation. The default location is set to Toronto, Canada.
-              </p>
-              <p className="text-gray-600 dark:text-gray-300">
-                To get recommendations, please specify your location (e.g., Ottawa, Montreal, Oshawa, etc.).
+                This is a demonstration of the Agentic Search Engine paper implementation.
               </p>
             </div>
             

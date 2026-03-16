@@ -135,17 +135,21 @@ export default function PlacesMap({
 
   // flyTo on selection
   useEffect(() => {
-    if (!selectedPlaceId || !mapRef.current || !isExplorer) return
-    const place = places.find((p) => p.id === selectedPlaceId)
-    if (place && place.latitude != null && place.longitude != null) {
-      mapRef.current.flyTo({
-        center: [place.longitude, place.latitude],
-        zoom: 16,
-        pitch: 60,
-        duration: 1000,
-      })
-    }
-  }, [selectedPlaceId, places, isExplorer])
+  if (!selectedPlaceId || !mapRef.current || !isExplorer) return
+  const place = places.find((p) => p.id === selectedPlaceId)
+  if (place && place.latitude != null && place.longitude != null) {
+    const isMobile = window.innerWidth < 768
+    const yOffset = isMobile ? window.innerHeight * 0.22 : 0
+
+    mapRef.current.flyTo({
+      center: [place.longitude, place.latitude],
+      zoom: 16,
+      pitch: 60,
+      duration: 1000,
+      offset: [0, yOffset],
+    })
+  }
+}, [selectedPlaceId, places, isExplorer])
 
   // Update map style when theme changes
   useEffect(() => {
@@ -239,7 +243,7 @@ export default function PlacesMap({
             onClick={() => {
               mapRef.current?.flyTo({
                 center: [userLocation.longitude, userLocation.latitude],
-                zoom: 14,
+                zoom: 18,
                 pitch: isExplorer ? 60 : 45,
               })
             }}
