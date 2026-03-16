@@ -31,8 +31,12 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
 
   // Sync GPS location into MapContext so the map centers on the user before any query
   useEffect(() => {
-    if (!activeUserLocation && contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null) {
-      setActiveUserLocation({ latitude: contextLocation.latitude, longitude: contextLocation.longitude })
+    if (contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null) {
+      if (!activeUserLocation ||
+          activeUserLocation.latitude !== contextLocation.latitude ||
+          activeUserLocation.longitude !== contextLocation.longitude) {
+        setActiveUserLocation({ latitude: contextLocation.latitude, longitude: contextLocation.longitude })
+      }
     }
   }, [contextLocation, activeUserLocation, setActiveUserLocation])
 
