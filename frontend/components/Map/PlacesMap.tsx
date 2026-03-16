@@ -134,12 +134,12 @@ export default function PlacesMap({
   }, [fitBounds])
 
   // flyTo on selection
-  useEffect(() => {
+useEffect(() => {
   if (!selectedPlaceId || !mapRef.current || !isExplorer) return
   const place = places.find((p) => p.id === selectedPlaceId)
   if (place && place.latitude != null && place.longitude != null) {
     const isMobile = window.innerWidth < 768
-    const yOffset = isMobile ? window.innerHeight * 0.22 : 0
+    const yOffset = isMobile ? -(window.innerHeight * 0.22) : 0
 
     mapRef.current.flyTo({
       center: [place.longitude, place.latitude],
