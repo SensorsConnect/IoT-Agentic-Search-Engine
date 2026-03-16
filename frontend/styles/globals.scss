@@ -127,8 +127,16 @@ body {
   border-radius: 1rem;
 }
 
-/* Mapbox overrides for dark explorer */
+/* Mapbox overrides for explorer map */
 .explorer-map {
+  .mapboxgl-ctrl-group {
+    border-radius: 12px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+/* Dark mode map overrides */
+.dark .explorer-map {
   .mapboxgl-popup-content {
     background: rgba(13, 14, 24, 0.95);
     color: #e5e7eb;

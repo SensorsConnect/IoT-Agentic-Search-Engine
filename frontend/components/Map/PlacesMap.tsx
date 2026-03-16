@@ -5,6 +5,7 @@ import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { Place } from '@/components/Chat/interface'
 import { MdMyLocation } from 'react-icons/md'
+import { useTheme } from '@/components/Themes'
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
@@ -94,6 +95,8 @@ export default function PlacesMap({
 }: PlacesMapProps) {
   const mapRef = useRef<MapRef>(null)
   const [popupPlace, setPopupPlace] = useState<Place | null>(null)
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   const fitBounds = useCallback(() => {
     const map = mapRef.current
@@ -144,6 +147,24 @@ export default function PlacesMap({
     }
   }, [selectedPlaceId, places, isExplorer])
 
+  // Update map style when theme changes
+  useEffect(() => {
+    const map = mapRef.current?.getMap()
+    if (!map || !isExplorer) return
+    map.setConfigProperty('basemap', 'lightPreset', isDark ? 'night' : 'day')
+    if (isDark) {
+      map.setFog({
+        color: '#070810',
+        'high-color': '#070810',
+        'horizon-blend': 0.1,
+        'space-color': '#070810',
+        'star-intensity': 0.3,
+      } as any)
+    } else {
+      map.setFog(null as any)
+    }
+  }, [isDark, isExplorer])
+
   const hasPlaces = places.length > 0 && places[0].latitude != null
   const isReady = userLocation || hasPlaces
 
@@ -151,14 +172,14 @@ export default function PlacesMap({
   if (!isReady) {
     return (
       <div
-        className="flex items-center justify-center bg-gray-900/50 animate-pulse"
+        className="flex items-center justify-center bg-gray-200 dark:bg-gray-900/50 animate-pulse"
         style={{
           width: '100%',
           height: '100%',
           ...(isExplorer ? {} : { borderRadius: '8px' }),
         }}
       >
-        <div className="flex flex-col items-center gap-2 text-gray-400">
+        <div className="flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400">
           <MdMyLocation className="size-6 animate-spin" />
           <span className="text-sm">Getting your location...</span>
         </div>
@@ -192,16 +213,18 @@ export default function PlacesMap({
         fitBounds()
         e.target.setConfigProperty('basemap', 'show3dObjects', true)
         if (isExplorer) {
-          // Dark night preset gives 3D buildings + dark aesthetic
-          e.target.setConfigProperty('basemap', 'lightPreset', 'night')
-          // Add fog for depth effect
-          e.target.setFog({
-            color: '#070810',
-            'high-color': '#070810',
-            'horizon-blend': 0.1,
-            'space-color': '#070810',
-            'star-intensity': 0.3,
-          } as any)
+          e.target.setConfigProperty('basemap', 'lightPreset', isDark ? 'night' : 'day')
+          if (isDark) {
+            e.target.setFog({
+              color: '#070810',
+              'high-color': '#070810',
+              'horizon-blend': 0.1,
+              'space-color': '#070810',
+              'star-intensity': 0.3,
+            } as any)
+          } else {
+            e.target.setFog(null as any)
+          }
         }
       }}
       scrollZoom={isExplorer}
