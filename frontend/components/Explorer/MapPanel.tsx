@@ -11,9 +11,13 @@ export default function MapPanel() {
     activeUserLocation,
     selectedPlaceId,
     hoveredPlaceId,
+    mobileMapRatio,
+    aiResponse,
     setSelectedPlaceId,
     setHoveredPlaceId,
   } = useMapContext()
+
+  const hasResults = !!(aiResponse || activePlaces.length > 0)
 
   return (
     <div className="w-full h-full explorer-map">
@@ -25,6 +29,7 @@ export default function MapPanel() {
         onMarkerClick={(id) => setSelectedPlaceId(id)}
         onMarkerHover={(id) => setHoveredPlaceId(id)}
         isExplorer
+        mobileMapRatio={hasResults ? mobileMapRatio : 100}
       />
     </div>
   )

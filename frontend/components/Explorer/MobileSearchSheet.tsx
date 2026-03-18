@@ -126,7 +126,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
   return (
     <div
       ref={containerRef}
-      className="flex flex-col min-h-0 md:hidden bg-white/95 dark:bg-surface/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/10 transition-[height] duration-200"
+      className="absolute bottom-0 left-0 right-0 z-20 flex flex-col min-h-0 md:hidden bg-white/95 dark:bg-surface/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/10 transition-[height] duration-200"
       style={{ height: hasResults ? `${100 - mobileMapRatio}%` : '56px' }}
     >
       {/* Drag handle — only when results are showing */}

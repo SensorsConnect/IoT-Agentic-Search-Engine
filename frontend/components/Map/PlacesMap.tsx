@@ -17,6 +17,7 @@ interface PlacesMapProps {
   onMarkerClick?: (id: string) => void
   onMarkerHover?: (id: string | null) => void
   isExplorer?: boolean
+  mobileMapRatio?: number
 }
 
 function NeonMarker({
@@ -92,6 +93,7 @@ export default function PlacesMap({
   onMarkerClick,
   onMarkerHover,
   isExplorer = false,
+  mobileMapRatio = 100,
 }: PlacesMapProps) {
   const mapRef = useRef<MapRef>(null)
   const [popupPlace, setPopupPlace] = useState<Place | null>(null)
@@ -123,33 +125,37 @@ export default function PlacesMap({
       [Math.min(...lngs), Math.min(...lats)],
       [Math.max(...lngs), Math.max(...lats)],
     ]
+    const isMobile = window.innerWidth < 768
+    const panelHeight = isMobile ? map.getContainer().clientHeight * (100 - mobileMapRatio) / 100 : 0
     map.fitBounds(bounds, {
-      padding: isExplorer ? { top: 40, bottom: 40, left: 30, right: 30 } : 40,
+      padding: isExplorer ? { top: 40, bottom: 40 + panelHeight, left: 30, right: 30 } : 40,
       maxZoom: 14,
     })
-  }, [places, userLocation, isExplorer])
+  }, [places, userLocation, isExplorer, mobileMapRatio])
 
   useEffect(() => {
     fitBounds()
   }, [fitBounds])
 
   // flyTo on selection
-useEffect(() => {
-  if (!selectedPlaceId || !mapRef.current || !isExplorer) return
-  const place = places.find((p) => p.id === selectedPlaceId)
-  if (place && place.latitude != null && place.longitude != null) {
-    const isMobile = window.innerWidth < 768
-    const yOffset = isMobile ? -(window.innerHeight * 0.22) : 0
+  useEffect(() => {
+    if (!selectedPlaceId || !mapRef.current || !isExplorer) return
+    const place = places.find((p) => p.id === selectedPlaceId)
+    if (place && place.latitude != null && place.longitude != null) {
+      const isMobile = window.innerWidth < 768
+      const containerH = mapRef.current.getContainer().clientHeight
+      const panelH = isMobile ? containerH * (100 - mobileMapRatio) / 100 : 0
+      const yOffset = -(panelH / 2)
 
-    mapRef.current.flyTo({
-      center: [place.longitude, place.latitude],
-      zoom: 16,
-      pitch: 60,
-      duration: 1000,
-      offset: [0, yOffset],
-    })
-  }
-}, [selectedPlaceId, places, isExplorer])
+      mapRef.current.flyTo({
+        center: [place.longitude, place.latitude],
+        zoom: 16,
+        pitch: 60,
+        duration: 1000,
+        offset: [0, yOffset],
+      })
+    }
+  }, [selectedPlaceId, places, isExplorer, mobileMapRatio])
 
   // Update map style when theme changes
   useEffect(() => {
@@ -238,13 +244,22 @@ useEffect(() => {
 
       {/* Recenter on my location button */}
       {userLocation && (
-        <div className="absolute bottom-6 right-2.5 z-10">
+        <div
+          className="absolute right-2.5 z-10 transition-[bottom] duration-200"
+          style={{ bottom: `calc(${100 - mobileMapRatio}% + 24px)` }}
+        >
           <button
             onClick={() => {
+              const isMobile = window.innerWidth < 768
+              const containerH = mapRef.current?.getContainer().clientHeight || 0
+              const panelH = isMobile ? containerH * (100 - mobileMapRatio) / 100 : 0
+              const yOffset = -(panelH / 2)
+
               mapRef.current?.flyTo({
                 center: [userLocation.longitude, userLocation.latitude],
                 zoom: 18,
                 pitch: isExplorer ? 60 : 45,
+                offset: [0, yOffset],
               })
             }}
             className="bg-white rounded-md shadow-md p-1.5 hover:bg-gray-100 transition-colors"
