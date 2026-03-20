@@ -246,7 +246,7 @@ export default function PlacesMap({
       {userLocation && (
         <div
           className="absolute right-2.5 z-10 transition-[bottom] duration-200"
-          style={{ bottom: `calc(${100 - mobileMapRatio}% + 24px)` }}
+          style={{ bottom: `max(80px, calc(${100 - mobileMapRatio}% + 24px))` }}
         >
           <button
             onClick={() => {
