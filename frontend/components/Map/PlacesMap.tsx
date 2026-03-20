@@ -108,14 +108,20 @@ export default function PlacesMap({
       .filter((p) => p.latitude != null && p.longitude != null)
       .map((p) => [p.longitude, p.latitude] as [number, number])
 
-    if (userLocation) {
-      points.push([userLocation.longitude, userLocation.latitude])
+    if (points.length === 0) {
+      if (userLocation) {
+        map.flyTo({ center: [userLocation.longitude, userLocation.latitude], zoom: 18 })
+      }
+      return
     }
 
-    if (points.length === 0) return
+    const isMobile = window.innerWidth < 768
+    const containerH = map.getContainer().clientHeight
+    const panelH = isMobile ? containerH * (100 - mobileMapRatio) / 100 : 0
+    const yOffset = -(panelH / 2)
 
     if (points.length === 1) {
-      map.flyTo({ center: points[0], zoom: 18, pitch: isExplorer ? 60 : 45 })
+      map.flyTo({ center: points[0], zoom: 18, pitch: isExplorer ? 60 : 45, offset: [0, yOffset] })
       return
     }
 
@@ -125,11 +131,10 @@ export default function PlacesMap({
       [Math.min(...lngs), Math.min(...lats)],
       [Math.max(...lngs), Math.max(...lats)],
     ]
-    const isMobile = window.innerWidth < 768
-    const panelHeight = isMobile ? map.getContainer().clientHeight * (100 - mobileMapRatio) / 100 : 0
     map.fitBounds(bounds, {
-      padding: isExplorer ? { top: 40, bottom: 40 + panelHeight, left: 30, right: 30 } : 40,
+      padding: isExplorer ? { top: 40, bottom: 40 + panelH, left: 30, right: 30 } : 40,
       maxZoom: 14,
+      offset: [0, yOffset],
     })
   }, [places, userLocation, isExplorer, mobileMapRatio])
 
