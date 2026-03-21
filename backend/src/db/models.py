@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, Text, ForeignKey, DateTime, UniqueConstraint, JSON, TypeDecorator, CHAR
+from sqlalchemy import Boolean, Column, String, Text, ForeignKey, DateTime, UniqueConstraint, JSON, TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import relationship
 
@@ -95,3 +95,14 @@ class SavedPlace(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "place_name", name="uq_user_place"),
     )
+
+
+class QueryEvent(Base):
+    __tablename__ = "query_events"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    user_id = Column(GUID, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    is_authenticated = Column(Boolean, default=False, nullable=False, index=True)
+    query_text = Column(String(200), nullable=False)
+    thread_id = Column(String(255), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False, index=True)

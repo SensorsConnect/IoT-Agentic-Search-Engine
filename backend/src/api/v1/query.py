@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from auth.clerk import get_optional_user, UserContext
 from db.engine import get_db
-from db.models import Conversation, Message
+from db.models import Conversation, Message, QueryEvent
 from graph import runnable
 
 logger = logging.getLogger(__name__)
@@ -45,6 +45,16 @@ async def query_handler(
 ):
     user_label = user.clerk_id if user else "anonymous"
     logger.info(f"Query received: user={user_label}, text='{query.text[:100]}', threadId='{query.threadId}'")
+
+    # Track every query for usage analytics
+    event = QueryEvent(
+        user_id=user.user_id if user else None,
+        is_authenticated=user is not None,
+        query_text=query.text[:200],
+        thread_id=query.threadId,
+    )
+    db.add(event)
+    db.commit()
 
     try:
         thread = {"configurable": {"thread_id": query.threadId}}
