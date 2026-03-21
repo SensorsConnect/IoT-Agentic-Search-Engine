@@ -115,40 +115,37 @@ async def query_handler(
         if query.location:
             user_location = {"latitude": query.location.latitude, "longitude": query.location.longitude}
 
-        # Persist conversation and messages only for authenticated users
-        conversation_id = ""
-        if user:
-            conversation = db.query(Conversation).filter(Conversation.thread_id == query.threadId).first()
-            if not conversation:
-                title = query.text[:50].strip()
-                if len(query.text) > 50:
-                    title += "..."
-                conversation = Conversation(
-                    user_id=user.user_id,
-                    thread_id=query.threadId,
-                    title=title,
-                )
-                db.add(conversation)
-                db.flush()
-
-            user_msg = Message(
-                conversation_id=conversation.id,
-                role="user",
-                content=query.text,
+        # Persist conversation and messages for all users (anonymous and authenticated)
+        conversation = db.query(Conversation).filter(Conversation.thread_id == query.threadId).first()
+        if not conversation:
+            title = query.text[:50].strip()
+            if len(query.text) > 50:
+                title += "..."
+            conversation = Conversation(
+                user_id=user.user_id if user else None,
+                thread_id=query.threadId,
+                title=title,
             )
-            db.add(user_msg)
+            db.add(conversation)
+            db.flush()
 
-            assistant_msg = Message(
-                conversation_id=conversation.id,
-                role="assistant",
-                content=response_text,
-                metadata_={"places": places_data, "userLocation": user_location} if places_data else None,
-            )
-            db.add(assistant_msg)
-            db.commit()
-            conversation_id = str(conversation.id)
+        user_msg = Message(
+            conversation_id=conversation.id,
+            role="user",
+            content=query.text,
+        )
+        db.add(user_msg)
 
-        return {"answer": response_text, "conversationId": conversation_id, "places": places_data, "userLocation": user_location}
+        assistant_msg = Message(
+            conversation_id=conversation.id,
+            role="assistant",
+            content=response_text,
+            metadata_={"places": places_data, "userLocation": user_location} if places_data else None,
+        )
+        db.add(assistant_msg)
+        db.commit()
+
+        return {"answer": response_text, "conversationId": str(conversation.id), "places": places_data, "userLocation": user_location}
 
     except ValueError as e:
         logger.error(f"Validation error processing query: {e}")

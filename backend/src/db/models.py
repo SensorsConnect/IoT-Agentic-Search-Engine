@@ -57,7 +57,7 @@ class Conversation(Base):
     __tablename__ = "conversations"
 
     id = Column(GUID, primary_key=True, default=uuid.uuid4)
-    user_id = Column(GUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(GUID, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     title = Column(String(255), nullable=True)
     thread_id = Column(String(255), unique=True, nullable=False, index=True)
     created_at = Column(DateTime(timezone=True), default=utcnow, nullable=False)

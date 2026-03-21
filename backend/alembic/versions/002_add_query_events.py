@@ -1,4 +1,4 @@
-"""Add query_events table for usage analytics
+"""Add query_events table and make conversations.user_id nullable for anonymous support
 
 Revision ID: 002_add_query_events
 Revises: 001_initial_phase1
@@ -16,6 +16,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Make conversations.user_id nullable so anonymous users' messages are stored
+    op.alter_column("conversations", "user_id", existing_type=UUID(as_uuid=True), nullable=True)
+    op.execute("ALTER TABLE conversations DROP CONSTRAINT IF EXISTS conversations_user_id_fkey")
+    op.create_foreign_key(
+        "conversations_user_id_fkey", "conversations", "users",
+        ["user_id"], ["id"], ondelete="SET NULL"
+    )
+
     op.create_table(
         "query_events",
         sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
@@ -29,3 +37,9 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table("query_events")
+    op.execute("ALTER TABLE conversations DROP CONSTRAINT IF EXISTS conversations_user_id_fkey")
+    op.create_foreign_key(
+        "conversations_user_id_fkey", "conversations", "users",
+        ["user_id"], ["id"], ondelete="CASCADE"
+    )
+    op.alter_column("conversations", "user_id", existing_type=UUID(as_uuid=True), nullable=False)
