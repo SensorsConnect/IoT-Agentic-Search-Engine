@@ -3,7 +3,6 @@ from .generator_agent import generator_agent
 from .reviewer_agent import reviewer_agent
 from .iot_engine import IoT_engine
 from .google_maps import GoogleMaps
-from .google_knowledge_graph import GoogleKnowledgeGraph
 from .scrapper import scrapper
 
 __all__ = [
@@ -12,6 +11,5 @@ __all__ = [
     "reviewer_agent",
     "IoT_engine",
     "GoogleMaps",
-    "GoogleKnowledgeGraph",
     "scrapper",
 ]

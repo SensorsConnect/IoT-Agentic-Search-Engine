@@ -18,7 +18,8 @@ export async function apiFetch(path: string, options: RequestInit = {}, token?: 
   })
 
   if (res.status === 401) {
-    window.location.href = '/sign-in'
+    // Don't redirect — let callers handle auth failures gracefully
+    // (anonymous users should still be able to use the chat)
     throw new Error('Unauthorized')
   }
 

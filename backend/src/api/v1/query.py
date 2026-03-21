@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from langchain_core.messages import HumanMessage
 from sqlalchemy.orm import Session
 
-from auth.clerk import get_current_user, UserContext
+from auth.clerk import get_optional_user, UserContext
 from db.engine import get_db
 from db.models import Conversation, Message
 from graph import runnable
@@ -40,10 +40,11 @@ class QueryResponse(BaseModel):
 async def query_handler(
     query: QueryRequest,
     request: Request,
-    user: UserContext = Depends(get_current_user),
+    user: Optional[UserContext] = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
-    logger.info(f"Query received: user={user.clerk_id}, text='{query.text[:100]}', threadId='{query.threadId}'")
+    user_label = user.clerk_id if user else "anonymous"
+    logger.info(f"Query received: user={user_label}, text='{query.text[:100]}', threadId='{query.threadId}'")
 
     try:
         thread = {"configurable": {"thread_id": query.threadId}}
@@ -104,39 +105,40 @@ async def query_handler(
         if query.location:
             user_location = {"latitude": query.location.latitude, "longitude": query.location.longitude}
 
-        # Upsert conversation
-        conversation = db.query(Conversation).filter(Conversation.thread_id == query.threadId).first()
-        if not conversation:
-            title = query.text[:50].strip()
-            if len(query.text) > 50:
-                title += "..."
-            conversation = Conversation(
-                user_id=user.user_id,
-                thread_id=query.threadId,
-                title=title,
+        # Persist conversation and messages only for authenticated users
+        conversation_id = ""
+        if user:
+            conversation = db.query(Conversation).filter(Conversation.thread_id == query.threadId).first()
+            if not conversation:
+                title = query.text[:50].strip()
+                if len(query.text) > 50:
+                    title += "..."
+                conversation = Conversation(
+                    user_id=user.user_id,
+                    thread_id=query.threadId,
+                    title=title,
+                )
+                db.add(conversation)
+                db.flush()
+
+            user_msg = Message(
+                conversation_id=conversation.id,
+                role="user",
+                content=query.text,
             )
-            db.add(conversation)
-            db.flush()
+            db.add(user_msg)
 
-        # Save user message
-        user_msg = Message(
-            conversation_id=conversation.id,
-            role="user",
-            content=query.text,
-        )
-        db.add(user_msg)
+            assistant_msg = Message(
+                conversation_id=conversation.id,
+                role="assistant",
+                content=response_text,
+                metadata_={"places": places_data, "userLocation": user_location} if places_data else None,
+            )
+            db.add(assistant_msg)
+            db.commit()
+            conversation_id = str(conversation.id)
 
-        # Save assistant message
-        assistant_msg = Message(
-            conversation_id=conversation.id,
-            role="assistant",
-            content=response_text,
-            metadata_={"places": places_data, "userLocation": user_location} if places_data else None,
-        )
-        db.add(assistant_msg)
-        db.commit()
-
-        return {"answer": response_text, "conversationId": str(conversation.id), "places": places_data, "userLocation": user_location}
+        return {"answer": response_text, "conversationId": conversation_id, "places": places_data, "userLocation": user_location}
 
     except ValueError as e:
         logger.error(f"Validation error processing query: {e}")

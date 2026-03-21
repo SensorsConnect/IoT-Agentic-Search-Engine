@@ -21,8 +21,5 @@ def reviewer_router(state: AgentState):
 def IoT_router(state: AgentState):
     return state["call"]
 
-def router(state: AgentState):
-    return "END"
-
 def googlemaps_router(state: AgentState):
     return state["call"]

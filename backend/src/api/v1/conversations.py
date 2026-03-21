@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from auth.clerk import get_current_user, UserContext
+from auth.clerk import get_current_user, get_optional_user, UserContext
 from db.engine import get_db
 from db.models import Conversation, Message
 
@@ -62,9 +62,11 @@ def _get_user_conversation(db: Session, conversation_id: str, user_id: str) -> C
 async def list_conversations(
     limit: int = Query(default=50, le=100),
     offset: int = Query(default=0, ge=0),
-    user: UserContext = Depends(get_current_user),
+    user: Optional[UserContext] = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
+    if not user:
+        return []
     convs = (
         db.query(Conversation)
         .filter(Conversation.user_id == user.user_id)
@@ -88,9 +90,11 @@ async def list_conversations(
 @router.get("/{conversation_id}", response_model=ConversationDetailOut)
 async def get_conversation(
     conversation_id: str,
-    user: UserContext = Depends(get_current_user),
+    user: Optional[UserContext] = Depends(get_optional_user),
     db: Session = Depends(get_db),
 ):
+    if not user:
+        raise HTTPException(status_code=401, detail="Sign in to view conversation history")
     conv = _get_user_conversation(db, conversation_id, user.user_id)
     msgs = (
         db.query(Message)

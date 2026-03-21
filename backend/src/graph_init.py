@@ -5,7 +5,6 @@ from agents import (
     generator_agent,
     IoT_engine,
     GoogleMaps,
-    GoogleKnowledgeGraph,
     scrapper,
     reviewer_agent
 )
@@ -16,7 +15,6 @@ from routers import (
     reviewer_router,
     IoT_router,
     googlemaps_router,
-    router
 )
 
 def initialize_graph():
@@ -25,7 +23,6 @@ def initialize_graph():
     graph.add_node("generator_agent", generator_agent)
     graph.add_node("IoT_engine", IoT_engine)
     graph.add_node("GoogleMaps", GoogleMaps)
-    graph.add_node("GoogleKnowledgeGraph", GoogleKnowledgeGraph)
     graph.add_node("scrapper", scrapper)
     graph.add_node("reviewer_agent", reviewer_agent)
     graph.add_node("finalize_turn", finalize_turn)
@@ -38,7 +35,7 @@ def initialize_graph():
     )
 
     graph.add_conditional_edges(
-        "scrapper", scrapper_router, {"generator_agent": "generator_agent", "GoogleKnowledgeGraph": "GoogleKnowledgeGraph"}
+        "scrapper", scrapper_router, {"generator_agent": "generator_agent"}
     )
 
     graph.add_conditional_edges(
@@ -47,10 +44,6 @@ def initialize_graph():
 
     graph.add_conditional_edges(
         "GoogleMaps", googlemaps_router, {"generator_agent": "generator_agent", "scrapper": "scrapper"}
-    )
-
-    graph.add_conditional_edges(
-        "GoogleKnowledgeGraph", router, {"generator_agent": "generator_agent", "scrapper": "scrapper"}
     )
 
     graph.add_edge("generator_agent", "reviewer_agent")
