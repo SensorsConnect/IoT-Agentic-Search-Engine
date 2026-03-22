@@ -22,13 +22,13 @@ export const metadata: Metadata = {
     template: '%s | Localelive'
   },
   description:
-    'Find nearby services, restaurants, shops, and local businesses using AI-powered search. Localelive combines real-time IoT data with intelligent agents to deliver personalized local recommendations.',
+    'Find nearby services, restaurants, shops, and local businesses using AI-powered search. Localelive delivers real-time, personalized local recommendations.',
   keywords: [
     'local search',
     'AI search engine',
     'nearby services',
     'local businesses',
-    'IoT search',
+    'real-time search',
     'restaurant finder',
     'local recommendations',
     'localelive',
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     siteName: 'Localelive',
     title: 'Localelive - AI-Powered Local Search Engine',
     description:
-      'Find nearby services, restaurants, shops, and local businesses using AI-powered search with real-time IoT data.',
+      'Find nearby services, restaurants, shops, and local businesses using AI-powered search with real-time data.',
     images: [
       {
         url: '/localelive-light-icon.png',
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Localelive - AI-Powered Local Search Engine',
     description:
-      'Find nearby services, restaurants, shops, and local businesses using AI-powered search with real-time IoT data.',
+      'Find nearby services, restaurants, shops, and local businesses using AI-powered search with real-time data.',
     images: ['/localelive-light-icon.png'],
   },
   alternates: {
@@ -91,7 +91,7 @@ const jsonLd = {
       url: 'https://localelive.space',
       applicationCategory: 'SearchApplication',
       description:
-        'AI-powered local search engine that combines real-time IoT data with intelligent agents to find nearby services and businesses.',
+        'AI-powered local search engine that delivers real-time insights and personalized recommendations for nearby services and businesses.',
     },
   ],
 }

@@ -1,7 +1,7 @@
 {
   "name": "Localelive - AI-Powered Local Search Engine",
   "short_name": "Localelive",
-  "description": "Find nearby services, restaurants, and local businesses using AI-powered search with real-time IoT data.",
+  "description": "Find nearby services, restaurants, and local businesses using AI-powered search with real-time data.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

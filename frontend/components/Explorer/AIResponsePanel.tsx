@@ -68,7 +68,7 @@ export default function AIResponsePanel() {
             {hasIoT && (
               <span className="flex items-center gap-1.5 text-xs text-neon-green">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-live-pulse" />
-                Live IoT data ({iotCount})
+                Live Updates ({iotCount})
               </span>
             )}
           </div>

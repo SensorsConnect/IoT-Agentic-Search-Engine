@@ -400,7 +400,7 @@ const Chat = (props: ChatProps, ref: any) => {
         <div className="mt-2 text-sm text-gray-500 text-center space-y-1">
           <p className="flex items-center justify-center gap-2">
             <AiOutlineInfoCircle className="size-4 text-blue-500" />
-            This demo is an implementation for the Agentic Search Engine for Real-Time IoT Data
+            Powered by LocaleLive — Your Smart Local Guide
           </p>
         </div>
       </div>

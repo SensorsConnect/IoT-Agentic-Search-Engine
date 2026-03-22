@@ -59,7 +59,7 @@ export const Header = () => {
             style={{ maxWidth: 400 }}
             className="text-gray-900 dark:text-white"
           >
-            <span className={isExplorer ? 'hidden md:inline' : ''}>LocaleLive: Agentic Search Engine For IoT</span>
+            <span className={isExplorer ? 'hidden md:inline' : ''}>LocaleLive: Your Smart Local Guide</span>
             {isExplorer && <span className="md:hidden">LocaleLive</span>}
           </Heading>
         </NextLink>
