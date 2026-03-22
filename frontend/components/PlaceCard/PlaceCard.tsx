@@ -130,6 +130,24 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
             </div>
           )}
 
+          {/* Phone & Website */}
+          {(place.phone || place.website) && (
+            <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+              {place.phone && (
+                <a href={`tel:${place.phone}`} className="inline-flex items-center gap-1 hover:text-neon-cyan transition-colors">
+                  <FiPhone className="size-3" />
+                  {place.phone}
+                </a>
+              )}
+              {place.website && (
+                <a href={place.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-neon-cyan transition-colors">
+                  <FiExternalLink className="size-3" />
+                  Website
+                </a>
+              )}
+            </div>
+          )}
+
           <a
             href={getDirectionsUrl(place)}
             target="_blank"
