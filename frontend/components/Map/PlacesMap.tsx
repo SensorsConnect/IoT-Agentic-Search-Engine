@@ -108,17 +108,17 @@ export default function PlacesMap({
       .filter((p) => p.latitude != null && p.longitude != null)
       .map((p) => [p.longitude, p.latitude] as [number, number])
 
-    if (points.length === 0) {
-      if (userLocation) {
-        map.flyTo({ center: [userLocation.longitude, userLocation.latitude], zoom: 18 })
-      }
-      return
-    }
-
     const isMobile = window.innerWidth < 768
     const containerH = map.getContainer().clientHeight
     const panelH = isMobile ? containerH * (100 - mobileMapRatio) / 100 : 0
     const yOffset = -(panelH / 2)
+
+    if (points.length === 0) {
+      if (userLocation) {
+        map.flyTo({ center: [userLocation.longitude, userLocation.latitude], zoom: 18, offset: [0, yOffset] })
+      }
+      return
+    }
 
     if (points.length === 1) {
       map.flyTo({ center: points[0], zoom: 18, pitch: isExplorer ? 60 : 45, offset: [0, yOffset] })
