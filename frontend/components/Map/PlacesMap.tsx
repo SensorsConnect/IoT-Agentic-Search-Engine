@@ -250,7 +250,9 @@ export default function PlacesMap({
       {/* Recenter on my location button */}
       {userLocation && (
         <div
-          className="absolute right-2.5 z-20 transition-[bottom] duration-200 md:bottom-20 bottom-[var(--recenter-bottom)]"
+          className={`absolute right-2.5 z-20 transition-[bottom,right] duration-200 md:bottom-20 bottom-[var(--recenter-bottom)] ${
+            selectedPlaceId ? 'md:right-[420px]' : ''
+          }`}
           style={{ '--recenter-bottom': `max(80px, calc(${100 - mobileMapRatio}% + 24px))` } as React.CSSProperties}
         >
           <button
