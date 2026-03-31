@@ -130,7 +130,7 @@ class GoogleMapsTextSearchClient:
         params = {'annotations': 'duration'}
 
         try:
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=3)
             elapsed = time.time() - t0
             logger.info(f"[DEBUG OSRM] HTTP {response.status_code} in {elapsed:.2f}s")
             response.raise_for_status()
