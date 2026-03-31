@@ -1,6 +1,11 @@
+import logging
+import time
 import requests
 import os
-GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY") 
+
+logger = logging.getLogger(__name__)
+
+GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
 osm_api_key = os.environ.get("ORS_API_KEY")  # Not needed for OSRM, but could be used for other OSM services
 
 class GoogleMapsTextSearchClient:
@@ -13,8 +18,8 @@ class GoogleMapsTextSearchClient:
         self.osrm_url = "http://router.project-osrm.org/table/v1/driving/"
     
     def text_search(self, query, limit=3, latitude=None, longitude=None, radius=50000):
-        print("Origin coordinates:", latitude, longitude)
-        print("Search query:", query)
+        logger.info(f"[DEBUG text_search] START query='{query}', lat={latitude}, lon={longitude}, radius={radius}, limit={limit}")
+        t0 = time.time()
 
         # If location is provided, use nearbysearch with keyword for better location-based results
         if latitude is not None and longitude is not None:
@@ -25,110 +30,139 @@ class GoogleMapsTextSearchClient:
                 'key': self.google_api_key
             }
             url = self.nearby_search_url
-            print(f"Using nearby search API with params: {params}")
         else:
-            # Fallback to text search without location
             params = {
                 'query': query,
                 'key': self.google_api_key
             }
             url = self.text_search_url
-            print(f"Using text search API with params: {params}")
 
-        response = requests.get(url, params=params)
-        print(f"Response status: {response.status_code}")
+        try:
+            response = requests.get(url, params=params, timeout=10)
+        except requests.exceptions.Timeout:
+            logger.error(f"[DEBUG text_search] TIMEOUT after 10s for query='{query}'")
+            return []
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"[DEBUG text_search] CONNECTION ERROR: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"[DEBUG text_search] UNEXPECTED ERROR: {type(e).__name__}: {e}")
+            return []
+
+        elapsed = time.time() - t0
+        logger.info(f"[DEBUG text_search] HTTP {response.status_code} in {elapsed:.2f}s")
 
         if response.status_code == 200:
             response_data = response.json()
-            print("Full API response:", response_data)
             results = response_data.get('results', [])
             status = response_data.get('status', 'UNKNOWN')
-            print(f"API Status: {status}")
-            print(f"Number of results: {len(results)}")
+            logger.info(f"[DEBUG text_search] API status='{status}', results_count={len(results)}")
 
-            if status != 'OK' and status != 'ZERO_RESULTS':
-                print(f"API returned status: {status}")
-                if 'error_message' in response_data:
-                    print(f"Error message: {response_data['error_message']}")
+            if status not in ('OK', 'ZERO_RESULTS'):
+                err_msg = response_data.get('error_message', 'N/A')
+                logger.error(f"[DEBUG text_search] API ERROR status='{status}', error_message='{err_msg}'")
 
-            # Limit the number of results to the specified limit
             return results[:limit]
         else:
-            print("Error occurred:", response.content)
-            print("Response status:", response.status_code)
+            logger.error(f"[DEBUG text_search] HTTP ERROR {response.status_code}: {response.content[:500]}")
             response.raise_for_status()
 
     def nearby_search_ranked_by_distance(self, query, latitude, longitude, limit=5):
         """Search nearby places ranked by distance (nearest first)."""
+        logger.info(f"[DEBUG nearby_search] START query='{query}', lat={latitude}, lon={longitude}, limit={limit}")
+        t0 = time.time()
         params = {
             'location': f"{latitude},{longitude}",
             'rankby': 'distance',
             'keyword': query,
             'key': self.google_api_key
         }
-        print(f"Using nearby search (rankby=distance) with params: {params}")
 
-        response = requests.get(self.nearby_search_url, params=params)
-        print(f"Response status: {response.status_code}")
+        try:
+            response = requests.get(self.nearby_search_url, params=params, timeout=10)
+        except requests.exceptions.Timeout:
+            logger.error(f"[DEBUG nearby_search] TIMEOUT after 10s for query='{query}'")
+            return []
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"[DEBUG nearby_search] CONNECTION ERROR: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"[DEBUG nearby_search] UNEXPECTED ERROR: {type(e).__name__}: {e}")
+            return []
+
+        elapsed = time.time() - t0
+        logger.info(f"[DEBUG nearby_search] HTTP {response.status_code} in {elapsed:.2f}s")
 
         if response.status_code == 200:
             response_data = response.json()
             results = response_data.get('results', [])
             status = response_data.get('status', 'UNKNOWN')
-            print(f"API Status: {status}, Results: {len(results)}")
+            logger.info(f"[DEBUG nearby_search] API status='{status}', results_count={len(results)}")
 
-            if status != 'OK' and status != 'ZERO_RESULTS':
-                print(f"API returned status: {status}")
-                if 'error_message' in response_data:
-                    print(f"Error message: {response_data['error_message']}")
+            if status not in ('OK', 'ZERO_RESULTS'):
+                err_msg = response_data.get('error_message', 'N/A')
+                logger.error(f"[DEBUG nearby_search] API ERROR status='{status}', error_message='{err_msg}'")
 
+            for i, r in enumerate(results[:limit]):
+                logger.info(f"[DEBUG nearby_search] result[{i}]: name='{r.get('name')}', rating={r.get('rating')}, place_id={r.get('place_id','')[:20]}")
             return results[:limit]
         else:
-            print("Error occurred:", response.content)
+            logger.error(f"[DEBUG nearby_search] HTTP ERROR {response.status_code}: {response.content[:500]}")
             response.raise_for_status()
 
     def get_travel_times(self, origin_latitude, origin_longitude, destinations):
         """
         Calculate travel times from the origin to multiple destinations using OSRM.
-        
-        :param origin_latitude: Latitude of the origin.
-        :param origin_longitude: Longitude of the origin.
-        :param destinations: List of (latitude, longitude) tuples for the destinations.
-        :return: List of travel times in minutes.
         """
-        # Validate inputs - OSRM requires at least 2 coordinates (origin + destination)
+        logger.info(f"[DEBUG OSRM] START origin=({origin_latitude},{origin_longitude}), destinations_count={len(destinations) if destinations else 0}")
+        t0 = time.time()
+
         if not destinations or len(destinations) == 0:
-            print("No destinations provided for travel time calculation - OSRM requires at least one destination")
+            logger.warning("[DEBUG OSRM] No destinations provided, returning empty")
             return []
-        
+
         # Build coordinates string: origin;dest1;dest2;...
         coords = f"{origin_longitude},{origin_latitude}"
         for lat, lon in destinations:
             coords += f";{lon},{lat}"
-        
-        # Build URL with proper formatting (no trailing semicolon)
+
         url = f"{self.osrm_url}{coords}"
-        params = {
-            'annotations': 'duration'
-        }
-        print(f"OSRM Request URL: {url}")
-        print(f"OSRM Request params: {params}")
-        
+        params = {'annotations': 'duration'}
+
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=10)
+            elapsed = time.time() - t0
+            logger.info(f"[DEBUG OSRM] HTTP {response.status_code} in {elapsed:.2f}s")
             response.raise_for_status()
-            
+
             data = response.json()
-            durations = data.get('durations', [[]])[0][1:]  # Skip the first value as it is the origin to origin
-            travel_times = [duration / 60 for duration in durations]  # Convert seconds to minutes
+            osrm_code = data.get('code', 'N/A')
+            logger.info(f"[DEBUG OSRM] OSRM code='{osrm_code}'")
+
+            if osrm_code != 'Ok':
+                logger.error(f"[DEBUG OSRM] OSRM returned non-Ok code: {osrm_code}, message: {data.get('message', 'N/A')}")
+                return ['N/A'] * len(destinations)
+
+            durations = data.get('durations', [[]])[0][1:]
+            travel_times = [duration / 60 for duration in durations]
+            for i, tt in enumerate(travel_times):
+                logger.info(f"[DEBUG OSRM] dest[{i}] travel_time={tt:.2f} mins")
             return travel_times
+        except requests.exceptions.Timeout:
+            elapsed = time.time() - t0
+            logger.error(f"[DEBUG OSRM] TIMEOUT after {elapsed:.2f}s")
+            return ['N/A'] * len(destinations)
+        except requests.exceptions.ConnectionError as e:
+            elapsed = time.time() - t0
+            logger.error(f"[DEBUG OSRM] CONNECTION ERROR after {elapsed:.2f}s: {e}")
+            return ['N/A'] * len(destinations)
         except requests.exceptions.HTTPError as e:
-            print(f"OSRM HTTP Error: {e}")
-            print(f"Response content: {response.content}")
-            # Return N/A for all destinations if OSRM fails
+            elapsed = time.time() - t0
+            logger.error(f"[DEBUG OSRM] HTTP ERROR after {elapsed:.2f}s: {e}, body: {response.content[:500]}")
             return ['N/A'] * len(destinations)
         except Exception as e:
-            print(f"OSRM Error: {e}")
+            elapsed = time.time() - t0
+            logger.error(f"[DEBUG OSRM] UNEXPECTED ERROR after {elapsed:.2f}s: {type(e).__name__}: {e}")
             return ['N/A'] * len(destinations)
 
     def get_photo_url(self, photo_reference, max_width=400):
@@ -142,7 +176,10 @@ class GoogleMapsTextSearchClient:
 
     def get_place_details(self, place_id, fields=None):
         """Fetch place details from the Place Details API."""
+        logger.info(f"[DEBUG place_details] START place_id='{place_id}', fields={fields}")
+        t0 = time.time()
         if not place_id:
+            logger.warning("[DEBUG place_details] No place_id provided, returning empty")
             return {}
         if fields is None:
             fields = ["formatted_phone_number", "website"]
@@ -153,26 +190,38 @@ class GoogleMapsTextSearchClient:
             "key": self.google_api_key,
         }
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=10)
+            elapsed = time.time() - t0
+            logger.info(f"[DEBUG place_details] HTTP {response.status_code} in {elapsed:.2f}s")
             if response.status_code == 200:
-                return response.json().get("result", {})
+                result = response.json().get("result", {})
+                logger.info(f"[DEBUG place_details] Got fields: {list(result.keys())}")
+                return result
+            else:
+                logger.error(f"[DEBUG place_details] HTTP ERROR {response.status_code}: {response.content[:500]}")
+        except requests.exceptions.Timeout:
+            logger.error(f"[DEBUG place_details] TIMEOUT after {time.time() - t0:.2f}s")
         except Exception as e:
-            print(f"Place Details API error: {e}")
+            logger.error(f"[DEBUG place_details] ERROR: {type(e).__name__}: {e}")
         return {}
 
     def get_formatted_address(self, place):
+        name = place.get('name', 'unknown')
         # If already present in the search result, use it
         addr = (place.get('formatted_address') or
                 place.get('formattedAddress') or
                 place.get('vicinity'))
         if addr:
+            logger.info(f"[DEBUG address] Found cached address for '{name}': '{addr[:60]}'")
             return addr
 
         # Otherwise, fetch via Place Details with fields=formatted_address
         place_id = place.get('place_id') or place.get('id')
         if not place_id:
+            logger.warning(f"[DEBUG address] No address or place_id for '{name}', returning None")
             return None
-        details = self.place_details(place_id, fields=['formatted_address'])  # make sure your method passes fields
+        logger.info(f"[DEBUG address] Fetching address from Place Details API for '{name}' (place_id={place_id[:20]})")
+        details = self.get_place_details(place_id, fields=['formatted_address'])
         result = details.get('result') or details.get('place') or {}
         return result.get('formatted_address') or result.get('formattedAddress')
 

@@ -1,5 +1,6 @@
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Request
@@ -66,12 +67,26 @@ async def query_handler(
         human_message = HumanMessage(content=message_content)
         messages = [human_message]
 
+        GRAPH_TIMEOUT_SECONDS = 90
+
         result = None
         last_exc = None
         for attempt in range(3):
             try:
-                result = runnable.invoke({"messages": messages, "query": message_content}, thread)
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(
+                        runnable.invoke,
+                        {"messages": messages, "query": message_content},
+                        thread,
+                    )
+                    result = future.result(timeout=GRAPH_TIMEOUT_SECONDS)
                 break
+            except FuturesTimeoutError:
+                logger.error(f"Graph invocation timed out after {GRAPH_TIMEOUT_SECONDS}s for query: {query.text[:100]}")
+                return JSONResponse(
+                    status_code=504,
+                    content={"error": "Request timed out", "detail": "The search took too long. Please try again."}
+                )
             except Exception as exc:
                 exc_str = str(exc).lower()
                 is_conn_err = any(k in exc_str for k in (
