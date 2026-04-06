@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
-import { Analytics } from '@vercel/analytics/react'
 import { Toaster } from 'react-hot-toast'
 import { Header } from '@/components/Header'
 import ThemesProvider from '@/providers/ThemesProvider'
@@ -100,8 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="format-detection" content="telephone=no" />
         <script
           type="application/ld+json"
@@ -115,7 +113,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
             <Toaster />
           </ThemesProvider>
-          <Analytics />
         </ClerkProvider>
       </body>
     </html>
