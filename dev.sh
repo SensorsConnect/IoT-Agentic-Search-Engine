@@ -10,6 +10,14 @@ FRONTEND_PORT=3000
 CONDA_ENV="IoT-engine"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Prefer the Miniforge conda install if present, since this repo's local env
+# was created there and shell init may still point bash at a different conda.
+if [[ -x "/opt/homebrew/bin/conda" ]]; then
+    CONDA_BIN="/opt/homebrew/bin/conda"
+else
+    CONDA_BIN="$(command -v conda)"
+fi
+
 # Load backend env vars
 set -a
 source "$SCRIPT_DIR/backend/.env"
@@ -21,7 +29,7 @@ export POSTGRES_URL="sqlite:///checkpoints.db"
 # Activate conda environment (provides Python + Node 18)
 # Temporarily allow unset vars — conda activation scripts may reference undefined vars
 set +u
-eval "$(conda shell.bash hook)"
+eval "$("$CONDA_BIN" shell.bash hook)"
 conda activate "$CONDA_ENV"
 set -u
 
