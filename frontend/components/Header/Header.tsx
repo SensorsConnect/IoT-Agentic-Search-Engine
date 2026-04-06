@@ -42,7 +42,7 @@ export const Header = () => {
       className={cs(
         'block sticky top-0 py-2 px-4 z-20 backdrop-blur-xl',
         isExplorer
-          ? 'bg-white/80 dark:bg-[#070810]/80 border-b border-gray-200/50 dark:border-white/5 shadow-none'
+          ? 'bg-white/80 dark:bg-[#070810]/80 border border-gray-200/50 dark:border-white/5 shadow-none rounded-b-2xl'
           : 'bg-white/80 dark:bg-gray-900/80 shadow-sm dark:shadow-gray-500 py-3',
       )}
     >

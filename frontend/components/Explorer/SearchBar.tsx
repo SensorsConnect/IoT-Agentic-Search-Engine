@@ -114,7 +114,7 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
   }, [handleSubmit])
 
   return (
-    <div className="hidden md:block absolute top-4 left-4 md:w-[420px] z-20">
+    <div className="hidden md:block absolute top-4 left-4 md:w-[340px] lg:w-[420px] z-20">
       {/* Search input */}
       <div className="glass-panel flex items-center gap-3 px-4 py-3 focus-within:border-blue-400/50 dark:focus-within:border-neon-cyan/50 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.15)] dark:focus-within:shadow-[0_0_15px_rgba(34,211,238,0.15)] transition-all">
         <button
