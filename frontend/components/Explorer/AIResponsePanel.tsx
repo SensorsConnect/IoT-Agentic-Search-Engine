@@ -29,7 +29,7 @@ export default function AIResponsePanel() {
 
   return (
     <div className="hidden md:block absolute top-40 left-4 md:w-[340px] lg:w-[420px] z-10 animate-slide-in-top">
-      <div className="glass-panel p-4 max-h-[calc(100dvh-460px)] min-h-0 overflow-y-auto dark-scrollbar">
+      <div className="glass-panel p-4 max-h-[calc(100dvh-600px)] min-h-0 overflow-y-auto dark-scrollbar">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
