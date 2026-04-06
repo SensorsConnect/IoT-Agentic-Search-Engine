@@ -37,9 +37,12 @@ services:
 
   frontend:
     image: elewah/localelive-frontend
+    platform: linux/amd64
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`${DOMAIN_NAME}`)"
@@ -59,9 +62,12 @@ services:
 
   backend:
     image: elewah/localelive-backend
+    platform: linux/amd64
     build:
       context: ./backend
       dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
     ports:
       - "8000:8000"
     labels:
