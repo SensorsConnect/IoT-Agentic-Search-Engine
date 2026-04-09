@@ -1,143 +1,102 @@
-# !pip  install -U docarray
-# !pip  install pydantic
-from transformers import AutoTokenizer, AutoModel
-import torch
-import torch.nn.functional as F
-from docarray import BaseDoc, DocList
-from docarray.typing import NdArray
-from vectordb import HNSWVectorDB
+import os
+import logging
+from pymilvus import MilvusClient, DataType
+from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
-# workspace_path = "./vector_db_v2"
-workspace_path= r"vector_db/vectorDB_files_v2"
-services_description_file_path="./assets/Services_description_V2.txt"
 
-# Define constants
-vector_dimension = 768
+logger = logging.getLogger(__name__)
 
-
-# Define the ServiceDoc class
-class ServiceDoc(BaseDoc):
-    text: str = ''
-    embedding: NdArray[vector_dimension]
-
-# Mean Pooling - Takes attention mask into account for correct averaging
-def mean_pooling(model_output, attention_mask):
-    token_embeddings = model_output[0]  # First element of model_output contains all token embeddings
-    input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
-    return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+_DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "milvus_lite.db")
+MILVUS_URI = os.environ.get("MILVUS_URI", _DEFAULT_DB_PATH)
+COLLECTION_NAME = "services"
+DENSE_DIM = 384  # BAAI/bge-small-en-v1.5 output dimension
+SERVICES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "Services_description_V2.txt")
 
 # Load embedding model once at startup
-_tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/all-mpnet-base-v2')
-_model = AutoModel.from_pretrained('sentence-transformers/all-mpnet-base-v2')
+_model = SentenceTransformer("BAAI/bge-small-en-v1.5")
 
-# Embedding Model
-def embedding_model(doc: str):
-    # Tokenize the document
-    encoded_input = _tokenizer(doc, padding=True, truncation=True, return_tensors='pt')
-
-    # Compute token embeddings
-    with torch.no_grad():
-        model_output = _model(**encoded_input)
-
-    # Perform pooling
-    doc_embedding = mean_pooling(model_output, encoded_input['attention_mask'])
-
-    # Normalize embeddings
-    doc_embedding = F.normalize(doc_embedding, p=2, dim=1)
-
-    return doc_embedding.numpy()[0]
-
-# Push Service Descriptions to the Vector Database
-def vector_db_push(service_name:str,service_description:str, workspace: str):
-#     doc_embedding = embedding_model(service_description)
-
-    db = HNSWVectorDB[ServiceDoc](workspace=workspace)
-    # Index a list of documents with random embeddings
-    doc_list = [ServiceDoc(text=service_name, embedding=embedding_model(service_description))]
-    db.index(inputs=DocList[ServiceDoc](doc_list))
-#     db.index(inputs=DocList[ServiceDoc](record))
+_client: MilvusClient | None = None
 
 
-# Perform a Similarity Search Query
-def vector_search(user_query: str, limit: int):
-    db = HNSWVectorDB[ServiceDoc](workspace=workspace_path)
-    
-    # Generate embedding for the query
-    query_embedding = embedding_model(user_query)
-    len(query_embedding)
-    query_doc = ServiceDoc(text=user_query, embedding=query_embedding)
-    
-    # Perform a search query
-    results = db.search(inputs=DocList[ServiceDoc]([query_doc]), limit=limit)
-    
-    # Print out the matches
-    print(f"Search results for query: '{user_query}'")
-    serivces=[]
-    for match in results[0].matches:
-        print(match.text)
-        serivces.append(match.text)
-    return serivces
+def _get_client() -> MilvusClient:
+    global _client
+    if _client is None:
+        _client = MilvusClient(uri=MILVUS_URI)
+    return _client
 
-        
-def parse_services(file_content):
+
+def _create_collection(client: MilvusClient) -> None:
+    schema = client.create_schema(auto_id=True, enable_dynamic_field=False)
+    schema.add_field("id", DataType.INT64, is_primary=True)
+    schema.add_field("service_name", DataType.VARCHAR, max_length=256)
+    schema.add_field("dense", DataType.FLOAT_VECTOR, dim=DENSE_DIM)
+
+    index_params = client.prepare_index_params()
+    index_params.add_index(
+        field_name="dense",
+        index_type="AUTOINDEX",  # Milvus Lite supports AUTOINDEX, FLAT, IVF_FLAT; full Milvus also supports HNSW
+        metric_type="COSINE",
+    )
+    client.create_collection(COLLECTION_NAME, schema=schema, index_params=index_params)
+    logger.info(f"Created Milvus collection '{COLLECTION_NAME}'")
+
+
+def parse_services(file_content: str) -> list[tuple[str, str]]:
     services = []
-    # Split the content by '---' to separate each service
     service_blocks = file_content.strip().split('---')
-    
     for block in service_blocks:
-        lines = block.strip().split('\n', 1)  # Split each block into service name and description
+        lines = block.strip().split('\n', 1)
         if len(lines) == 2:
             service_name = lines[0].strip()
             service_description = lines[1].strip().replace("\n", "")
             services.append((service_name, service_description))
-    
     return services
- 
-
-def test_query(query):
-    results=vector_search(query, limit=3, workspace=workspace_path)
-    print(results)
-    return results[0]
 
 
+def vector_db_push_batch(force_rebuild: bool = False) -> None:
+    client = _get_client()
 
-# vector_db_push(services=services, workspace=workspace_path)
+    if client.has_collection(COLLECTION_NAME):
+        if not force_rebuild:
+            stats = client.get_collection_stats(COLLECTION_NAME)
+            if int(stats["row_count"]) > 0:
+                logger.info(f"Collection '{COLLECTION_NAME}' already has {stats['row_count']} entities. Skipping index build.")
+                return
+        logger.warning(f"Dropping existing collection '{COLLECTION_NAME}' for rebuild.")
+        client.drop_collection(COLLECTION_NAME)
 
-# [ vector_db_push(service_name=service_name, service_description=service_description,workspace=workspace_path) for service_name,service_description in services]
-# Assuming 'services' is a list of tuples containing service_name and service_description
-# For example: services = [('service1', 'description1'), ('service2', 'description2'), ...]
+    _create_collection(client)
 
+    with open(SERVICES_FILE, encoding="utf-8") as f:
+        services = parse_services(f.read())
 
+    BATCH_SIZE = 64
+    rows = []
+    for i in tqdm(range(0, len(services), BATCH_SIZE), desc="Indexing services"):
+        batch = services[i: i + BATCH_SIZE]
+        texts = [f"{name} {desc}" for name, desc in batch]
+        vecs = _model.encode(texts, normalize_embeddings=True).tolist()
+        rows.extend(
+            {"service_name": name, "dense": vec}
+            for (name, _), vec in zip(batch, vecs)
+        )
 
-def vector_db_push_batch():
-    # Load the CSV file to inspect its contents
-    workspace_path= r"vectorDB_files_v2"
-
-    with open(services_description_file_path, 'r', encoding='utf-8') as file:
-        file_content = file.read()
-
-    services = parse_services(file_content)
-
-        
-    # Adding a progress bar to the loop
-    [vector_db_push(service_name=service_name, service_description=service_description, workspace=workspace_path) 
-    for service_name, service_description in tqdm(services, desc="Pushing to vector DB")]
-
-
-    print("Service descriptions have been pushed to the vector database.")
-
-
-
-
-# import pandas as pd
-
-# # Load the CSV file to inspect its contents
-# ervices_description_file_path = './assets/queries.csv'
-# df = pd.read_csv(services_description_file_path)
-    
+    client.insert(COLLECTION_NAME, data=rows)
+    client.flush(COLLECTION_NAME)
+    logger.info(f"Indexed {len(rows)} services into '{COLLECTION_NAME}'.")
 
 
-# # Apply the mock LLM function to each row and create a new column 'LLM_Response'
-# df['RAG_Response'] = df['Query'].apply(test_query)
-
-
+def vector_search(user_query: str, limit: int = 3) -> list[str]:
+    client = _get_client()
+    q_vec = _model.encode([user_query], normalize_embeddings=True).tolist()
+    results = client.search(
+        collection_name=COLLECTION_NAME,
+        data=q_vec,
+        anns_field="dense",
+        search_params={"metric_type": "COSINE", "params": {"ef": 100}},
+        limit=limit,
+        output_fields=["service_name"],
+    )
+    service_names = [hit["entity"]["service_name"] for hit in results[0]]
+    logger.debug(f"vector_search('{user_query}', limit={limit}) -> {service_names}")
+    return service_names

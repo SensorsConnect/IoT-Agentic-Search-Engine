@@ -1,5 +1,6 @@
 import os
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -47,7 +48,15 @@ def _rate_limit_key(request: Request) -> str:
 
 limiter = Limiter(key_func=_rate_limit_key)
 
-app = FastAPI(title="LocaleLive API", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from vector_db.vector_database import vector_db_push_batch
+    vector_db_push_batch()  # no-op if collection already populated
+    yield
+
+
+app = FastAPI(title="LocaleLive API", version="1.0.0", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 

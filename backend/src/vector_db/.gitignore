@@ -6,3 +6,5 @@ config.py
 /__pycache__
 Vector Database
 vectorDB_files
+milvus_lite.db
+milvus_data/

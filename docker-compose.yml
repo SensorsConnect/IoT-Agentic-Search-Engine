@@ -97,6 +97,9 @@ services:
       - TIMEZONE=America/Toronto
       - CLERK_JWKS_URL=${CLERK_JWKS_URL}
       - ENABLE_PLACE_DETAILS=${ENABLE_PLACE_DETAILS}
+      - MILVUS_URI=/app/src/vector_db/milvus_data/milvus.db
+    volumes:
+      - milvus_data:/app/src/vector_db/milvus_data
 
   # PostgreSQL — uncomment when ready for Phase 1
   # postgres:
@@ -113,8 +116,9 @@ services:
   #   networks:
   #     - app-network
 
-# volumes:
-#   postgres_data:
+volumes:
+  milvus_data:
+# postgres_data:
 
 networks:
   app-network:

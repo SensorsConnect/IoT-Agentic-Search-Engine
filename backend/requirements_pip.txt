@@ -26,14 +26,13 @@ psycopg2-binary>=2.9.9
 psycopg_pool>=3.1.0
 
 # Vector DB & ML
-docarray==0.40.0
-vectordb==0.0.21
-hnswlib==0.8.0
-transformers==4.35.2
+pymilvus[milvus_lite]>=2.4.0
+sentence-transformers>=2.7.0
 torch==2.4.1
 numpy<2
 safetensors==0.4.5
 tokenizers==0.15.2
+transformers==4.35.2
 huggingface-hub==0.25.1
 
 # Geolocation & routing
