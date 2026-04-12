@@ -62,6 +62,11 @@ BACKEND_PID=$!
 # Start frontend
 echo "Starting frontend on port $FRONTEND_PORT..."
 cd "$SCRIPT_DIR/frontend"
+# The script sourced backend/.env above, which includes production Clerk keys.
+# Clear those for the frontend so Next can load local test keys from frontend/.env.local.
+unset NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+unset CLERK_SECRET_KEY
+unset CLERK_JWKS_URL
 NODE_ENV=development NEXT_PUBLIC_BACKEND_URL="http://localhost:$BACKEND_PORT" npm run dev &
 FRONTEND_PID=$!
 cd "$SCRIPT_DIR"

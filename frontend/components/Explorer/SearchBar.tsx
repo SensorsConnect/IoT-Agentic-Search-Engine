@@ -72,21 +72,7 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
       })
 
       if (response.ok) {
-        const reader = response.body?.getReader()
-        if (!reader) throw new Error('No data')
-
-        const decoder = new TextDecoder('utf-8')
-        let done = false
-        let resultContent = ''
-
-        while (!done) {
-          const { value, done: readerDone } = await reader.read()
-          const char = decoder.decode(value)
-          if (char) resultContent += char
-          done = readerDone
-        }
-
-        const parsed = JSON.parse(resultContent)
+        const parsed = await response.json()
         const answer = parsed.answer || ''
         const places = parsed.places || []
         const userLoc = parsed.userLocation || null

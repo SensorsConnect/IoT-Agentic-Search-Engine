@@ -160,46 +160,22 @@ const Chat = (props: ChatProps, ref: any) => {
           const response = await postChatOrQuestion(currentChatRef?.current!, message, input, effectiveLocation, token)
 
           if (response.ok) {
-            const data = response.body
-            if (!data) {
-              throw new Error('No data')
+            const parsedData = await response.json()
+            const answer = parsedData.answer || ''
+            const places = parsedData.places || []
+            const userLoc = parsedData.userLocation || null
+
+            if (debug) {
+              console.log({ parsedData })
             }
 
-            const reader = data.getReader()
-            const decoder = new TextDecoder('utf-8')
-            let done = false
-            let resultContent = ''
+            conversation.current = [
+              ...conversation.current,
+              { content: answer, role: 'assistant', places, userLocation: userLoc }
+            ]
 
-            while (!done) {
-              try {
-                const { value, done: readerDone } = await reader.read()
-                const char = decoder.decode(value)
-                if (char) {
-                  setCurrentMessage((state) => {
-                    if (debug) {
-                      console.log({ char })
-                    }
-                    resultContent = state + char
-                    return resultContent
-                  })
-                }
-                done = readerDone
-              } catch {
-                done = true
-              }
-            }
-            setTimeout(() => {
-              const parsedData = JSON.parse(resultContent);
-              const answer = parsedData.answer;
-              const places = parsedData.places || [];
-              const userLoc = parsedData.userLocation || null;
-              conversation.current = [
-                ...conversation.current,
-                { content: answer, role: 'assistant', places, userLocation: userLoc }
-              ]
-
-              setCurrentMessage('')
-            }, 1)
+            setCurrentMessage('')
+            forceUpdate?.()
           } else {
             const result = await response.json()
             if (response.status === 401) {

@@ -85,17 +85,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
       })
 
       if (response.ok) {
-        const reader = response.body?.getReader()
-        if (!reader) throw new Error('No data')
-        const decoder = new TextDecoder('utf-8')
-        let done = false
-        let resultContent = ''
-        while (!done) {
-          const { value, done: readerDone } = await reader.read()
-          if (value) resultContent += decoder.decode(value)
-          done = readerDone
-        }
-        const parsed = JSON.parse(resultContent)
+        const parsed = await response.json()
         setAiResponse(parsed.answer || '')
         setActivePlaces(parsed.places || [])
         if (parsed.userLocation) setActiveUserLocation(parsed.userLocation)
