@@ -18,7 +18,7 @@ export default function AIResponsePanel() {
     return (
       <button
         onClick={() => setCollapsed(false)}
-        className="hidden md:flex absolute top-32 left-4 z-10 glass-panel px-4 py-2 items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors cursor-pointer md:w-[340px] lg:w-[420px]"
+        className="hidden md:flex absolute top-28 left-4 z-10 glass-panel px-4 py-2 items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors cursor-pointer md:w-[340px] lg:w-[420px]"
       >
         <span className="w-2 h-2 rounded-full bg-neon-cyan animate-live-pulse" />
         AI Response
@@ -28,8 +28,8 @@ export default function AIResponsePanel() {
   }
 
   return (
-    <div className="hidden md:block absolute top-40 left-4 md:w-[340px] lg:w-[420px] z-10 animate-slide-in-top">
-      <div className="glass-panel p-4 max-h-[calc(100dvh-600px)] min-h-0 overflow-y-auto dark-scrollbar">
+    <div className="hidden md:block absolute top-36 left-4 md:w-[340px] lg:w-[420px] z-10 animate-slide-in-top">
+      <div className="glass-panel p-4 max-h-[calc(100dvh-520px)] min-h-0 overflow-y-auto dark-scrollbar">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
