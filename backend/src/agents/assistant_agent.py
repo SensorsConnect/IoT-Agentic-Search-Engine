@@ -33,25 +33,31 @@ def assistant_agent(state: AgentState):
         agent_state["response"] = response_json["response"]
     elif response_json["query-type"] == "service-recommendation":
         agent_state["search_type"] = response_json.get("search_type", "text")
-        if response_json.get("coordinates") and response_json.get("coordinates") != [0, 0]:
-            agent_state["call"] = "GoogleMaps"
-            agent_state["query"] = response_json["question"]
-            agent_state["location_finder_results"] = {"coordinates":response_json["coordinates"]}
-        elif response_json.get('city') or response_json.get('country'):
+
+        user_loc = state.get("user_location") or {}
+        user_lat = user_loc.get("latitude")
+        user_lon = user_loc.get("longitude")
+        has_user_gps = user_lat is not None and user_lon is not None
+
+        if response_json.get('city') or response_json.get('country'):
             result = finder.process_location_query(response_json)
             logging.info(result)
             covered_by_sensorsconnect = check_city_country_exists(result.get("city", ""), result.get("country", ""))
-            agent_state["location_finder_results"]=result
+            agent_state["location_finder_results"] = result
             if covered_by_sensorsconnect:
                 logging.info('Iot_engine')
                 agent_state["call"] = "IoT_engine"
-                agent_state["query"] = response_json["question"]
             else:
                 logging.info("GoogleMaps")
                 agent_state["call"] = "GoogleMaps"
-                agent_state["query"] = response_json["question"]
+            agent_state["query"] = response_json["question"]
+        elif has_user_gps:
+            logging.info(f"Using user GPS: ({user_lat}, {user_lon})")
+            agent_state["call"] = "GoogleMaps"
+            agent_state["query"] = response_json["question"]
+            agent_state["location_finder_results"] = {"coordinates": [user_lat, user_lon]}
         else:
-            logging.info("Iot_engine")
+            logging.info("Iot_engine (no location)")
             agent_state["call"] = "IoT_engine"
             agent_state["query"] = response_json["question"]
     else:

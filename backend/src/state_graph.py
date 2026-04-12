@@ -13,3 +13,4 @@ class AgentState(TypedDict):
     thread_summary: Annotated[List[dict], operator.add]
     places: List[dict]
     search_type: str
+    user_location: dict

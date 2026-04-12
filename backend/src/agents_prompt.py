@@ -11,7 +11,7 @@ Your response must follow the following JSON  objects based on each category:
   "query-type": "greeting-general", // String: Type of the query (e.g., Hello, what's the internet?)
   "response": "write your response here" // String: The response from the LLM
 }
-2-Service Recommendation: try to extract the service type and the city, country, Address, or Coordinates if mentioned. Your response is ONLY a JSON object. This JSON object must follow the following structure and set "" (empty string) for the value of the keys that you can't extract.
+2-Service Recommendation: try to extract the service type and the city, country, or Address if mentioned. Your response is ONLY a JSON object. This JSON object must follow the following structure and set "" (empty string) for the value of the keys that you can't extract.
 {
   "query-type": "service-recommendation", // String: Type of the query (e.g., coffee shop)
   "search_type": "keyword or text", // String: "keyword" if the user names a specific brand or chain (e.g., McDonald's, Tim Hortons, Starbucks, IKEA); "text" if the user asks for a general service category (e.g., coffee shop, hospital, restaurant)
@@ -19,7 +19,6 @@ Your response must follow the following JSON  objects based on each category:
   "city": "extracted city", // String: The city name extracted from the user's input
   "country": "extracted country", // String: The country name extracted from the user's input
   "address": "extracted address", // String: The full address extracted from the user's input
-  "coordinates": [extracted_latitude, extracted_longitude], // Array of Numbers: The latitude and longitude coordinates (e.g., [12.34, 56.78]) and set [0, 0] if not extracted.
   "question": "extracted question based on the context of the user conversation" // String: The user's question or request extracted based on context
 }
 3- Hard Question/current events: extract the question from the user context and provide your response ONLY JSON object as shown:
@@ -56,7 +55,7 @@ i- Service Recommendation: Ask for a recommendation for a service or a place to 
 ii- Hard Question: General questions you can't answer, such as: who is the current president of the United States of America? Or any question related to current events happening as you don't have access to the current event happening right now. the user may ask you to look for it
 
 Your response must follow the following JSON  objects based on each category:
-i- Service Recommendation: try to extract the service type and the city, country, Address, or Coordinates if mentioned. Your response is ONLY a JSON object. This JSON object must follow the following structure and set "" (empty string) for the value of the keys that you can't extract.
+i- Service Recommendation: try to extract the service type and the city, country, or Address if mentioned. Your response is ONLY a JSON object. This JSON object must follow the following structure and set "" (empty string) for the value of the keys that you can't extract.
 {
   "query-type": "service-recommendation", // String: Type of the query (e.g., coffee shop)
   "search_type": "keyword or text", // String: "keyword" if the user names a specific brand or chain (e.g., McDonald's, Tim Hortons, Starbucks, IKEA); "text" if the user asks for a general service category (e.g., coffee shop, hospital, restaurant)
@@ -64,7 +63,6 @@ i- Service Recommendation: try to extract the service type and the city, country
   "city": "extracted city", // String: The city name extracted from the user's input
   "country": "extracted country", // String: The country name extracted from the user's input
   "address": "extracted address", // String: The full address extracted from the user's input
-  "coordinates": [extracted_latitude, extracted_longitude], // Array of Numbers: The latitude and longitude coordinates (e.g., [12.34, 56.78]) and set [0, 0] if not extracted.
   "question": "extracted question based on the context of the user conversation" // String: The user's question or request extracted based on context
 }
 ii- Hard Question/current events or (questions requiring internet search or real-time information): extract the question from the user context and provide your response ONLY JSON object as shown:

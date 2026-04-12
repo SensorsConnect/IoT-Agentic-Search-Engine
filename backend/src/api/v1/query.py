@@ -73,11 +73,15 @@ async def query_handler(
         thread = {"configurable": {"thread_id": query.threadId}}
 
         message_content = query.text
-        if query.location:
-            message_content += f"\n\n[User Location: {query.location.latitude}, {query.location.longitude}]"
-
         human_message = HumanMessage(content=message_content)
         messages = [human_message]
+
+        user_location = {}
+        if query.location:
+            user_location = {
+                "latitude": query.location.latitude,
+                "longitude": query.location.longitude
+            }
 
         GRAPH_TIMEOUT_SECONDS = 90
 
@@ -88,7 +92,7 @@ async def query_handler(
                 with ThreadPoolExecutor(max_workers=1) as executor:
                     future = executor.submit(
                         runnable.invoke,
-                        {"messages": messages, "query": message_content},
+                        {"messages": messages, "query": message_content, "user_location": user_location},
                         thread,
                     )
                     result = future.result(timeout=GRAPH_TIMEOUT_SECONDS)
