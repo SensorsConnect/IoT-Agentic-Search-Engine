@@ -7,7 +7,7 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 _DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "milvus_lite.db")
-MILVUS_URI = os.environ.get("MILVUS_URI", _DEFAULT_DB_PATH)
+MILVUS_URI = os.environ.get("MILVUS_DB_PATH", _DEFAULT_DB_PATH)
 COLLECTION_NAME = "services"
 DENSE_DIM = 384  # BAAI/bge-small-en-v1.5 output dimension
 SERVICES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "Services_description_V2.txt")

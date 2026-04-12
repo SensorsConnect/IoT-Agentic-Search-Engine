@@ -26,7 +26,7 @@ psycopg2-binary>=2.9.9
 psycopg_pool>=3.1.0
 
 # Vector DB & ML
-pymilvus[milvus_lite]>=2.4.0
+pymilvus[milvus_lite]>=2.4.0,<2.7.0
 sentence-transformers>=2.7.0
 torch==2.4.1
 numpy<2
