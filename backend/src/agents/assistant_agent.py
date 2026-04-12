@@ -22,10 +22,23 @@ def assistant_agent(state: AgentState):
             isParsed=True
         except (ValueError, KeyError, TypeError) as e:
             logging.warning(f"Failed to parse assistant response as JSON: {e}")
-            response_json={
-                "query-type" : "greeting-general",
-                "response" : response.content
-            }
+            user_query = state.get("query", "").strip().lower()
+            greetings = {"hello", "hi", "hey", "thanks", "thank you", "bye", "goodbye", "good morning", "good evening"}
+            if user_query and user_query not in greetings and len(user_query.split()) <= 3:
+                response_json = {
+                    "query-type": "service-recommendation",
+                    "search_type": "keyword",
+                    "service": state.get("query", "").strip(),
+                    "city": "",
+                    "country": "",
+                    "address": "",
+                    "question": state.get("query", "").strip()
+                }
+            else:
+                response_json = {
+                    "query-type": "greeting-general",
+                    "response": response.content
+                }
             isParsed=True
 
     if response_json["query-type"] == "greeting-general":
