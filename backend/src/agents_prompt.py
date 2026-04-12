@@ -14,9 +14,10 @@ Your response must follow the following JSON  objects based on each category:
 2-Service Recommendation: try to extract the service type and the city, country, Address, or Coordinates if mentioned. Your response is ONLY a JSON object. This JSON object must follow the following structure and set "" (empty string) for the value of the keys that you can't extract.
 {
   "query-type": "service-recommendation", // String: Type of the query (e.g., coffee shop)
+  "search_type": "keyword or text", // String: "keyword" if the user names a specific brand or chain (e.g., McDonald's, Tim Hortons, Starbucks, IKEA); "text" if the user asks for a general service category (e.g., coffee shop, hospital, restaurant)
   "service": "extracted service type", // String: The type of service extracted from the user's input
   "city": "extracted city", // String: The city name extracted from the user's input
-  "country": "extracted country", // String: The country name extracted from the user's input 
+  "country": "extracted country", // String: The country name extracted from the user's input
   "address": "extracted address", // String: The full address extracted from the user's input
   "coordinates": [extracted_latitude, extracted_longitude], // Array of Numbers: The latitude and longitude coordinates (e.g., [12.34, 56.78]) and set [0, 0] if not extracted.
   "question": "extracted question based on the context of the user conversation" // String: The user's question or request extracted based on context
@@ -58,9 +59,10 @@ Your response must follow the following JSON  objects based on each category:
 i- Service Recommendation: try to extract the service type and the city, country, Address, or Coordinates if mentioned. Your response is ONLY a JSON object. This JSON object must follow the following structure and set "" (empty string) for the value of the keys that you can't extract.
 {
   "query-type": "service-recommendation", // String: Type of the query (e.g., coffee shop)
+  "search_type": "keyword or text", // String: "keyword" if the user names a specific brand or chain (e.g., McDonald's, Tim Hortons, Starbucks, IKEA); "text" if the user asks for a general service category (e.g., coffee shop, hospital, restaurant)
   "service": "extracted service type", // String: The type of service extracted from the user's input
   "city": "extracted city", // String: The city name extracted from the user's input
-  "country": "extracted country", // String: The country name extracted from the user's input 
+  "country": "extracted country", // String: The country name extracted from the user's input
   "address": "extracted address", // String: The full address extracted from the user's input
   "coordinates": [extracted_latitude, extracted_longitude], // Array of Numbers: The latitude and longitude coordinates (e.g., [12.34, 56.78]) and set [0, 0] if not extracted.
   "question": "extracted question based on the context of the user conversation" // String: The user's question or request extracted based on context
@@ -127,6 +129,7 @@ Strategies:
 - "narrow_radius": Search with a smaller radius (e.g., 5000-15000 meters)
 - "rephrase_query": Try a different search term that might yield better local results
 - "rank_by_distance": Use rankby=distance (already used in iteration 1, pick something else)
+- "keyword_search": Search by exact brand/chain name using the Text Search API (useful when the query is a brand name like McDonald's)
 
 If you believe no better results can be found:
 {{"decision": "give_up"}}

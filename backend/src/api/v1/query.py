@@ -19,6 +19,18 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def _sanitize_for_json(obj):
+    """Recursively replace non-finite floats (inf, -inf, nan) with None."""
+    if isinstance(obj, float):
+        import math
+        return None if not math.isfinite(obj) else obj
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_for_json(item) for item in obj]
+    return obj
+
+
 class LocationData(BaseModel):
     latitude: float
     longitude: float
@@ -160,7 +172,13 @@ async def query_handler(
         db.add(assistant_msg)
         db.commit()
 
-        return {"answer": response_text, "conversationId": str(conversation.id), "places": places_data, "userLocation": user_location}
+        payload = _sanitize_for_json({
+            "answer": response_text,
+            "conversationId": str(conversation.id),
+            "places": places_data,
+            "userLocation": user_location
+        })
+        return payload
 
     except ValueError as e:
         logger.error(f"Validation error processing query: {e}")

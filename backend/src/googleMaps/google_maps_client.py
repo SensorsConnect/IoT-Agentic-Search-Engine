@@ -110,6 +110,53 @@ class GoogleMapsTextSearchClient:
             logger.error(f"[DEBUG nearby_search] HTTP ERROR {response.status_code}: {response.content[:500]}")
             response.raise_for_status()
 
+    def keyword_search(self, query, latitude=None, longitude=None, limit=5, radius=50000):
+        """
+        Search for a specific brand or chain using the Text Search API.
+        More effective than nearbysearch for exact brand name queries (e.g. "McDonald's").
+        Results are ordered by Google's relevance ranking, not distance.
+        """
+        logger.info(f"[DEBUG keyword_search] START query='{query}', lat={latitude}, lon={longitude}, radius={radius}, limit={limit}")
+        t0 = time.time()
+
+        params = {
+            'query': query,
+            'key': self.google_api_key
+        }
+        if latitude is not None and longitude is not None:
+            params['location'] = f"{latitude},{longitude}"
+            params['radius'] = radius
+
+        try:
+            response = requests.get(self.text_search_url, params=params, timeout=10)
+        except requests.exceptions.Timeout:
+            logger.error(f"[DEBUG keyword_search] TIMEOUT after 10s for query='{query}'")
+            return []
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"[DEBUG keyword_search] CONNECTION ERROR: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"[DEBUG keyword_search] UNEXPECTED ERROR: {type(e).__name__}: {e}")
+            return []
+
+        elapsed = time.time() - t0
+        logger.info(f"[DEBUG keyword_search] HTTP {response.status_code} in {elapsed:.2f}s")
+
+        if response.status_code == 200:
+            response_data = response.json()
+            results = response_data.get('results', [])
+            status = response_data.get('status', 'UNKNOWN')
+            logger.info(f"[DEBUG keyword_search] API status='{status}', results_count={len(results)}")
+            if status not in ('OK', 'ZERO_RESULTS'):
+                err_msg = response_data.get('error_message', 'N/A')
+                logger.error(f"[DEBUG keyword_search] API ERROR status='{status}', error_message='{err_msg}'")
+            for i, r in enumerate(results[:limit]):
+                logger.info(f"[DEBUG keyword_search] result[{i}]: name='{r.get('name')}', rating={r.get('rating')}, place_id={r.get('place_id','')[:20]}")
+            return results[:limit]
+        else:
+            logger.error(f"[DEBUG keyword_search] HTTP ERROR {response.status_code}: {response.content[:500]}")
+            response.raise_for_status()
+
     def get_travel_times(self, origin_latitude, origin_longitude, destinations):
         """
         Calculate travel times from the origin to multiple destinations using OSRM.

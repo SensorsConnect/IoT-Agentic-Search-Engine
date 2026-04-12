@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import time
 from state_graph import AgentState
@@ -11,11 +12,12 @@ MAX_ITERATIONS = 3
 
 
 def _parse_travel_time(travel_time_str):
-    """Parse travel time string like '5.23 mins' to float. Returns None if N/A."""
+    """Parse travel time string like '5.23 mins' to float. Returns None if N/A or non-finite."""
     if travel_time_str == 'N/A':
         return None
     try:
-        return float(travel_time_str.replace(' mins', ''))
+        val = float(travel_time_str.replace(' mins', ''))
+        return val if math.isfinite(val) else None
     except (ValueError, AttributeError):
         return None
 
@@ -46,13 +48,21 @@ def _build_place_dict(place, travel_time_str):
     if os.environ.get("ENABLE_PLACE_DETAILS", "").lower() == "true":
         details = gmaps_text_search_client.get_place_details(place_id, ["formatted_phone_number", "website"])
 
+    def _safe_float(val):
+        """Return val if it's a finite float, else None."""
+        try:
+            f = float(val)
+            return f if math.isfinite(f) else None
+        except (TypeError, ValueError):
+            return None
+
     return {
         "id": place_id,
         "name": place.get('name', ''),
         "address": address,
-        "latitude": place.get('geometry', {}).get('location', {}).get('lat'),
-        "longitude": place.get('geometry', {}).get('location', {}).get('lng'),
-        "rating": place.get('rating'),
+        "latitude": _safe_float(place.get('geometry', {}).get('location', {}).get('lat')),
+        "longitude": _safe_float(place.get('geometry', {}).get('location', {}).get('lng')),
+        "rating": _safe_float(place.get('rating')),
         "photo_url": photo_url,
         "open_now": place.get('opening_hours', {}).get('open_now'),
         "phone": details.get('formatted_phone_number'),
@@ -84,7 +94,7 @@ def _build_results_from_places(places, lat, lon):
         address = gmaps_text_search_client.get_formatted_address(place)
         rating = place.get('rating', 'N/A')
         tt = travel_times[i] if i < len(travel_times) else 'N/A'
-        tt_str = f"{tt:.2f} mins" if tt != 'N/A' else 'N/A'
+        tt_str = f"{tt:.2f} mins" if (tt != 'N/A' and isinstance(tt, (int, float)) and math.isfinite(tt)) else 'N/A'
         results.append({
             'entity_name': name,
             'address': address,
@@ -138,6 +148,7 @@ def GoogleMaps(state: AgentState):
         })
 
     query = state.get("query", "")
+    search_type = state.get("search_type", "text")
     best_results = []
     best_places = []
     best_avg_time = float('inf')
@@ -148,11 +159,17 @@ def GoogleMaps(state: AgentState):
         logging.info(f"[DEBUG GoogleMaps] --- Iteration {iteration}/{MAX_ITERATIONS} START ---")
 
         if iteration == 1:
-            # First iteration: use rankby=distance for nearest results
             t0 = time.time()
-            places = gmaps_text_search_client.nearby_search_ranked_by_distance(query, lat, lon, limit=5)
-            logging.info(f"[DEBUG GoogleMaps] nearby_search took {time.time() - t0:.2f}s, got {len(places or [])} places")
-            strategy_used = "rank_by_distance"
+            if search_type == "keyword":
+                # Brand/chain search: use Text Search API for exact name matching
+                places = gmaps_text_search_client.keyword_search(query, lat, lon, limit=5)
+                strategy_used = "keyword_search"
+                logging.info(f"[DEBUG GoogleMaps] keyword_search took {time.time() - t0:.2f}s, got {len(places or [])} places")
+            else:
+                # General category search: rank by distance for nearest results
+                places = gmaps_text_search_client.nearby_search_ranked_by_distance(query, lat, lon, limit=5)
+                strategy_used = "rank_by_distance"
+                logging.info(f"[DEBUG GoogleMaps] nearby_search took {time.time() - t0:.2f}s, got {len(places or [])} places")
         else:
             # Use LLM strategist to decide next action
             history_text = ""
@@ -224,6 +241,11 @@ def GoogleMaps(state: AgentState):
                 elif strategy == "rank_by_distance":
                     logging.info(f"[DEBUG GoogleMaps] Retry strategy=rank_by_distance, new_query='{new_query}'")
                     places = gmaps_text_search_client.nearby_search_ranked_by_distance(
+                        new_query, lat, lon, limit=5
+                    )
+                elif strategy == "keyword_search":
+                    logging.info(f"[DEBUG GoogleMaps] Retry strategy=keyword_search, new_query='{new_query}'")
+                    places = gmaps_text_search_client.keyword_search(
                         new_query, lat, lon, limit=5
                     )
                 else:

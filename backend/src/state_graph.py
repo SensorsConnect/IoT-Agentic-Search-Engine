@@ -12,3 +12,4 @@ class AgentState(TypedDict):
     location_finder_results: dict
     thread_summary: Annotated[List[dict], operator.add]
     places: List[dict]
+    search_type: str
