@@ -9,6 +9,42 @@ BACKEND_PORT=8000
 FRONTEND_PORT=3000
 CONDA_ENV="IoT-engine"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CERT_DIR="$SCRIPT_DIR/.dev-certs"
+
+# Detect LAN IP so the phone can reach the dev server from the same Wi-Fi.
+LAN_IP="$(ipconfig getifaddr en0 2>/dev/null || true)"
+if [[ -z "${LAN_IP:-}" ]]; then
+    LAN_IP="$(ipconfig getifaddr en1 2>/dev/null || true)"
+fi
+if [[ -z "${LAN_IP:-}" ]]; then
+    LAN_IP="$(ifconfig 2>/dev/null | awk '/inet / && $2 != "127.0.0.1" {print $2; exit}')"
+fi
+
+# Ensure a locally-trusted TLS cert exists so the Geolocation API works on phones.
+# mkcert signs with a root CA the phone trusts after a one-time install; without
+# HTTPS a LAN-IP origin is insecure and browsers silently refuse GPS access.
+if ! command -v mkcert >/dev/null 2>&1; then
+    echo "ERROR: mkcert is not installed." >&2
+    echo "Install it once with:  brew install mkcert nss && mkcert -install" >&2
+    echo "Then install the root CA on your phone (see plan docs)." >&2
+    exit 1
+fi
+
+mkdir -p "$CERT_DIR"
+CERT_FILE="$CERT_DIR/dev-cert.pem"
+KEY_FILE="$CERT_DIR/dev-key.pem"
+# Regenerate the cert if it's missing OR doesn't include the current LAN IP.
+NEEDS_CERT=0
+if [[ ! -f "$CERT_FILE" || ! -f "$KEY_FILE" ]]; then
+    NEEDS_CERT=1
+elif [[ -n "${LAN_IP:-}" ]] && ! openssl x509 -in "$CERT_FILE" -noout -ext subjectAltName 2>/dev/null | grep -q "$LAN_IP"; then
+    NEEDS_CERT=1
+fi
+if [[ "$NEEDS_CERT" = "1" ]]; then
+    echo "Generating mkcert dev cert (localhost 127.0.0.1 ${LAN_IP:-})..."
+    ( cd "$CERT_DIR" && mkcert -cert-file dev-cert.pem -key-file dev-key.pem \
+        localhost 127.0.0.1 ${LAN_IP:+$LAN_IP} )
+fi
 
 # Prefer the Miniforge conda install if present, since this repo's local env
 # was created there and shell init may still point bash at a different conda.
@@ -60,21 +96,32 @@ uvicorn main:app --host 0.0.0.0 --port "$BACKEND_PORT" --reload \
 BACKEND_PID=$!
 
 # Start frontend
-echo "Starting frontend on port $FRONTEND_PORT..."
+echo "Starting frontend on port $FRONTEND_PORT (HTTPS)..."
 cd "$SCRIPT_DIR/frontend"
 # The script sourced backend/.env above, which includes production Clerk keys.
 # Clear those for the frontend so Next can load local test keys from frontend/.env.local.
 unset NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 unset CLERK_SECRET_KEY
 unset CLERK_JWKS_URL
-NODE_ENV=development NEXT_PUBLIC_BACKEND_URL="http://localhost:$BACKEND_PORT" npm run dev &
+# Leave NEXT_PUBLIC_BACKEND_URL unset so api calls are same-origin and proxied
+# by Next's rewrite to the backend on localhost:8000.
+unset NEXT_PUBLIC_BACKEND_URL
+NODE_ENV=development npm run dev -- \
+    --experimental-https \
+    --experimental-https-key  "$KEY_FILE" \
+    --experimental-https-cert "$CERT_FILE" \
+    -H 0.0.0.0 \
+    -p "$FRONTEND_PORT" &
 FRONTEND_PID=$!
 cd "$SCRIPT_DIR"
 
 echo ""
 echo "============================================"
-echo "  Backend:  http://localhost:$BACKEND_PORT/docs"
-echo "  Frontend: http://localhost:$FRONTEND_PORT"
+echo "  Backend:  http://localhost:$BACKEND_PORT/docs   (proxied via Next)"
+echo "  Frontend: https://localhost:$FRONTEND_PORT"
+if [[ -n "${LAN_IP:-}" ]]; then
+    echo "  Phone:    https://$LAN_IP:$FRONTEND_PORT"
+fi
 echo "  Press Ctrl+C to stop both services"
 echo "============================================"
 echo ""
