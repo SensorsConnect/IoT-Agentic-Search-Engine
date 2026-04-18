@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import MapPanel from './MapPanel'
 import SearchBar from './SearchBar'
 import AIResponsePanel from './AIResponsePanel'
@@ -15,6 +15,15 @@ const SEARCH_BAR_H = 56 // px – idle mobile search bar height
 export default function ExplorerLayout() {
   const [historyOpen, setHistoryOpen] = useState(false)
   const { mobileMapRatio, aiResponse, activePlaces } = useMapContext()
+
+  // Prevent the page body from scrolling while the full-screen explorer is mounted.
+  // Without this, a scroll gesture moves ExplorerLayout up behind the sticky header,
+  // making all absolutely-positioned panels drift off their intended positions.
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
 
   const hasResults = !!(aiResponse || activePlaces.length > 0)
 

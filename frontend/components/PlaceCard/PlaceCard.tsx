@@ -163,7 +163,7 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
     )
   }
 
-  // Original light variant
+  // Light variant — original white/blue design
   return (
     <div
       onClick={onClick}
