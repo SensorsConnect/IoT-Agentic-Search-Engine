@@ -73,11 +73,11 @@ export default function HistoryDrawer({ open, onClose }: HistoryDrawerProps) {
   return (
     <>
       {/* Backdrop */}
-      <div className="absolute inset-0 z-35 bg-black/30 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="absolute inset-0 z-35 bg-black/40 md:backdrop-blur-[2px] md:bg-black/30" onClick={onClose} />
 
       {/* Floating panel — matches PlaceDetailSheet pattern */}
       <div className="absolute top-4 left-4 bottom-4 w-72 z-40 animate-slide-in-left overflow-hidden rounded-2xl">
-        <div className="h-full bg-white/95 dark:bg-surface/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 flex flex-col rounded-2xl">
+        <div className="h-full bg-white/95 dark:bg-surface/95 md:backdrop-blur-xl border border-gray-200 dark:border-white/10 flex flex-col rounded-2xl">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-white/5 flex-shrink-0">
             <div className="flex items-center gap-2">

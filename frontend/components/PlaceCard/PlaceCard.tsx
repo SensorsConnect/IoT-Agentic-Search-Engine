@@ -44,25 +44,25 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
     return (
       <div
         onClick={onClick}
-        className={`flex-shrink-0 w-80 rounded-2xl border cursor-pointer transition-all duration-200 ${
+        className={`flex-shrink-0 w-80 rounded-2xl border cursor-pointer transition-colors duration-200 ${
           isSelected
             ? 'border-neon-cyan/50 ring-1 ring-neon-cyan/20 scale-[1.02]'
             : isHovered
               ? 'border-white/20 -translate-y-1 shadow-[0_0_20px_rgba(34,211,238,0.1)]'
-              : 'border-white/10 hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(34,211,238,0.1)]'
-        } bg-surface/90 backdrop-blur-md`}
+              : 'border-white/10 md:hover:-translate-y-1 md:hover:shadow-[0_0_20px_rgba(34,211,238,0.1)]'
+        } bg-surface/90 md:backdrop-blur-md`}
       >
         {/* Photo or placeholder */}
         {place.photo_url ? (
           <div className="relative">
-            <img src={place.photo_url} alt={place.name} className="w-full h-32 object-cover rounded-t-2xl" />
+            <img src={place.photo_url} alt={place.name} loading="lazy" decoding="async" className="w-full h-32 object-cover rounded-t-2xl" />
             {index && (
-              <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-surface/80 backdrop-blur-sm text-xs font-bold text-gray-200 flex items-center justify-center border border-white/10">
+              <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-surface/80 text-xs font-bold text-gray-200 flex items-center justify-center border border-white/10">
                 {index}
               </span>
             )}
             {isIoT && (
-              <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-green/10 backdrop-blur-sm border border-neon-green/20 text-neon-green text-[10px] font-medium">
+              <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[10px] font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-live-pulse" />
                 LIVE
               </span>
@@ -72,12 +72,12 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
           <div className="relative w-full h-20 rounded-t-2xl bg-gradient-to-br from-neon-cyan/5 to-neon-purple/5 flex items-center justify-center">
             <FiMapPin className="size-6 text-gray-600" />
             {index && (
-              <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-surface/80 backdrop-blur-sm text-xs font-bold text-gray-200 flex items-center justify-center border border-white/10">
+              <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-surface/80 text-xs font-bold text-gray-200 flex items-center justify-center border border-white/10">
                 {index}
               </span>
             )}
             {isIoT && (
-              <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-green/10 backdrop-blur-sm border border-neon-green/20 text-neon-green text-[10px] font-medium">
+              <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-neon-green/10 border border-neon-green/20 text-neon-green text-[10px] font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-live-pulse" />
                 LIVE
               </span>
@@ -167,26 +167,26 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
   return (
     <div
       onClick={onClick}
-      className={`flex-shrink-0 w-80 rounded-2xl border cursor-pointer transition-all duration-200 ${
+      className={`flex-shrink-0 w-80 rounded-2xl border cursor-pointer transition-colors duration-200 ${
         isSelected
           ? 'border-blue-500/50 ring-1 ring-blue-200 scale-[1.02]'
           : isHovered
             ? 'border-gray-300 -translate-y-1 shadow-md'
-            : 'border-gray-200 shadow-sm hover:-translate-y-1 hover:shadow-md'
+            : 'border-gray-200 shadow-sm md:hover:-translate-y-1 md:hover:shadow-md'
       }`}
       style={{ backgroundColor: 'var(--color-background, #fff)' }}
     >
       {/* Photo or placeholder */}
       {place.photo_url ? (
         <div className="relative">
-          <img src={place.photo_url} alt={place.name} className="w-full h-32 object-cover rounded-t-2xl" />
+          <img src={place.photo_url} alt={place.name} loading="lazy" decoding="async" className="w-full h-32 object-cover rounded-t-2xl" />
           {index && (
-            <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm text-xs font-bold text-gray-700 flex items-center justify-center border border-gray-200">
+            <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-white/85 text-xs font-bold text-gray-700 flex items-center justify-center border border-gray-200">
               {index}
             </span>
           )}
           {isIoT && (
-            <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 backdrop-blur-sm border border-green-200 text-green-700 text-[10px] font-medium">
+            <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-[10px] font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-live-pulse" />
               LIVE
             </span>
@@ -196,12 +196,12 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
         <div className="relative w-full h-20 rounded-t-2xl bg-gradient-to-r from-blue-100 to-green-100 flex items-center justify-center">
           <FiMapPin className="size-6 text-gray-400" />
           {index && (
-            <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm text-xs font-bold text-gray-700 flex items-center justify-center border border-gray-200">
+            <span className="absolute top-2 left-2 w-6 h-6 rounded-full bg-white/85 text-xs font-bold text-gray-700 flex items-center justify-center border border-gray-200">
               {index}
             </span>
           )}
           {isIoT && (
-            <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 backdrop-blur-sm border border-green-200 text-green-700 text-[10px] font-medium">
+            <span className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 border border-green-200 text-green-700 text-[10px] font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-neon-green animate-live-pulse" />
               LIVE
             </span>

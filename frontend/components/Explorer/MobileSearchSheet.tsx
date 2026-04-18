@@ -116,7 +116,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
   return (
     <div
       ref={containerRef}
-      className="absolute bottom-0 left-0 right-0 z-20 flex flex-col min-h-0 md:hidden bg-white/95 dark:bg-surface/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/10 transition-[height] duration-200"
+      className="absolute bottom-0 left-0 right-0 z-20 flex flex-col min-h-0 md:hidden bg-white/95 dark:bg-surface/95 md:backdrop-blur-xl border-t border-gray-200 dark:border-white/10 transition-[height] duration-200"
       style={{ height: hasResults ? `${100 - mobileMapRatio}%` : '56px' }}
     >
       {/* Drag handle — only when results are showing */}
@@ -184,12 +184,11 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
                     if (el) cardRefs.current.set(place.id, el)
                     else cardRefs.current.delete(place.id)
                   }}
-                  className={`transition-all duration-300 rounded-xl ${
+                  className={`transition-colors duration-300 rounded-xl ${
                     selectedPlaceId === place.id
                       ? 'ring-1 ring-blue-400/50 dark:ring-neon-cyan/50 shadow-[0_0_12px_rgba(59,130,246,0.15)] dark:shadow-[0_0_12px_rgba(34,211,238,0.15)]'
                       : ''
                   }`}
-                  style={{ animation: `cardEntrance 0.4s ease-out ${i * 75}ms both` }}
                 >
                   <PlaceCard
                     place={place}
