@@ -4,6 +4,7 @@
   "description": "Find nearby services, restaurants, and local businesses using AI-powered search with real-time data.",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "icons": [
