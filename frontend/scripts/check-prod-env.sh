@@ -26,9 +26,19 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 missing=""
-for key in $REQUIRED; do
-    # Match KEY=VALUE where VALUE is non-empty. Allow optional surrounding quotes.
-    value=$(sed -n "s/^${key}=//p" "$ENV_FILE" | head -n1 | sed 's/^["'"'"']//;s/["'"'"']$//')
+for entry in $REQUIRED; do
+    # Entries may be "KEY" or "KEY=default" — only the key matters for lookup.
+    key="${entry%%=*}"
+    # Find "KEY=..." in the env file, take the first match, strip everything up to and
+    # including the first "=" to get the raw value. Using grep+cut (not sed) because
+    # BusyBox sed (Alpine) rejects the combined substitution/quote-stripping pattern.
+    line=$(grep "^${key}=" "$ENV_FILE" 2>/dev/null | head -n1 || true)
+    value="${line#*=}"
+    # Strip optional surrounding single or double quotes via POSIX parameter expansion.
+    case "$value" in
+        \"*\") value="${value#\"}"; value="${value%\"}" ;;
+        \'*\') value="${value#\'}"; value="${value%\'}" ;;
+    esac
     case "$value" in
         "" | *REPLACE_ME*)
             missing="${missing} ${key}"
