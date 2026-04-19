@@ -116,6 +116,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
   return (
     <div
       ref={containerRef}
+      data-mobile-sheet
       className="absolute bottom-0 left-0 right-0 z-20 flex flex-col min-h-0 md:hidden bg-white/95 dark:bg-surface/95 md:backdrop-blur-xl border-t border-gray-200 dark:border-white/10 transition-[height] duration-200"
       style={{ height: hasResults ? `${100 - mobileMapRatio}%` : '56px' }}
     >
@@ -173,7 +174,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
 
           {/* Place cards — all listed, clicking zooms map */}
           {activePlaces.length > 0 && (
-            <div className="-mx-1 space-y-3 px-1">
+            <div className="-mx-1 space-y-3 px-1 overflow-x-hidden">
               <span className="text-xs text-gray-500 uppercase tracking-wider">
                 {activePlaces.length} place{activePlaces.length !== 1 ? 's' : ''} found
               </span>
@@ -184,7 +185,6 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
                     if (el) cardRefs.current.set(place.id, el)
                     else cardRefs.current.delete(place.id)
                   }}
-                  className="flex justify-center rounded-2xl"
                 >
                   <PlaceCard
                     place={place}

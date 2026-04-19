@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import MapPanel from './MapPanel'
 import SearchBar from './SearchBar'
 import AIResponsePanel from './AIResponsePanel'
@@ -16,6 +16,12 @@ export default function ExplorerLayout() {
   const [historyOpen, setHistoryOpen] = useState(false)
   const { mobileMapRatio, aiResponse, activePlaces } = useMapContext()
 
+  useEffect(() => {
+    if (typeof screen !== 'undefined' && screen.orientation?.lock) {
+      screen.orientation.lock('portrait').catch(() => {})
+    }
+  }, [])
+
   const hasResults = !!(aiResponse || activePlaces.length > 0)
 
   return (
@@ -26,10 +32,12 @@ export default function ExplorerLayout() {
       </div>
 
       {/* Desktop floating panels (hidden on mobile) */}
-      <SearchBar onToggleHistory={() => setHistoryOpen(true)} />
-      <AIResponsePanel />
-      <PlaceCardStrip />
-      <PlaceDetailSheet />
+      <div data-desktop-panel>
+        <SearchBar onToggleHistory={() => setHistoryOpen(true)} />
+        <AIResponsePanel />
+        <PlaceCardStrip />
+        <PlaceDetailSheet />
+      </div>
 
       {/* Mobile split panel (hidden on desktop) */}
       <MobileSearchSheet onToggleHistory={() => setHistoryOpen(true)} />
