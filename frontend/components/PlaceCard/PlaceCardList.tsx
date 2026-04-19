@@ -24,15 +24,16 @@ export default function PlaceCardList({ places, selectedPlaceId, onCardClick }: 
   return (
     <div
       ref={scrollRef}
-      className="flex gap-3 overflow-x-auto pb-2 md:flex-row flex-col md:flex-nowrap"
+      className="flex flex-col gap-3 overflow-y-auto pb-2 -mx-1 px-1 md:mx-0 md:px-0 md:flex-row md:flex-nowrap md:overflow-x-auto md:overflow-y-hidden"
       style={{ scrollbarWidth: 'thin' }}
     >
       {places.map((place) => (
-        <div key={place.id} data-place-id={place.id}>
+        <div key={place.id} data-place-id={place.id} className="flex justify-center md:block">
           <PlaceCard
             place={place}
             isSelected={selectedPlaceId === place.id}
             onClick={() => onCardClick?.(place.id)}
+            fullWidth
           />
         </div>
       ))}
