@@ -1,0 +1,27 @@
+# Keep dev-only env files out of the build context so `next build`
+# inside the image reads ONLY .env.production. Without this, .env.local
+# silently fills in any keys missing from .env.production, which was the
+# root cause of the "works on my machine" production image bug.
+.env
+.env.local
+.env.*.local
+.env.development
+.env.development.local
+
+# Build artifacts & noise
+node_modules
+.next
+.git
+.gitignore
+.dockerignore
+Dockerfile
+README.md
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store

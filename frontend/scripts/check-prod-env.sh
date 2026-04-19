@@ -1,0 +1,48 @@
+#!/bin/sh
+# Verify .env.production contains every required key with a non-empty value.
+# Runs inside the frontend Dockerfile before `next build`, so a missing
+# NEXT_PUBLIC_* fails the docker build instead of silently shipping a broken
+# client bundle.
+
+set -eu
+
+ENV_FILE="${ENV_FILE:-.env.production}"
+
+REQUIRED="
+NEXT_PUBLIC_BACKEND_URL
+NEXT_PUBLIC_MAPBOX_TOKEN
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+CLERK_SECRET_KEY
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/chat
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/chat
+"
+
+if [ ! -f "$ENV_FILE" ]; then
+    echo "ERROR: $ENV_FILE not found. Copy .env.production.example and populate it," >&2
+    echo "       or ensure the FRONTEND_ENV_PRODUCTION CI secret writes this file." >&2
+    exit 1
+fi
+
+missing=""
+for key in $REQUIRED; do
+    # Match KEY=VALUE where VALUE is non-empty. Allow optional surrounding quotes.
+    value=$(sed -n "s/^${key}=//p" "$ENV_FILE" | head -n1 | sed 's/^["'"'"']//;s/["'"'"']$//')
+    case "$value" in
+        "" | *REPLACE_ME*)
+            missing="${missing} ${key}"
+            ;;
+    esac
+done
+
+if [ -n "$missing" ]; then
+    echo "ERROR: required keys missing or empty in $ENV_FILE:" >&2
+    for key in $missing; do
+        echo "  - $key" >&2
+    done
+    echo "See frontend/.env.production.example for the full list." >&2
+    exit 1
+fi
+
+echo "check-prod-env: all required keys present in $ENV_FILE."

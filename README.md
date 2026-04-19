@@ -381,6 +381,16 @@ The services will be available at:
 - Backend API: `https://api.your_domain.com`
 - Traefik Dashboard: `https://dashboard.your_domain.com`
 
+### Frontend build-time environment (important)
+
+`NEXT_PUBLIC_*` values are **baked into the client JS bundle at `next build` time**, not read at container runtime. That means:
+
+- On deploy hosts, always run `docker-compose pull frontend` — do not `docker-compose build`. CI is the only path that should produce the production image, so every server runs the same bundle.
+- The GitHub Actions secret **`FRONTEND_ENV_PRODUCTION`** is the single source of truth. CI writes its contents into `frontend/.env.production` before building (`.github/workflows/ci.yml`). See `frontend/.env.production.example` for the required keys (backend URL, Mapbox token, Clerk keys, etc.).
+- A `frontend/.dockerignore` ensures `next build` inside the image reads **only** `.env.production` — `.env.local` and `.env` are excluded from the build context so developer-local files cannot leak into production.
+- `frontend/scripts/check-prod-env.sh` runs before `next build` and fails the image build if any required key is missing or still set to `REPLACE_ME`.
+- Updating the `FRONTEND_ENV_PRODUCTION` secret **does not automatically trigger a rebuild** (the CI `paths-filter` only reacts to committed `frontend/**` changes). After changing the secret, run `gh workflow run ci.yml` or push any frontend commit to kick off a new build.
+
 ### Monitoring and Logs
 
 To view logs for any service:
