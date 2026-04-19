@@ -17,9 +17,10 @@ export default function ExplorerLayout() {
   const { mobileMapRatio, aiResponse, activePlaces } = useMapContext()
 
   useEffect(() => {
-    if (typeof screen !== 'undefined' && screen.orientation?.lock) {
-      screen.orientation.lock('portrait').catch(() => {})
-    }
+    // portrait lock disabled for debugging — was causing indefinite hang on iOS Safari
+    // if (typeof screen !== 'undefined' && screen.orientation?.lock) {
+    //   screen.orientation.lock('portrait').catch(() => {})
+    // }
   }, [])
 
   const hasResults = !!(aiResponse || activePlaces.length > 0)

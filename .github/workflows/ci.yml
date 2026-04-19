@@ -42,7 +42,7 @@ jobs:
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
-          push: False
+          push: True
           tags: elewah/localelive-frontend:latest
 
   build-backend:
@@ -76,5 +76,5 @@ jobs:
         with:
           context: ./backend
           file: ./backend/Dockerfile
-          push: False
+          push: True
           tags: elewah/localelive-backend:latest

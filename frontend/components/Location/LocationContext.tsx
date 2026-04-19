@@ -48,8 +48,8 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     },
     userDecisionTimeout: 5000,
     watchPosition: false,
-    watchLocationPermissionChange: true,
-    suppressLocationOnMount: false,
+    watchLocationPermissionChange: false,
+    suppressLocationOnMount: true,
   })
 
   const isSupported = isGeolocationAvailable
@@ -73,7 +73,6 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         timestamp: Date.now(),
         source: 'gps',
       }
-      console.log('GPS location detected:', locationData)
       setLocation(locationData)
       cacheLocation(locationData)
       setIsLoading(false)
@@ -90,7 +89,6 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   // Handle geolocation errors
   useEffect(() => {
     if (positionError) {
-      console.warn('Geolocation error:', positionError.message)
       setIsLoading(false)
 
       if (positionError.code === positionError.PERMISSION_DENIED) {
@@ -114,8 +112,10 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
 
   // Check permissions and load cached location on mount
   useEffect(() => {
-    checkPermissions()
+    let cleanup: (() => void) | undefined
+    checkPermissions().then((c) => { cleanup = c })
     loadCachedLocation()
+    return () => cleanup?.()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -126,17 +126,17 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     }
   }, [coords, isGeolocationEnabled, positionError])
 
-  const checkPermissions = async () => {
+  const checkPermissions = async (): Promise<(() => void) | undefined> => {
     if ('permissions' in navigator) {
       try {
         const permissionStatus = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
         setPermission(permissionStatus.state)
 
-        permissionStatus.addEventListener('change', () => {
-          setPermission(permissionStatus.state)
-        })
+        const handler = () => setPermission(permissionStatus.state)
+        permissionStatus.addEventListener('change', handler)
+        return () => permissionStatus.removeEventListener('change', handler)
       } catch (err) {
-        console.warn('Permissions API not supported')
+        // Permissions API not supported — ignore
       }
     }
   }
@@ -148,10 +148,8 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         const locationData = JSON.parse(cachedLocation) as LocationData
         const oneHour = 60 * 60 * 1000
         if (Date.now() - locationData.timestamp < oneHour) {
-          console.log('Loaded cached location:', locationData)
           setLocation(locationData)
         } else {
-          console.log('Cached location expired, removing...')
           localStorage.removeItem('cached_location')
         }
       }
@@ -163,12 +161,9 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   const requestNetworkLocation = async (): Promise<LocationData | null> => {
     setIsLoading(true)
     try {
-      console.log('Fetching location from IP address...')
       const response = await fetch('https://ipapi.co/json/')
       if (response.ok) {
         const data = await response.json()
-        console.log('IP-based location data:', data)
-
         const locationData: LocationData = {
           latitude: data.latitude,
           longitude: data.longitude,
@@ -181,8 +176,6 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         cacheLocation(locationData)
         setIsLoading(false)
         return locationData
-      } else {
-        console.warn('Network location API returned error:', response.status)
       }
     } catch (err) {
       console.warn('Network location failed:', err)
@@ -224,14 +217,12 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   }
 
   const clearLocation = () => {
-    console.log('Clearing location from context')
     setLocation(null)
     setError(null)
     localStorage.removeItem('cached_location')
   }
 
   const handleSetLocation = (locationData: LocationData) => {
-    console.log('Setting location in context:', locationData)
     setLocation(locationData)
     cacheLocation(locationData)
   }
