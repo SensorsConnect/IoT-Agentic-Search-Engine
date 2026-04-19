@@ -40,7 +40,14 @@ function OccupancyMini({ occupancy }: { occupancy: number }) {
 export default function PlaceCard({ place, isSelected, isHovered, onClick, variant = 'light', index, fullWidth }: PlaceCardProps) {
   const isDark = variant === 'dark'
   const isIoT = place.source === 'iot_engine'
+  const isMobileFullWidth = !!fullWidth
   const sizeClass = fullWidth ? 'w-full' : 'flex-shrink-0 w-80'
+  const darkSelectedClass = isMobileFullWidth
+    ? 'border-neon-cyan/50 shadow-[0_0_18px_rgba(34,211,238,0.14)]'
+    : 'border-neon-cyan/50 ring-1 ring-neon-cyan/20 scale-[1.02]'
+  const lightSelectedClass = isMobileFullWidth
+    ? 'border-blue-500/50 shadow-[0_0_18px_rgba(59,130,246,0.14)]'
+    : 'border-blue-500/50 ring-1 ring-blue-200 scale-[1.02]'
 
   if (isDark) {
     return (
@@ -48,7 +55,7 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
         onClick={onClick}
         className={`${sizeClass} rounded-2xl border cursor-pointer transition-colors duration-200 ${
           isSelected
-            ? 'border-neon-cyan/50 ring-1 ring-neon-cyan/20 scale-[1.02]'
+            ? darkSelectedClass
             : isHovered
               ? 'border-white/20 -translate-y-1 shadow-[0_0_20px_rgba(34,211,238,0.1)]'
               : 'border-white/10 md:hover:-translate-y-1 md:hover:shadow-[0_0_20px_rgba(34,211,238,0.1)]'
@@ -171,7 +178,7 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
       onClick={onClick}
       className={`${sizeClass} rounded-2xl border cursor-pointer transition-colors duration-200 ${
         isSelected
-          ? 'border-blue-500/50 ring-1 ring-blue-200 scale-[1.02]'
+          ? lightSelectedClass
           : isHovered
             ? 'border-gray-300 -translate-y-1 shadow-md'
             : 'border-gray-200 shadow-sm md:hover:-translate-y-1 md:hover:shadow-md'

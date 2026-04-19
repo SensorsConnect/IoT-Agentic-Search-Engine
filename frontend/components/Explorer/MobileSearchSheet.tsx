@@ -173,7 +173,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
 
           {/* Place cards — all listed, clicking zooms map */}
           {activePlaces.length > 0 && (
-            <div className="space-y-2">
+            <div className="-mx-1 space-y-3 px-1">
               <span className="text-xs text-gray-500 uppercase tracking-wider">
                 {activePlaces.length} place{activePlaces.length !== 1 ? 's' : ''} found
               </span>
@@ -184,11 +184,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
                     if (el) cardRefs.current.set(place.id, el)
                     else cardRefs.current.delete(place.id)
                   }}
-                  className={`transition-colors duration-300 rounded-xl ${
-                    selectedPlaceId === place.id
-                      ? 'ring-1 ring-blue-400/50 dark:ring-neon-cyan/50 shadow-[0_0_12px_rgba(59,130,246,0.15)] dark:shadow-[0_0_12px_rgba(34,211,238,0.15)]'
-                      : ''
-                  }`}
+                  className="flex justify-center rounded-2xl"
                 >
                   <PlaceCard
                     place={place}
