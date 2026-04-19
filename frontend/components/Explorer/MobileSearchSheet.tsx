@@ -198,6 +198,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
                     )}
                     variant={cardVariant}
                     index={i + 1}
+                    fullWidth
                   />
                 </div>
               ))}

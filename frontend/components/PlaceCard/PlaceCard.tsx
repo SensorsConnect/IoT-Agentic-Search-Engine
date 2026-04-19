@@ -10,6 +10,7 @@ interface PlaceCardProps {
   onClick?: () => void
   variant?: 'light' | 'dark'
   index?: number
+  fullWidth?: boolean
 }
 
 function getDirectionsUrl(place: Place): string {
@@ -36,15 +37,16 @@ function OccupancyMini({ occupancy }: { occupancy: number }) {
   )
 }
 
-export default function PlaceCard({ place, isSelected, isHovered, onClick, variant = 'light', index }: PlaceCardProps) {
+export default function PlaceCard({ place, isSelected, isHovered, onClick, variant = 'light', index, fullWidth }: PlaceCardProps) {
   const isDark = variant === 'dark'
   const isIoT = place.source === 'iot_engine'
+  const sizeClass = fullWidth ? 'w-full' : 'flex-shrink-0 w-80'
 
   if (isDark) {
     return (
       <div
         onClick={onClick}
-        className={`flex-shrink-0 w-80 rounded-2xl border cursor-pointer transition-colors duration-200 ${
+        className={`${sizeClass} rounded-2xl border cursor-pointer transition-colors duration-200 ${
           isSelected
             ? 'border-neon-cyan/50 ring-1 ring-neon-cyan/20 scale-[1.02]'
             : isHovered
@@ -167,7 +169,7 @@ export default function PlaceCard({ place, isSelected, isHovered, onClick, varia
   return (
     <div
       onClick={onClick}
-      className={`flex-shrink-0 w-80 rounded-2xl border cursor-pointer transition-colors duration-200 ${
+      className={`${sizeClass} rounded-2xl border cursor-pointer transition-colors duration-200 ${
         isSelected
           ? 'border-blue-500/50 ring-1 ring-blue-200 scale-[1.02]'
           : isHovered

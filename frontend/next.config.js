@@ -11,7 +11,9 @@ const nextConfig = {
     return [
       {
         source: '/api/v1/:path*',
-        destination: `${process.env.BACKEND_DEV_URL || 'http://localhost:8000'}/api/v1/:path*`,
+        // Use 127.0.0.1 explicitly: on Node 18+, `localhost` resolves to ::1 (IPv6)
+        // first, but uvicorn's --host 0.0.0.0 binds IPv4 only -> ECONNREFUSED ::1:8000.
+        destination: `${process.env.BACKEND_DEV_URL || 'http://127.0.0.1:8000'}/api/v1/:path*`,
       },
     ];
   },

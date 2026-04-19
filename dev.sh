@@ -103,10 +103,14 @@ cd "$SCRIPT_DIR/frontend"
 unset NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 unset CLERK_SECRET_KEY
 unset CLERK_JWKS_URL
-# Leave NEXT_PUBLIC_BACKEND_URL unset so api calls are same-origin and proxied
-# by Next's rewrite to the backend on localhost:8000.
-unset NEXT_PUBLIC_BACKEND_URL
-NODE_ENV=development npm run dev -- \
+# Force NEXT_PUBLIC_BACKEND_URL to empty so api calls are same-origin and
+# proxied by Next's rewrite to localhost:8000. A bare `unset` isn't enough —
+# Next would then fall through to .env.local / .env (which hold the prod
+# backend URL), re-introducing a cross-origin CORS failure. Shell env takes
+# precedence over dotfiles only when the variable is actually set.
+NODE_ENV=development \
+NEXT_PUBLIC_BACKEND_URL= \
+    npm run dev -- \
     --experimental-https \
     --experimental-https-key  "$KEY_FILE" \
     --experimental-https-cert "$CERT_FILE" \
