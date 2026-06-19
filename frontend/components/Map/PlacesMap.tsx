@@ -5,7 +5,9 @@ import Map, { Marker, Popup, NavigationControl } from 'react-map-gl/mapbox'
 import type { MapRef } from 'react-map-gl/mapbox'
 import type { Place } from '@/components/Chat/interface'
 import { MdMyLocation } from 'react-icons/md'
+import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { useTheme } from '@/components/Themes'
+import { useLocation } from '@/components/Location/LocationContext'
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 
@@ -99,6 +101,7 @@ export default function PlacesMap({
   const [popupPlace, setPopupPlace] = useState<Place | null>(null)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
+  const { requestLocation, isLoading: locationLoading } = useLocation()
 
   const fitBounds = useCallback(() => {
     const map = mapRef.current
@@ -238,23 +241,30 @@ export default function PlacesMap({
           style={{ '--recenter-bottom': `max(80px, calc(${100 - mobileMapRatio}% + 24px))` } as React.CSSProperties}
         >
           <button
-            onClick={() => {
+            onClick={async () => {
+              const fresh = await requestLocation()
+              const target = fresh ?? userLocation
+              if (!target) return
               const isMobile = window.innerWidth < 768
               const containerH = mapRef.current?.getContainer().clientHeight || 0
               const panelH = isMobile ? containerH * (100 - mobileMapRatio) / 100 : 0
               const yOffset = -(panelH / 2)
 
               mapRef.current?.flyTo({
-                center: [userLocation.longitude, userLocation.latitude],
+                center: [target.longitude, target.latitude],
                 zoom: 18,
                 pitch: isExplorer ? 60 : 45,
                 offset: [0, yOffset],
               })
             }}
-            className="bg-white rounded-md shadow-md p-1.5 hover:bg-gray-100 transition-colors"
+            disabled={locationLoading}
+            className="bg-white rounded-md shadow-md p-1.5 hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-wait"
             title="Center on my location"
           >
-            <MdMyLocation className="size-5 text-gray-700" />
+            {locationLoading
+              ? <AiOutlineLoading3Quarters className="size-5 text-blue-500 animate-spin" />
+              : <MdMyLocation className="size-5 text-gray-700" />
+            }
           </button>
         </div>
       )}

@@ -42,7 +42,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
 
   const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition, positionError } = useGeolocated({
     positionOptions: {
-      enableHighAccuracy: false,
+      enableHighAccuracy: true,
       maximumAge: 60000,
       timeout: 10000,
     },
