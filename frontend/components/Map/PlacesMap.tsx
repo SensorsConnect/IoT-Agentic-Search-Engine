@@ -244,7 +244,7 @@ export default function PlacesMap({
             onClick={async () => {
               const fresh = await requestLocation()
               const target = fresh ?? userLocation
-              if (!target) return
+              if (!target || target.latitude == null || target.longitude == null) return
               const isMobile = window.innerWidth < 768
               const containerH = mapRef.current?.getContainer().clientHeight || 0
               const panelH = isMobile ? containerH * (100 - mobileMapRatio) / 100 : 0
