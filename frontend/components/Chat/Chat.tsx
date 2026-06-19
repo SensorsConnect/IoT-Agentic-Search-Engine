@@ -74,7 +74,11 @@ const Chat = (props: ChatProps, ref: any) => {
 
   const [isLoading, setIsLoading] = useState(false)
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null)
-  const [isLocationLoading, setIsLocationLoading] = useState(true)
+  const [isLocationLoading, setIsLocationLoading] = useState(false)
+
+  useEffect(() => {
+    console.log(`[Chat] mount, apiUrl="${config.apiUrl}"`)
+  }, [])
 
   const handleLocationChange = useCallback((location: { latitude: number; longitude: number } | null) => {
     setCurrentLocation(location)
@@ -84,26 +88,26 @@ const Chat = (props: ChatProps, ref: any) => {
   // Auto-sync context location to local state
   useEffect(() => {
     if (contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null) {
+      console.log(`[Chat] location set lat=${contextLocation.latitude} lon=${contextLocation.longitude}`)
       setCurrentLocation({
         latitude: contextLocation.latitude,
         longitude: contextLocation.longitude
       })
       setIsLocationLoading(false)
     } else if (!contextLocation && currentLocation) {
+      console.log('[Chat] location cleared')
       setCurrentLocation(null)
     }
   }, [contextLocation])
 
-  // Stop loading after 3 seconds even if location fails
+  // Stop loading after 3 seconds even if location fails (runs once on mount)
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (isLocationLoading) {
-        setIsLocationLoading(false)
-      }
+      setIsLocationLoading(false)
     }, 3000)
 
     return () => clearTimeout(timeout)
-  }, [isLocationLoading])
+  }, [])
 
   // Auto-request location when chat page loads
   useEffect(() => {
@@ -155,6 +159,7 @@ const Chat = (props: ChatProps, ref: any) => {
         conversation.current = [...conversation.current, { content: input, role: 'user' }]
         setMessage('')
         setIsLoading(true)
+        console.log(`[Chat] sending query threadId=${currentChatRef?.current?.id} hasLocation=${!!effectiveLocation} text="${input.slice(0, 60)}"`)
         try {
           const token = await getToken()
           const response = await postChatOrQuestion(currentChatRef?.current!, message, input, effectiveLocation, token)
@@ -165,6 +170,7 @@ const Chat = (props: ChatProps, ref: any) => {
             const places = parsedData.places || []
             const userLoc = parsedData.userLocation || null
 
+            console.log(`[Chat] response ok, places=${places.length}`)
             if (debug) {
               console.log({ parsedData })
             }
@@ -184,13 +190,14 @@ const Chat = (props: ChatProps, ref: any) => {
                 result.redirect +
                 `?callbackUrl=${encodeURIComponent(location.pathname + location.search)}`
             } else {
+              console.log(`[Chat] error ${response.status}: ${result.error}`)
               toast.error(result.error || 'An error occurred')
             }
           }
 
           setIsLoading(false)
         } catch (error: any) {
-          console.error(error)
+          console.error('[Chat] fetch error:', error.message)
           toast.error(error.message)
           setIsLoading(false)
         }

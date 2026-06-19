@@ -29,6 +29,10 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
   const { activeUserLocation, setActivePlaces, setActiveUserLocation, setAiResponse, isQuerying, setIsQuerying, setSelectedPlaceId } = useMapContext()
   const { currentChatRef } = useContext(ChatContext)
 
+  useEffect(() => {
+    console.log(`[SearchBar] mount, apiUrl="${config.apiUrl}"`)
+  }, [])
+
   // Sync GPS location into MapContext so the map centers on the user before any query
   useEffect(() => {
     if (contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null) {
@@ -38,7 +42,8 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
         setActiveUserLocation({ latitude: contextLocation.latitude, longitude: contextLocation.longitude })
       }
     }
-  }, [contextLocation, activeUserLocation, setActiveUserLocation])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contextLocation])
 
   const handleSubmit = useCallback(async (text?: string) => {
     const query = text || input.trim()
@@ -53,6 +58,8 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
     const effectiveLocation = contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null
       ? { latitude: contextLocation.latitude, longitude: contextLocation.longitude }
       : null
+
+    console.log(`[SearchBar] query="${query.slice(0, 60)}" hasLocation=${!!effectiveLocation}`)
 
     try {
       const token = await getToken()
@@ -77,15 +84,17 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
         const places = parsed.places || []
         const userLoc = parsed.userLocation || null
 
+        console.log(`[SearchBar] response ok, places=${places.length}`)
         setAiResponse(answer)
         setActivePlaces(places)
         if (userLoc) setActiveUserLocation(userLoc)
       } else {
         const result = await response.json()
+        console.log(`[SearchBar] error ${response.status}: ${result.error}`)
         toast.error(result.error || 'An error occurred')
       }
     } catch (error: any) {
-      console.error(error)
+      console.error('[SearchBar] fetch error:', error.message)
       toast.error(error.message || 'An error occurred')
     } finally {
       setIsQuerying(false)

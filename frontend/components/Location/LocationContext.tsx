@@ -49,7 +49,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     userDecisionTimeout: 5000,
     watchPosition: false,
     watchLocationPermissionChange: false,
-    suppressLocationOnMount: true,
+    suppressLocationOnMount: false,
   })
 
   const isSupported = isGeolocationAvailable
@@ -73,6 +73,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         timestamp: Date.now(),
         source: 'gps',
       }
+      console.log(`[Location] GPS coords received lat=${coords.latitude} lon=${coords.longitude}`)
       setLocation(locationData)
       cacheLocation(locationData)
       setIsLoading(false)
@@ -92,6 +93,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
       setIsLoading(false)
 
       if (positionError.code === positionError.PERMISSION_DENIED) {
+        console.log('[Location] GPS denied by user')
         setError('Location access denied by user')
         if (resolveRef.current) {
           resolveRef.current(null)
@@ -99,6 +101,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         }
       } else {
         // Timeout or position unavailable — fall back to network
+        console.log(`[Location] GPS error (code=${positionError.code}), falling back to IP lookup`)
         requestNetworkLocation().then((networkResult) => {
           if (resolveRef.current) {
             resolveRef.current(networkResult)
@@ -148,8 +151,10 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         const locationData = JSON.parse(cachedLocation) as LocationData
         const oneHour = 60 * 60 * 1000
         if (Date.now() - locationData.timestamp < oneHour) {
+          console.log(`[Location] loaded cached location lat=${locationData.latitude} lon=${locationData.longitude}`)
           setLocation(locationData)
         } else {
+          console.log('[Location] cached location expired, ignoring')
           localStorage.removeItem('cached_location')
         }
       }
@@ -159,6 +164,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   }
 
   const requestNetworkLocation = async (): Promise<LocationData | null> => {
+    console.log('[Location] IP lookup started')
     setIsLoading(true)
     try {
       const response = await fetch('https://ipapi.co/json/')
@@ -172,13 +178,14 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
           source: 'network'
         }
 
+        console.log(`[Location] IP lookup ok lat=${data.latitude} lon=${data.longitude}`)
         setLocation(locationData)
         cacheLocation(locationData)
         setIsLoading(false)
         return locationData
       }
     } catch (err) {
-      console.warn('Network location failed:', err)
+      console.warn('[Location] IP lookup failed:', err)
     }
 
     setIsLoading(false)

@@ -143,6 +143,7 @@ const useChatHook = () => {
         persona: persona
       }
 
+      console.log(`[ChatHook] new chat created threadId=${id}`)
       setChatList((state) => {
         return [...state, newChat]
       })
@@ -252,10 +253,14 @@ const useChatHook = () => {
             created_at: c.created_at,
             updated_at: c.updated_at,
           }))
+          console.log(`[ChatHook] loaded ${loaded.length} conversation(s) from API`)
           setChatList(loaded)
+        } else {
+          console.log('[ChatHook] no existing conversations')
         }
         onCreateChat(DefaultPersonas[0])
-      } catch {
+      } catch (err) {
+        console.warn('[ChatHook] failed to load conversations, starting fresh:', err)
         // If API fails, start fresh
         onCreateChat(DefaultPersonas[0])
       }

@@ -181,30 +181,12 @@ export default function PlacesMap({
   }, [isDark, isExplorer])
 
   const hasPlaces = places.length > 0 && places[0].latitude != null
-  const isReady = userLocation || hasPlaces
-
-  // Show loading skeleton until we have a location to center on
-  if (!isReady) {
-    return (
-      <div
-        className="flex items-center justify-center bg-gray-200 dark:bg-gray-900/50 animate-pulse"
-        style={{
-          width: '100%',
-          height: '100%',
-          ...(isExplorer ? {} : { borderRadius: '8px' }),
-        }}
-      >
-        <div className="flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400">
-          <MdMyLocation className="size-6 animate-spin" />
-          <span className="text-sm">Getting your location...</span>
-        </div>
-      </div>
-    )
-  }
 
   const initialCenter = userLocation
     ? { longitude: userLocation.longitude, latitude: userLocation.latitude }
-    : { longitude: places[0].longitude, latitude: places[0].latitude }
+    : hasPlaces
+    ? { longitude: places[0].longitude, latitude: places[0].latitude }
+    : { longitude: -79.3832, latitude: 43.6532 } // default: Toronto
 
   // Use standard style for both — explorer gets night preset for dark + 3D buildings
   const mapStyle = 'mapbox://styles/mapbox/standard'

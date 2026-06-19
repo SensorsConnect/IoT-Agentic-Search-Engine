@@ -30,6 +30,10 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
   const { resolvedTheme } = useTheme()
   const cardVariant = resolvedTheme === 'dark' ? 'dark' : 'light'
 
+  useEffect(() => {
+    console.log(`[MobileSheet] mount, apiUrl="${config.apiUrl}"`)
+  }, [])
+
   // Sync GPS location into MapContext so the map centers on the user before any query
   useEffect(() => {
     if (contextLocation && contextLocation.latitude !== null && contextLocation.longitude !== null) {
@@ -39,7 +43,8 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
         setActiveUserLocation({ latitude: contextLocation.latitude, longitude: contextLocation.longitude })
       }
     }
-  }, [contextLocation, activeUserLocation, setActiveUserLocation])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contextLocation])
   const containerRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
@@ -69,6 +74,8 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
       ? { latitude: contextLocation.latitude, longitude: contextLocation.longitude }
       : null
 
+    console.log(`[MobileSheet] query="${query.slice(0, 60)}" hasLocation=${!!effectiveLocation}`)
+
     try {
       const token = await getToken()
       const response = await fetch(`${config.apiUrl}/api/v1/query`, {
@@ -86,14 +93,18 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
 
       if (response.ok) {
         const parsed = await response.json()
+        const places = parsed.places || []
+        console.log(`[MobileSheet] response ok, places=${places.length}`)
         setAiResponse(parsed.answer || '')
-        setActivePlaces(parsed.places || [])
+        setActivePlaces(places)
         if (parsed.userLocation) setActiveUserLocation(parsed.userLocation)
       } else {
         const result = await response.json()
+        console.log(`[MobileSheet] error ${response.status}: ${result.error}`)
         toast.error(result.error || 'An error occurred')
       }
     } catch (error: any) {
+      console.error('[MobileSheet] fetch error:', error.message)
       toast.error(error.message || 'An error occurred')
     } finally {
       setIsQuerying(false)
