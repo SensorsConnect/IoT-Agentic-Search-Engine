@@ -101,7 +101,8 @@ export default function PlacesMap({
   const [popupPlace, setPopupPlace] = useState<Place | null>(null)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  const { requestLocation, isLoading: locationLoading } = useLocation()
+  const { requestLocation } = useLocation()
+  const [locationLoading, setLocationLoading] = useState(false)
 
   const fitBounds = useCallback(() => {
     const map = mapRef.current
@@ -242,7 +243,9 @@ export default function PlacesMap({
         >
           <button
             onClick={async () => {
+              setLocationLoading(true)
               const fresh = await requestLocation()
+              setLocationLoading(false)
               const target = fresh ?? userLocation
               if (!target || target.latitude == null || target.longitude == null) return
               const isMobile = window.innerWidth < 768
