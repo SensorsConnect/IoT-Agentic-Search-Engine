@@ -70,7 +70,7 @@ const Chat = (props: ChatProps, ref: any) => {
     useContext(ChatContext)
 
   const { getToken } = useAuth()
-  const { location: contextLocation, requestLocation } = useLocation()
+  const { location: contextLocation } = useLocation()
 
   const [isLoading, setIsLoading] = useState(false)
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null)
@@ -109,24 +109,8 @@ const Chat = (props: ChatProps, ref: any) => {
     return () => clearTimeout(timeout)
   }, [])
 
-  // Auto-request location when chat page loads
-  useEffect(() => {
-    const autoRequestLocation = async () => {
-      if (!contextLocation) {
-        const location = await requestLocation()
-        if (!location || location.latitude === null || location.longitude === null) {
-          // Location unavailable — user can still chat
-        }
-      }
-    }
-
-    const timer = setTimeout(() => {
-      autoRequestLocation()
-    }, 100)
-
-    return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Location is loaded silently via IP on mount (see LocationContext).
+  // GPS is only requested when the user clicks the location button.
 
   const conversationRef = useRef<ChatMessage[]>()
 

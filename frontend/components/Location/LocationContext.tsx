@@ -49,7 +49,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     userDecisionTimeout: 5000,
     watchPosition: false,
     watchLocationPermissionChange: false,
-    suppressLocationOnMount: false,
+    suppressLocationOnMount: true,
   })
 
   const isSupported = isGeolocationAvailable
@@ -113,11 +113,15 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positionError])
 
-  // Check permissions and load cached location on mount
+  // On mount: load cached location, then silently fall back to IP if nothing cached.
+  // GPS is only requested when the user explicitly clicks the location button.
   useEffect(() => {
     let cleanup: (() => void) | undefined
     checkPermissions().then((c) => { cleanup = c })
-    loadCachedLocation()
+    const cached = loadCachedLocation()
+    if (!cached) {
+      requestNetworkLocation()
+    }
     return () => cleanup?.()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -144,7 +148,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     }
   }
 
-  const loadCachedLocation = () => {
+  const loadCachedLocation = (): boolean => {
     try {
       const cachedLocation = localStorage.getItem('cached_location')
       if (cachedLocation) {
@@ -153,6 +157,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         if (Date.now() - locationData.timestamp < oneHour) {
           console.log(`[Location] loaded cached location lat=${locationData.latitude} lon=${locationData.longitude}`)
           setLocation(locationData)
+          return true
         } else {
           console.log('[Location] cached location expired, ignoring')
           localStorage.removeItem('cached_location')
@@ -161,6 +166,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     } catch (err) {
       console.warn('Failed to load cached location:', err)
     }
+    return false
   }
 
   const requestNetworkLocation = async (): Promise<LocationData | null> => {
@@ -192,6 +198,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     return null
   }
 
+  // Called when user explicitly clicks "Use precise location" — triggers GPS prompt
   const requestLocation = async (): Promise<LocationData | null> => {
     if (!isSupported) {
       setError('Geolocation is not supported by this browser')
@@ -201,7 +208,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     setIsLoading(true)
     setError(null)
 
-    // If we already have coords from the hook, return them immediately
+    // If we already have GPS coords, return them immediately
     if (coords) {
       const locationData: LocationData = {
         latitude: coords.latitude,
@@ -216,7 +223,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
       return locationData
     }
 
-    // Otherwise, trigger a new position request and wait for coords via useEffect
+    // Trigger GPS permission prompt and wait for coords via useEffect
     getPosition()
     return new Promise((resolve) => {
       resolveRef.current = resolve
