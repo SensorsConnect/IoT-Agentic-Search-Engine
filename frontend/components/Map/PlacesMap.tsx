@@ -20,6 +20,7 @@ interface PlacesMapProps {
   onMarkerHover?: (id: string | null) => void
   isExplorer?: boolean
   mobileMapRatio?: number
+  locationSettleDelay?: number
 }
 
 function NeonMarker({
@@ -96,6 +97,7 @@ export default function PlacesMap({
   onMarkerHover,
   isExplorer = false,
   mobileMapRatio = 100,
+  locationSettleDelay = 2500,
 }: PlacesMapProps) {
   const mapRef = useRef<MapRef>(null)
   const [popupPlace, setPopupPlace] = useState<Place | null>(null)
@@ -103,6 +105,17 @@ export default function PlacesMap({
   const isDark = resolvedTheme === 'dark'
   const { requestLocation } = useLocation()
   const [locationLoading, setLocationLoading] = useState(false)
+  // Wait for IP-based location before committing initialViewState; avoids map jumping from fallback to real location
+  const [locationSettled, setLocationSettled] = useState(userLocation != null)
+
+  useEffect(() => {
+    if (userLocation) {
+      setLocationSettled(true)
+      return
+    }
+    const t = setTimeout(() => setLocationSettled(true), locationSettleDelay)
+    return () => clearTimeout(t)
+  }, [userLocation, locationSettleDelay])
 
   const fitBounds = useCallback(() => {
     const map = mapRef.current
@@ -184,14 +197,26 @@ export default function PlacesMap({
     }
   }, [isDark, isExplorer])
 
+  if (!locationSettled) {
+    return (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          ...(isExplorer ? {} : { borderRadius: '8px' }),
+          backgroundColor: isDark ? '#0d1117' : '#e5e7eb',
+        }}
+      />
+    )
+  }
+
   const hasPlaces = places.length > 0 && places[0].latitude != null
 
   const initialCenter = userLocation
     ? { longitude: userLocation.longitude, latitude: userLocation.latitude }
     : hasPlaces
     ? { longitude: places[0].longitude, latitude: places[0].latitude }
-    : { longitude: -79.3832, latitude: 43.6532 } // default: Toronto
-
+    : { longitude: -79.3886798, latitude: 43.6403389 } // default: Toronto
   // Use standard style for both — explorer gets night preset for dark + 3D buildings
   const mapStyle = 'mapbox://styles/mapbox/standard'
 

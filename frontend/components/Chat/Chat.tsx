@@ -104,7 +104,7 @@ const Chat = (props: ChatProps, ref: any) => {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setIsLocationLoading(false)
-    }, 3000)
+    }, 5000)
 
     return () => clearTimeout(timeout)
   }, [])
