@@ -92,7 +92,9 @@ const RESULTS_STEP_DESKTOP: Step = {
 }
 
 const RESULTS_STEP_MOBILE: Step = {
-  target: '[data-tour="mobile-place-cards"]',
+  // Target the sheet container (position:absolute, doesn't move when inner content scrolls)
+  // so the tooltip stays put even if the user swipes inside the panel.
+  target: '[data-mobile-sheet]',
   title: 'Your results',
   content:
     'Here are the results! Each card shows live occupancy, travel time, and open/closed status. Tap a card to see full details.',
