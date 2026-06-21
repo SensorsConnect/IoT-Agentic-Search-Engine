@@ -26,12 +26,21 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const { getToken } = useAuth()
   const { location: contextLocation } = useLocation()
-  const { activeUserLocation, setActivePlaces, setActiveUserLocation, setAiResponse, isQuerying, setIsQuerying, setSelectedPlaceId } = useMapContext()
+  const { activeUserLocation, setActivePlaces, setActiveUserLocation, setAiResponse, isQuerying, setIsQuerying, setSelectedPlaceId, pendingQuery, setPendingQuery } = useMapContext()
   const { currentChatRef } = useContext(ChatContext)
 
   useEffect(() => {
     console.log(`[SearchBar] mount, apiUrl="${config.apiUrl}"`)
   }, [])
+
+  // Pre-fill input when AppTour sets a demo query
+  useEffect(() => {
+    if (pendingQuery) {
+      setInput(pendingQuery)
+      setPendingQuery(null)
+      inputRef.current?.focus()
+    }
+  }, [pendingQuery, setPendingQuery])
 
   // Sync GPS location into MapContext so the map centers on the user before any query
   useEffect(() => {
@@ -121,6 +130,7 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
         <FiSearch className="size-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
         <input
           ref={inputRef}
+          data-tour="search-input"
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -130,6 +140,7 @@ export default function SearchBar({ onToggleHistory }: SearchBarProps) {
           className="flex-1 bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none text-sm"
         />
         <button
+          data-tour="search-submit"
           onClick={() => handleSubmit()}
           disabled={isQuerying || !input.trim()}
           className="text-blue-600 dark:text-neon-cyan hover:text-blue-500 dark:hover:text-cyan-300 disabled:text-gray-400 dark:disabled:text-gray-600 transition-colors flex-shrink-0"

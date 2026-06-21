@@ -24,7 +24,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
   const {
     activePlaces, aiResponse, isQuerying, selectedPlaceId, mobileMapRatio,
     activeUserLocation, setActivePlaces, setActiveUserLocation, setAiResponse,
-    setIsQuerying, setSelectedPlaceId, setMobileMapRatio
+    setIsQuerying, setSelectedPlaceId, setMobileMapRatio, pendingQuery, setPendingQuery
   } = useMapContext()
   const { currentChatRef } = useContext(ChatContext)
   const { resolvedTheme } = useTheme()
@@ -33,6 +33,14 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
   useEffect(() => {
     console.log(`[MobileSheet] mount, apiUrl="${config.apiUrl}"`)
   }, [])
+
+  // Pre-fill input when AppTour sets a demo query
+  useEffect(() => {
+    if (pendingQuery) {
+      setInput(pendingQuery)
+      setPendingQuery(null)
+    }
+  }, [pendingQuery, setPendingQuery])
 
   // Sync GPS location into MapContext so the map centers on the user before any query
   useEffect(() => {
@@ -150,6 +158,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
         <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
           <FiSearch className="size-4 text-gray-400 dark:text-gray-500" />
           <input
+            data-tour="mobile-search-input"
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -157,7 +166,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
             placeholder="Search places..."
             className="flex-1 bg-transparent text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none text-sm"
           />
-          <button onClick={handleSubmit} disabled={isQuerying} className="text-blue-600 dark:text-neon-cyan">
+          <button data-tour="mobile-search-submit" onClick={handleSubmit} disabled={isQuerying} className="text-blue-600 dark:text-neon-cyan">
             {isQuerying ? (
               <AiOutlineLoading3Quarters className="size-4 animate-spin" />
             ) : (
@@ -185,7 +194,7 @@ export default function MobileSearchSheet({ onToggleHistory }: MobileSearchSheet
 
           {/* Place cards — all listed, clicking zooms map */}
           {activePlaces.length > 0 && (
-            <div className="-mx-1 space-y-3 px-1 overflow-x-hidden">
+            <div data-tour="mobile-place-cards" className="-mx-1 space-y-3 px-1 overflow-x-hidden">
               <span className="text-xs text-gray-500 uppercase tracking-wider">
                 {activePlaces.length} place{activePlaces.length !== 1 ? 's' : ''} found
               </span>

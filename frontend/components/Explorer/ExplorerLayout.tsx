@@ -17,10 +17,29 @@ export default function ExplorerLayout() {
   const { mobileMapRatio, aiResponse, activePlaces } = useMapContext()
 
   useEffect(() => {
-    // portrait lock disabled for debugging — was causing indefinite hang on iOS Safari
-    // if (typeof screen !== 'undefined' && screen.orientation?.lock) {
-    //   screen.orientation.lock('portrait').catch(() => {})
-    // }
+    // Prevent page scroll while the full-screen explorer is mounted.
+    // Lock both html and body to cover all browsers (Safari scrolls <html>).
+    const html = document.documentElement
+    const body = document.body
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+    const prevHtmlHeight = html.style.height
+    const prevBodyHeight = body.style.height
+
+    html.style.overflow = 'hidden'
+    html.style.height = '100%'
+    body.style.overflow = 'hidden'
+    body.style.height = '100%'
+
+    // Reset any existing scroll so the container never starts below the header
+    window.scrollTo(0, 0)
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow
+      html.style.height = prevHtmlHeight
+      body.style.overflow = prevBodyOverflow
+      body.style.height = prevBodyHeight
+    }
   }, [])
 
   const hasResults = !!(aiResponse || activePlaces.length > 0)

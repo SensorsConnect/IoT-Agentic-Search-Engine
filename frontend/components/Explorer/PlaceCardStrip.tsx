@@ -27,6 +27,7 @@ export default function PlaceCardStrip() {
       <div className="bg-gradient-to-t from-white/60 dark:from-black/40 via-white/30 dark:via-black/20 to-transparent pt-8 pb-4 px-4">
         <div
           ref={scrollRef}
+          data-tour="place-cards"
           className="flex gap-3 overflow-x-auto snap-x snap-mandatory dark-scrollbar pb-2"
         >
           {activePlaces.map((place, index) => (

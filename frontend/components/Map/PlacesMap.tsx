@@ -267,6 +267,7 @@ export default function PlacesMap({
           style={{ '--recenter-bottom': `max(80px, calc(${100 - mobileMapRatio}% + 24px))` } as React.CSSProperties}
         >
           <button
+            data-tour="location-btn"
             onClick={async () => {
               setLocationLoading(true)
               const fresh = await requestLocation()

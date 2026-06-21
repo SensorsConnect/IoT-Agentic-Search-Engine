@@ -86,7 +86,7 @@ export default function PlaceDetailSheet() {
         onClick={() => setSelectedPlaceId(null)}
       />
       {/* Desktop: side panel from right */}
-      <div className="absolute inset-auto top-4 right-4 bottom-4 md:w-[320px] lg:w-[400px] z-30 animate-slide-in-right overflow-hidden rounded-2xl">
+      <div data-tour="place-detail" className="absolute inset-auto top-4 right-4 bottom-4 md:w-[320px] lg:w-[400px] z-30 animate-slide-in-right overflow-hidden rounded-2xl">
         <div className="h-full bg-white/95 dark:bg-surface/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 overflow-y-auto dark-scrollbar rounded-2xl">
           {/* Close button */}
           <button

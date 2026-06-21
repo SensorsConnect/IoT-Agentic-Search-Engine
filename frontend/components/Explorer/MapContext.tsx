@@ -11,6 +11,8 @@ interface MapContextType {
   aiResponse: string | null
   isQuerying: boolean
   mobileMapRatio: number
+  /** Set by AppTour to pre-fill the search bar with a demo query */
+  pendingQuery: string | null
   setActivePlaces: (places: Place[]) => void
   setActiveUserLocation: (loc: { latitude: number; longitude: number } | null) => void
   setSelectedPlaceId: (id: string | null) => void
@@ -18,6 +20,7 @@ interface MapContextType {
   setAiResponse: (response: string | null) => void
   setIsQuerying: (loading: boolean) => void
   setMobileMapRatio: (n: number) => void
+  setPendingQuery: (query: string | null) => void
 }
 
 const MapContext = createContext<MapContextType | undefined>(undefined)
@@ -30,6 +33,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [aiResponse, setAiResponse] = useState<string | null>(null)
   const [isQuerying, setIsQuerying] = useState(false)
   const [mobileMapRatio, setMobileMapRatio] = useState(100)
+  const [pendingQuery, setPendingQuery] = useState<string | null>(null)
 
   return (
     <MapContext.Provider
@@ -41,6 +45,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
         aiResponse,
         isQuerying,
         mobileMapRatio,
+        pendingQuery,
         setActivePlaces,
         setActiveUserLocation,
         setSelectedPlaceId,
@@ -48,6 +53,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
         setAiResponse,
         setIsQuerying,
         setMobileMapRatio,
+        setPendingQuery,
       }}
     >
       {children}

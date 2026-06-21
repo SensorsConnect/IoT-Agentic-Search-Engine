@@ -9,8 +9,10 @@ import NextLink from 'next/link'
 import { usePathname } from 'next/navigation'
 import { SignInButton, UserButton, SignedIn, SignedOut } from '@clerk/nextjs'
 import { FaGithub, FaMoon, FaSun } from 'react-icons/fa'
+import { FiHelpCircle } from 'react-icons/fi'
 import { Link } from '../Link'
 import { useTheme } from '../Themes'
+import { useTourContext } from '../Tour'
 import darkIcon from '/public/localelive-dark-icon.png'
 import lightIcon from '/public/localelive-light-icon.png'
 
@@ -20,6 +22,7 @@ export const Header = () => {
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light')
   const pathname = usePathname()
   const isExplorer = pathname === '/chat'
+  const { startTour } = useTourContext()
 
   useEffect(() => {
     if (resolvedTheme === 'dark' || resolvedTheme === 'light') {
@@ -40,7 +43,7 @@ export const Header = () => {
   return (
     <header
       className={cs(
-        'block sticky top-0 py-2 px-4 z-20 backdrop-blur-xl',
+        'block sticky top-0 py-2 px-4 z-50 backdrop-blur-xl',
         isExplorer
           ? 'bg-white/80 dark:bg-[#070810]/80 border border-gray-200/50 dark:border-white/5 shadow-none rounded-b-2xl'
           : 'bg-white/80 dark:bg-gray-900/80 shadow-sm dark:shadow-gray-500 py-3',
@@ -94,18 +97,31 @@ export const Header = () => {
           >
             {currentTheme === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
           </div>
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button
-                className="text-sm px-3 py-1.5 rounded-lg transition-colors bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Sign In
-              </button>
-            </SignInButton>
-          </SignedOut>
-          <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
+          {/* Replay tour button — only visible on the explorer page */}
+          {isExplorer && (
+            <button
+              onClick={startTour}
+              title="Take the tour"
+              aria-label="Take the tour"
+              className="cursor-pointer text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-neon-cyan transition-colors"
+            >
+              <FiHelpCircle size={20} />
+            </button>
+          )}
+          <div data-tour="profile-menu" className="flex items-center">
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button
+                  className="text-sm px-3 py-1.5 rounded-lg transition-colors bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Sign In
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+          </div>
         </Flex>
         <IconButton
           size="3"
