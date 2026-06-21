@@ -105,8 +105,9 @@ const DETAIL_STEP: Step = {
   title: 'Place details',
   content:
     'This panel shows everything about the place: phone number, website, live occupancy, estimated service time, and a directions button.',
-  placement: 'left',
+  placement: 'auto',
   skipBeacon: true,
+  isFixed: true,
 }
 
 // ─── Joyride tooltip styling ─────────────────────────────────────────────────
@@ -172,12 +173,16 @@ export default function AppTour({ run, onStop }: AppTourProps) {
   const addedDetail = useRef(false)
   // The submit step is always index 2 (0-based)
   const submitStepIndex = 2
-  // Fallback timer — advances the tour if the API call never resolves
+  // Set when results arrive so handleEvent knows which index is the results step
+  const resultsStepIndexRef = useRef<number | null>(null)
+  // Fallback timers — advance the tour if API/card-click never resolves
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cardFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => {
       if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current)
+      if (cardFallbackTimerRef.current) clearTimeout(cardFallbackTimerRef.current)
     }
   }, [])
 
@@ -219,21 +224,55 @@ export default function AppTour({ run, onStop }: AppTourProps) {
       const next = [...prev]
       // Insert just before the profile/account step (last step)
       next.splice(next.length - 1, 0, resultsStep)
+      // Record which index the results step lands at
+      resultsStepIndexRef.current = next.length - 2
       return next
     })
-    // Advance to the results step (submitStepIndex + 1 = 3)
-    setStepIndex(submitStepIndex + 1)
+
+    if (isMobile) {
+      // On mobile the place cards live inside an overflow-y-auto div inside
+      // MobileSearchSheet. Find that scrollable container and scroll down to the
+      // cards, then advance the tour after the scroll settles.
+      const cards = document.querySelector<HTMLElement>('[data-tour="mobile-place-cards"]')
+      if (cards) {
+        // Walk up to find the nearest scrollable ancestor
+        let scrollParent: HTMLElement | null = cards.parentElement
+        while (scrollParent && scrollParent.scrollHeight <= scrollParent.clientHeight) {
+          scrollParent = scrollParent.parentElement
+        }
+        if (scrollParent) {
+          scrollParent.scrollTo({ top: cards.offsetTop, behavior: 'smooth' })
+        } else {
+          cards.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+      }
+      setTimeout(() => setStepIndex(submitStepIndex + 1), 600)
+    } else {
+      // Desktop: cards are already visible — advance immediately
+      setStepIndex(submitStepIndex + 1)
+    }
   }, [activePlaces, run, isMobile])
 
-  // Insert detail step once a place is selected (desktop only)
+  // Insert detail step once a place is selected (desktop only) and advance to it
   useEffect(() => {
     if (!run || addedDetail.current || !selectedPlaceId || isMobile) return
     addedDetail.current = true
 
+    // Cancel the card-click fallback — real selection happened in time
+    if (cardFallbackTimerRef.current) {
+      clearTimeout(cardFallbackTimerRef.current)
+      cardFallbackTimerRef.current = null
+    }
+
     setSteps((prev) => {
       const next = [...prev]
       const insertAt = next.findIndex((s) => s.target === '[data-tour="profile-menu"]')
-      if (insertAt !== -1) next.splice(insertAt, 0, DETAIL_STEP)
+      if (insertAt !== -1) {
+        next.splice(insertAt, 0, DETAIL_STEP)
+        // Wait for the slide-in-right animation (300ms) before advancing so Joyride
+        // measures the panel's bounding rect after it has reached its final position.
+        setTimeout(() => setStepIndex(insertAt), 350)
+      }
       return next
     })
   }, [selectedPlaceId, run, isMobile])
@@ -310,12 +349,35 @@ export default function AppTour({ run, onStop }: AppTourProps) {
         return
       }
 
+      // When Next is clicked on the results step, select the first place via context
+      // so the detail panel opens. Tour pauses here; the selectedPlaceId effect inserts
+      // the detail step and advances stepIndex when the selection registers.
+      // A 5 s fallback prevents a permanent hang.
+      if (
+        type === EVENTS.STEP_AFTER &&
+        resultsStepIndexRef.current !== null &&
+        index === resultsStepIndexRef.current &&
+        action !== 'prev' &&
+        !isMobile
+      ) {
+        const firstId = activePlaces[0]?.id
+        if (firstId) {
+          setSelectedPlaceId(firstId)
+        }
+        // Fallback: if selection never triggers the detail effect, advance anyway
+        cardFallbackTimerRef.current = setTimeout(() => {
+          setStepIndex((i) => i + 1)
+        }, 5000)
+        // Return early — detail effect handles stepIndex
+        return
+      }
+
       // Normal step progression for all other steps
       if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
         setStepIndex((i) => i + (action === 'prev' ? -1 : 1))
       }
     },
-    [fireDemo, isMobile, onStop, setPendingQuery],
+    [activePlaces, fireDemo, isMobile, onStop, setPendingQuery, setSelectedPlaceId],
   )
 
   if (!run) return null
