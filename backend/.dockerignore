@@ -1,0 +1,9 @@
+src/vector_db/milvus_lite.db
+src/vector_db/milvus_data/
+src/vector_db/.milvus_lite.db.lock
+
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.*
