@@ -23,6 +23,8 @@ interface LocationContextType extends LocationState {
   requestLocation: () => Promise<LocationData | null>
   clearLocation: () => void
   setLocation: (location: LocationData) => void
+  showLocationHint: boolean
+  dismissLocationHint: () => void
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined)
@@ -36,6 +38,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [permission, setPermission] = useState<PermissionState | null>(null)
+  const [showLocationHint, setShowLocationHint] = useState(false)
 
   // Promise resolver for requestLocation()
   const resolveRef = useRef<((value: LocationData | null) => void) | null>(null)
@@ -78,6 +81,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
       cacheLocation(locationData)
       setIsLoading(false)
       setError(null)
+      setShowLocationHint(false)
 
       // Resolve any pending requestLocation() promise
       if (resolveRef.current) {
@@ -113,15 +117,24 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positionError])
 
-  // On mount: load cached location, then silently fall back to IP if nothing cached.
-  // GPS is only requested when the user explicitly clicks the location button.
+  // On mount: load cached location, check GPS permission, then decide what to fetch.
+  // If GPS is already granted, silently request it in background (non-blocking).
+  // IP lookup runs in parallel when no cache exists so the map loads immediately.
   useEffect(() => {
     let cleanup: (() => void) | undefined
-    checkPermissions().then((c) => { cleanup = c })
     const cached = loadCachedLocation()
-    if (!cached) {
-      requestNetworkLocation()
-    }
+
+    checkPermissions().then(({ cleanup: c, state: permState }) => {
+      cleanup = c
+      if (permState === 'granted') {
+        // Permission already granted — silently fetch GPS without a browser dialog
+        getPosition()
+      }
+      if (!cached) {
+        requestNetworkLocation()
+      }
+    })
+
     return () => cleanup?.()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -133,19 +146,19 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     }
   }, [coords, isGeolocationEnabled, positionError])
 
-  const checkPermissions = async (): Promise<(() => void) | undefined> => {
+  const checkPermissions = async (): Promise<{ cleanup?: () => void; state: PermissionState | null }> => {
     if ('permissions' in navigator) {
       try {
         const permissionStatus = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
         setPermission(permissionStatus.state)
-
         const handler = () => setPermission(permissionStatus.state)
         permissionStatus.addEventListener('change', handler)
-        return () => permissionStatus.removeEventListener('change', handler)
+        return { cleanup: () => permissionStatus.removeEventListener('change', handler), state: permissionStatus.state }
       } catch (err) {
         // Permissions API not supported — ignore
       }
     }
+    return { state: null }
   }
 
   const loadCachedLocation = (): boolean => {
@@ -188,6 +201,10 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
         setLocation(locationData)
         cacheLocation(locationData)
         setIsLoading(false)
+        // Show hint only when GPS isn't already being auto-fetched
+        if (permission !== 'granted') {
+          setShowLocationHint(true)
+        }
         return locationData
       }
     } catch (err) {
@@ -236,6 +253,8 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     localStorage.removeItem('cached_location')
   }
 
+  const dismissLocationHint = useCallback(() => setShowLocationHint(false), [])
+
   const handleSetLocation = (locationData: LocationData) => {
     setLocation(locationData)
     cacheLocation(locationData)
@@ -249,7 +268,9 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     isSupported,
     requestLocation,
     clearLocation,
-    setLocation: handleSetLocation
+    setLocation: handleSetLocation,
+    showLocationHint,
+    dismissLocationHint,
   }
 
   return <LocationContext.Provider value={value}>{children}</LocationContext.Provider>

@@ -103,7 +103,7 @@ export default function PlacesMap({
   const [popupPlace, setPopupPlace] = useState<Place | null>(null)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  const { requestLocation } = useLocation()
+  const { requestLocation, showLocationHint, dismissLocationHint } = useLocation()
   const [locationLoading, setLocationLoading] = useState(false)
   // Wait for IP-based location before committing initialViewState; avoids map jumping from fallback to real location
   const [locationSettled, setLocationSettled] = useState(userLocation != null)
@@ -266,9 +266,23 @@ export default function PlacesMap({
           }`}
           style={{ '--recenter-bottom': `max(80px, calc(${100 - mobileMapRatio}% + 24px))` } as React.CSSProperties}
         >
+          {showLocationHint && (
+            <div className="absolute right-10 bottom-0 w-60 bg-white rounded-2xl shadow-lg p-3 z-10">
+              <button
+                onClick={dismissLocationHint}
+                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-lg leading-none"
+                aria-label="Dismiss"
+              >×</button>
+              <p className="font-semibold text-sm text-gray-900 mb-1">Set your precise location</p>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Your location is currently approximate (IP-based). Tap this button to switch to precise GPS — search results will be much more accurate.
+              </p>
+            </div>
+          )}
           <button
             data-tour="location-btn"
             onClick={async () => {
+              dismissLocationHint()
               setLocationLoading(true)
               const fresh = await requestLocation()
               setLocationLoading(false)
