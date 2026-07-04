@@ -10,6 +10,9 @@ jobs:
   build-backend:
     name: Build Backend Image
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -32,11 +35,36 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push backend image
+      - name: Configure AWS credentials
+        if: steps.changes.outputs.backend == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Log in to Amazon ECR
+        if: steps.changes.outputs.backend == 'true'
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push to Docker Hub + ECR
         if: steps.changes.outputs.backend == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./backend
           file: ./backend/Dockerfile
-          push: True
-          tags: elewah/localelive-backend:latest
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          tags: |
+            elewah/localelive-backend:latest
+            025628150716.dkr.ecr.us-east-1.amazonaws.com/localelive-backend:latest
+
+      - name: Update Lambda function image
+        if: steps.changes.outputs.backend == 'true'
+        run: |
+          aws lambda update-function-code \
+            --function-name localelive-backend \
+            --image-uri 025628150716.dkr.ecr.us-east-1.amazonaws.com/localelive-backend:latest \
+            --region us-east-1
