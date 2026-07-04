@@ -25,15 +25,9 @@ SQLAlchemy==2.0.35
 psycopg2-binary>=2.9.9
 psycopg_pool>=3.1.0
 
-# Vector DB & ML
+# Vector DB
 pymilvus[milvus_lite]>=2.5.0,<2.6.0
-sentence-transformers>=2.7.0
-torch==2.4.1
 numpy<2
-safetensors==0.4.5
-tokenizers==0.15.2
-transformers==4.35.2
-huggingface-hub==0.25.1
 
 # Geolocation & routing
 geopy==2.4.1

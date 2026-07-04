@@ -1,7 +1,7 @@
 import os
 import logging
+import httpx
 from pymilvus import MilvusClient, DataType
-from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
@@ -12,10 +12,22 @@ COLLECTION_NAME = "services"
 DENSE_DIM = 384  # BAAI/bge-small-en-v1.5 output dimension
 SERVICES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "Services_description_V2.txt")
 
-# Load embedding model once at startup
-_model = SentenceTransformer("BAAI/bge-small-en-v1.5")
+HF_API_URL = "https://api-inference.huggingface.co/models/BAAI/bge-small-en-v1.5"
+HF_API_KEY = os.environ.get("HF_API_KEY", "")
 
 _client: MilvusClient | None = None
+
+
+def _embed(texts: list[str]) -> list[list[float]]:
+    headers = {"Authorization": f"Bearer {HF_API_KEY}"}
+    response = httpx.post(
+        HF_API_URL,
+        headers=headers,
+        json={"inputs": texts, "options": {"wait_for_model": True}},
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 def _get_client() -> MilvusClient:
@@ -34,7 +46,7 @@ def _create_collection(client: MilvusClient) -> None:
     index_params = client.prepare_index_params()
     index_params.add_index(
         field_name="dense",
-        index_type="AUTOINDEX",  # Milvus Lite supports AUTOINDEX, FLAT, IVF_FLAT; full Milvus also supports HNSW
+        index_type="AUTOINDEX",
         metric_type="COSINE",
     )
     client.create_collection(COLLECTION_NAME, schema=schema, index_params=index_params)
@@ -75,7 +87,7 @@ def vector_db_push_batch(force_rebuild: bool = False) -> None:
     for i in tqdm(range(0, len(services), BATCH_SIZE), desc="Indexing services"):
         batch = services[i: i + BATCH_SIZE]
         texts = [f"{name} {desc}" for name, desc in batch]
-        vecs = _model.encode(texts, normalize_embeddings=True).tolist()
+        vecs = _embed(texts)
         rows.extend(
             {"service_name": name, "dense": vec}
             for (name, _), vec in zip(batch, vecs)
@@ -88,7 +100,7 @@ def vector_db_push_batch(force_rebuild: bool = False) -> None:
 
 def vector_search(user_query: str, limit: int = 3) -> list[str]:
     client = _get_client()
-    q_vec = _model.encode([user_query], normalize_embeddings=True).tolist()
+    q_vec = _embed([user_query])
     results = client.search(
         collection_name=COLLECTION_NAME,
         data=q_vec,
