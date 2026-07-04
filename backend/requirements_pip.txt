@@ -53,5 +53,8 @@ google_search_results==2.4.2
 # Auth
 pyjwt[crypto]>=2.8.0
 
+# Lambda ASGI adapter
+mangum>=0.17.0
+
 # Migrations
 alembic>=1.13.0

@@ -98,3 +98,10 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+# Lambda handler — Mangum translates API Gateway events to ASGI
+# Only active when running inside Lambda (AWS_LAMBDA_FUNCTION_NAME is set by the runtime)
+if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+    from mangum import Mangum
+    handler = Mangum(app, lifespan="off")
