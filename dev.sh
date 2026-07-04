@@ -98,6 +98,10 @@ BACKEND_PID=$!
 # Start frontend
 echo "Starting frontend on port $FRONTEND_PORT (HTTPS)..."
 cd "$SCRIPT_DIR/frontend"
+if [[ ! -d node_modules ]]; then
+    echo "node_modules missing — running npm install..."
+    npm install
+fi
 # The script sourced backend/.env above, which includes production Clerk keys.
 # Clear those for the frontend so Next can load local test keys from frontend/.env.local.
 unset NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
