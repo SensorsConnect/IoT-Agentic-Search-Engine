@@ -58,3 +58,4 @@ mangum>=0.17.0
 
 # Migrations
 alembic>=1.13.0
+
