@@ -42,6 +42,10 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'geolocation=(self)',
           },
+          {
+            key: 'X-Robots-Tag',
+            value: '',
+          },
         ],
       },
     ];
