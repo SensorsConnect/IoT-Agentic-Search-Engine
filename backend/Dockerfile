@@ -45,6 +45,7 @@ EXPOSE 8000
 # Set the working directory to src
 WORKDIR /app/src
 
-# Command to run the application
+# Default: run uvicorn (EC2/local)
+# Lambda override via image config: EntryPoint=[python, -m, awslambdaric], Command=[main.handler]
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
 CMD ["/app/.venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
