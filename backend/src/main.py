@@ -105,3 +105,4 @@ async def health():
 if os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
     from mangum import Mangum
     handler = Mangum(app, lifespan="off")
+# Lambda deployment
