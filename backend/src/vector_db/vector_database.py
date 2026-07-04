@@ -106,6 +106,7 @@ def vector_db_push_batch(force_rebuild: bool = False) -> None:
 
 def vector_search(user_query: str, limit: int = 3) -> list[str]:
     client = _get_client()
+    vector_db_push_batch()  # no-op if collection already populated; lazy init on Lambda
     q_vec = _embed([user_query])
     results = client.search(
         collection_name=COLLECTION_NAME,

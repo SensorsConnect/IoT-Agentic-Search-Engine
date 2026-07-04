@@ -56,7 +56,14 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="LocaleLive API", version="1.0.0", lifespan=lifespan)
+# Lambda has a 10s init timeout — skip lifespan (vector DB init) on cold start.
+# vector_db_push_batch() is called lazily on first IoT_engine invocation instead.
+IS_LAMBDA = bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+app = FastAPI(
+    title="LocaleLive API",
+    version="1.0.0",
+    lifespan=None if IS_LAMBDA else lifespan,
+)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
