@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // standalone output is needed for Docker (EC2/App Runner) but breaks Vercel.
+  // DOCKER_BUILD=true is set in the Dockerfile so Vercel never sees this.
+  ...(process.env.DOCKER_BUILD === 'true' ? { output: 'standalone' } : {}),
   reactStrictMode: false,
   logging: {
     fetches: {

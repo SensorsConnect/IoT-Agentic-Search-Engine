@@ -21,7 +21,7 @@ COPY . .
 # Fail the build loudly if .env.production is missing required keys,
 # instead of silently baking empty NEXT_PUBLIC_* values into the bundle.
 RUN sh ./scripts/check-prod-env.sh
-RUN npm run build
+RUN DOCKER_BUILD=true npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
