@@ -1,10 +1,13 @@
 import os
 import logging
 import httpx
+from dotenv import load_dotenv
 from pymilvus import MilvusClient, DataType
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
+
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env"))
 
 _DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "milvus_lite.db")
 MILVUS_URI = os.environ.get("MILVUS_DB_PATH", _DEFAULT_DB_PATH)
@@ -12,18 +15,21 @@ COLLECTION_NAME = "services"
 DENSE_DIM = 384  # BAAI/bge-small-en-v1.5 output dimension
 SERVICES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "Services_description_V2.txt")
 
-HF_API_URL = "https://api-inference.huggingface.co/models/BAAI/bge-small-en-v1.5"
+HF_API_URL = "https://router.huggingface.co/hf-inference/models/BAAI/bge-small-en-v1.5"
 HF_API_KEY = os.environ.get("HF_API_KEY", "")
 
 _client: MilvusClient | None = None
 
 
 def _embed(texts: list[str]) -> list[list[float]]:
+    if not HF_API_KEY:
+        raise RuntimeError("HF_API_KEY is not set; add it to backend/.env or the process environment")
+
     headers = {"Authorization": f"Bearer {HF_API_KEY}"}
     response = httpx.post(
         HF_API_URL,
         headers=headers,
-        json={"inputs": texts, "options": {"wait_for_model": True}},
+        json={"inputs": texts},
         timeout=30,
     )
     response.raise_for_status()
