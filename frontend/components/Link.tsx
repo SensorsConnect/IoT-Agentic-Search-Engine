@@ -15,16 +15,15 @@ interface LinkProps {
 
 export const Link = ({ href, className, children, color, highContrast, disabled }: LinkProps) => {
   return (
-    <NextLink href={href} passHref legacyBehavior aria-disabled={disabled}>
-      <RadixLink
-        className={className}
-        color={color}
-        aria-disabled={disabled}
-        highContrast={highContrast}
-      >
-        {children}
-      </RadixLink>
-    </NextLink>
+    <RadixLink
+      asChild
+      className={className}
+      color={color}
+      aria-disabled={disabled}
+      highContrast={highContrast}
+    >
+      <NextLink href={href}>{children}</NextLink>
+    </RadixLink>
   )
 }
 
