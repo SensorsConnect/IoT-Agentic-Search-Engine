@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI):
 IS_LAMBDA = bool(os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
 app = FastAPI(
     title="LocaleLive API",
-    version="1.0.0",
+    version="1.0.1",
     lifespan=None if IS_LAMBDA else lifespan,
 )
 app.state.limiter = limiter
@@ -95,7 +95,7 @@ app.include_router(v1_router)
 async def root():
     return {
         "name": "LocaleLive API",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "status": "healthy",
         "environment": ENVIRONMENT,
         "swagger_url": "/docs"
