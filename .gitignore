@@ -1,5 +1,6 @@
 .venv
 .env
+infra/.env.lambda
 react_agent.ipynb
 config.py
 /.ipynb_checkpoints
