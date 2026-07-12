@@ -47,6 +47,17 @@ else:
     import sqlite3
     db = sqlite3.connect("checkpoints.db", check_same_thread=False)
     memory = SqliteSaver(db)
+    memory.setup()
+    # Clear stale checkpoints so an AgentState schema change (e.g. new field) doesn't
+    # cause the SQLite saver to replay an incompatible snapshot and return empty results.
+    try:
+        db.execute("DELETE FROM checkpoints")
+        db.execute("DELETE FROM writes")
+        db.commit()
+        logging.info("Cleared stale SQLite checkpoints on startup")
+    except Exception as e:
+        db.rollback()
+        logging.warning(f"Could not clear SQLite checkpoints: {e}")
     logging.warning("Using SQLite file checkpointer (not recommended for production)")
 
 # Compile the graph

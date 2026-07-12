@@ -3,8 +3,6 @@
 infra/.env.lambda
 react_agent.ipynb
 config.py
-/.ipynb_checkpoints
-/__pycache__
 docker-compose.local.yml
 frontend/Dockerfile.local
 docker-compose.dev.yml
@@ -13,3 +11,22 @@ frontend/.next.bak
 
 # Runtime checkpoint databases and SQLite sidecar files
 checkpoints.db*
+
+# Jupyter — strip all checkpoints and cached outputs (may contain credentials)
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Python bytecode — everywhere
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# macOS metadata
+.DS_Store
+**/.DS_Store
+
+# Research credentials (never commit)
+research/credentials.env

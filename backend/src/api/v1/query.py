@@ -1,5 +1,6 @@
 import logging
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from typing import Optional
 
@@ -57,7 +58,9 @@ async def query_handler(
     db: Session = Depends(get_db),
 ):
     user_label = user.clerk_id if user else "anonymous"
-    logger.info(f"Query received: user={user_label}, text='{query.text[:100]}', threadId='{query.threadId}'")
+    correlation_id = str(uuid.uuid4())
+    t0 = time.time()
+    logger.info(f"query_start rid={correlation_id} user={user_label} text='{query.text[:80]}' threadId='{query.threadId}'")
 
     # Track every query for usage analytics
     event = QueryEvent(
@@ -92,10 +95,19 @@ async def query_handler(
                 with ThreadPoolExecutor(max_workers=1) as executor:
                     future = executor.submit(
                         runnable.invoke,
-                        {"messages": messages, "query": message_content, "user_location": user_location},
+                        {"messages": messages, "query": message_content, "user_location": user_location, "correlation_id": correlation_id},
                         thread,
                     )
                     result = future.result(timeout=GRAPH_TIMEOUT_SECONDS)
+                from langchain_core.messages import ToolMessage as _TM
+                routing_path = [m.name for m in result.get("messages", []) if isinstance(m, _TM) and m.name]
+                result_count = len(result.get("places") or [])
+                logger.info(
+                    f"query_complete rid={correlation_id} user={user_label} "
+                    f"duration={time.time() - t0:.2f}s "
+                    f"path={routing_path if routing_path else ['direct_answer']} "
+                    f"results={result_count}"
+                )
                 break
             except FuturesTimeoutError:
                 logger.error(f"Graph invocation timed out after {GRAPH_TIMEOUT_SECONDS}s for query: {query.text[:100]}")

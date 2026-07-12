@@ -1,5 +1,7 @@
 import logging
 import os
+
+logger = logging.getLogger(__name__)
 from state_graph import AgentState
 from vector_db.vector_database import vector_search
 from mongo_db.database_connection import get_nearByPlaces
@@ -8,9 +10,9 @@ from utils import prepaer_states
 from langchain_core.messages import ToolMessage
 
 def IoT_engine(state: AgentState):
-    logging.info("Using IoT_engine agent")
+    rid = state.get("correlation_id", "")
     user_query= state["query"]
-    logging.info(f"user_query:  {user_query}")
+    logger.info(f"iot_engine start rid={rid} query='{user_query[:80]}'")
 
     services_types= vector_search(user_query= user_query, limit= 3)
     logging.debug("Services types (top 3 in semantic meaning): " + str(services_types))
@@ -57,9 +59,7 @@ def IoT_engine(state: AgentState):
                 raw_data[key]["latitude"] = coords[1]
 
     for result in results:
-        logging.info(result['Service Address'])
-        logging.info(result['Service Name'])
-        logging.info(result['location']['coordinates'])
+        logger.debug(f"iot result: name={result.get('Service Name','?')} addr={result.get('Service Address','?')}")
 
     ResponseInJson=get_recommendedSerivce(longitude,latitude,services)
     logging.debug(ResponseInJson)
@@ -97,6 +97,7 @@ def IoT_engine(state: AgentState):
                 "source": "iot_engine"
             })
 
+        logger.info(f"iot_engine complete rid={rid} collection={collection} results={len(places)}")
         return prepaer_states({
             "messages": [ToolMessage(content=str(ResponseInJson), name="IoT_engine", tool_call_id="call_IoT_engine")],
             "node": "IoT_engine",
@@ -105,4 +106,5 @@ def IoT_engine(state: AgentState):
             "places": places
         })
     else:
+        logger.warning(f"iot_engine no_results rid={rid} query='{user_query[:80]}' collection={collection}")
         return prepaer_states({"node": "IoT_engine", "call":"generator_agent"})

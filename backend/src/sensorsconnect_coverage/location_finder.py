@@ -1,6 +1,9 @@
 import json
+import logging
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+
+logger = logging.getLogger(__name__)
 
 class LocationFinder:
     def __init__(self, user_agent="geo_locator"):
@@ -20,9 +23,9 @@ class LocationFinder:
             else:
                 return None
         except (GeocoderTimedOut, GeocoderServiceError) as e:
-            print(f"Error: {e}")
+            logger.warning(f"geocoder error for address={address!r}: {type(e).__name__}: {e}")
             return None
-    
+
     def get_address_from_coordinates(self, latitude, longitude):
         try:
             location = self.geolocator.reverse((latitude, longitude), exactly_one=True)
@@ -31,7 +34,7 @@ class LocationFinder:
             else:
                 return None
         except (GeocoderTimedOut, GeocoderServiceError) as e:
-            print(f"Error: {e}")
+            logger.warning(f"geocoder error for coords=({latitude},{longitude}): {type(e).__name__}: {e}")
             return None
     
     def get_country_city_from_address(self, address):
@@ -107,7 +110,6 @@ class LocationFinder:
                 return False
         
         elif location_data["coordinates"] != [0, 0]:
-            print( location_data["coordinates"] )
             latitude, longitude = location_data["coordinates"]
             country_city = self.get_country_city_from_coordinates(latitude, longitude)
             if country_city:

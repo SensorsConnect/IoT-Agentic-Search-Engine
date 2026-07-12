@@ -14,3 +14,4 @@ class AgentState(TypedDict):
     places: List[dict]
     search_type: str
     user_location: dict
+    correlation_id: str

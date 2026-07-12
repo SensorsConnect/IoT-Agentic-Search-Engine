@@ -41,7 +41,6 @@ requests==2.32.3
 httpx==0.27.2
 
 # Utilities
-colorlog==6.8.2
 python-dotenv==1.0.1
 tqdm==4.66.5
 PyYAML==6.0.2

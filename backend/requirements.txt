@@ -26,7 +26,6 @@ google-search-results
 pymongo
 openrouteservice
 sentencepiece
-colorlog
 groq
 langgraph
 langchain_community

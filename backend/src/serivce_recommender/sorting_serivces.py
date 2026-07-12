@@ -6,12 +6,7 @@ from dotenv import load_dotenv
 import datetime 
 import ast
 import logging
-from colorlog import ColoredFormatter
-logging.getLogger().handlers = []  # Remove any existing handlers
-handler = logging.StreamHandler()
-handler.setFormatter(ColoredFormatter('%(log_color)s%(levelname)-8s%(reset)s %(message)s'))
-logging.getLogger().addHandler(handler)
-logging.getLogger().setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 load_dotenv()
 ORS_API_KEY = os.getenv("ORS_API_KEY")
 client = openrouteservice.Client(key=ORS_API_KEY) # Specify your personal API key 
@@ -53,28 +48,28 @@ def get_travelDurations(longitude,latitude ,result, profile='driving-car'):
         locations.append(entity['location']['coordinates'])
     
     destinations=[ i for i in range(len(sources), len(locations) )]
-    logging.info(f'sources: {sources}')
-    logging.info(f'destinations: {destinations}')
-    logging.info(f'locations: {locations}')
-    logging.info(f'profile: {profile}')
+    logger.debug(f'ORS sources: {sources}')
+    logger.debug(f'ORS destinations: {destinations}')
+    logger.debug(f'ORS locations ({len(locations)} points)')
+    logger.debug(f'ORS profile: {profile}')
 
     geometry=client.distance_matrix(locations ,profile=profile, sources=sources, destinations=destinations)
-    logging.info(geometry)
+    logger.debug(f'ORS matrix: {len((geometry.get("durations") or [[]])[0])} durations')
     return geometry['durations'][0]
 
 def get_recommendedSerivce(longitude,latitude ,result, preference='Estimated Overall Service Time'):   
     # Load environment variables from .env file
     occpancyFactors= get_OccpancyFactors(result)
-    logging.info(f"occpancyFactors :{occpancyFactors}")
+    logger.debug(f"occupancyFactors: {occpancyFactors}")
     #########
     #########
     durations =get_travelDurations(longitude,latitude ,result)
-    logging.info(f"durations: {durations}")
+    logger.debug(f"durations: {durations}")
     #########
     minutes=5
     serviceTime=60*minutes
     Estimated_serviceTime= [(x*serviceTime) + y for x, y in zip(occpancyFactors,durations)]
-    logging.info(f"Estimated_serviceTime: {Estimated_serviceTime}")
+    logger.debug(f"Estimated_serviceTime: {Estimated_serviceTime}")
     #########
     # Add computed metrics to each result
     for x, y in zip(result, occpancyFactors):

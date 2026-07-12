@@ -8,6 +8,8 @@ from utils import prepaer_states, llm, parser
 from agents_prompt import googlemaps_strategist_prompt
 from langchain_core.messages import ToolMessage, HumanMessage
 
+logger = logging.getLogger(__name__)
+
 MAX_ITERATIONS = 3
 
 
@@ -85,7 +87,7 @@ def _build_results_from_places(places, lat, lon):
 
     t0 = time.time()
     travel_times = gmaps_text_search_client.get_travel_times(lat, lon, destinations)
-    logging.info(f"GoogleMaps OSRM travel_times took {time.time() - t0:.2f}s for {len(destinations)} destinations")
+    logger.debug(f"OSRM travel_times took {time.time() - t0:.2f}s for {len(destinations)} destinations")
 
     results = []
     place_dicts = []
@@ -123,11 +125,9 @@ def _sort_places_by_travel_time(places):
 
 def GoogleMaps(state: AgentState):
     agent_start = time.time()
-    logging.info("=" * 60)
-    logging.info("[DEBUG GoogleMaps] AGENT START")
+    rid = state.get("correlation_id", "")
     location = state.get("location_finder_results", {})
     coordinates = location.get('coordinates', [])
-    logging.info(f"[DEBUG GoogleMaps] coordinates={coordinates}, query='{state.get('query', '')[:80]}'")
 
     # Validate coordinates
     if not coordinates or len(coordinates) < 2:
@@ -154,9 +154,11 @@ def GoogleMaps(state: AgentState):
     best_avg_time = float('inf')
     search_history = []
 
+    logger.info(f"google_maps start rid={rid} query='{query[:80]}' search_type={search_type} lat={lat:.4f} lon={lon:.4f}")
+
     for iteration in range(1, MAX_ITERATIONS + 1):
         iter_start = time.time()
-        logging.info(f"[DEBUG GoogleMaps] --- Iteration {iteration}/{MAX_ITERATIONS} START ---")
+        logger.debug(f"google_maps iteration={iteration}/{MAX_ITERATIONS} start")
 
         if iteration == 1:
             t0 = time.time()
@@ -164,12 +166,12 @@ def GoogleMaps(state: AgentState):
                 # Brand/chain search: use Text Search API for exact name matching
                 places = gmaps_text_search_client.keyword_search(query, lat, lon, limit=5)
                 strategy_used = "keyword_search"
-                logging.info(f"[DEBUG GoogleMaps] keyword_search took {time.time() - t0:.2f}s, got {len(places or [])} places")
+                logger.debug(f"keyword_search took {time.time() - t0:.2f}s, got {len(places or [])} places")
             else:
                 # General category search: rank by distance for nearest results
                 places = gmaps_text_search_client.nearby_search_ranked_by_distance(query, lat, lon, limit=5)
                 strategy_used = "rank_by_distance"
-                logging.info(f"[DEBUG GoogleMaps] nearby_search took {time.time() - t0:.2f}s, got {len(places or [])} places")
+                logger.debug(f"nearby_search took {time.time() - t0:.2f}s, got {len(places or [])} places")
         else:
             # Use LLM strategist to decide next action
             history_text = ""
@@ -190,23 +192,22 @@ def GoogleMaps(state: AgentState):
 
             try:
                 t0 = time.time()
-                logging.info(f"[DEBUG GoogleMaps] Calling LLM strategist...")
+                logger.debug(f"google_maps calling LLM strategist iteration={iteration}")
                 response = llm.invoke([HumanMessage(content=prompt)], timeout=15)
-                logging.info(f"[DEBUG GoogleMaps] LLM strategist took {time.time() - t0:.2f}s")
-                logging.info(f"[DEBUG GoogleMaps] LLM raw response: {response.content[:200]}")
+                logger.debug(f"LLM strategist took {time.time() - t0:.2f}s response={response.content[:200]}")
                 decision = parser.parse(response.content)
-                logging.info(f"[DEBUG GoogleMaps] Strategist decision: {decision}")
+                logger.debug(f"strategist decision: {decision}")
             except Exception as e:
-                logging.error(f"[DEBUG GoogleMaps] Strategist LLM ERROR: {type(e).__name__}: {e}")
+                logger.error(f"google_maps strategist_error rid={rid} {type(e).__name__}: {e}")
                 break
 
             action = decision.get("decision", "give_up")
 
             if action == "accept":
-                logging.info("Strategist accepted current results")
+                logger.debug("strategist accepted current results")
                 break
             elif action == "give_up":
-                logging.info("Strategist gave up")
+                logger.debug("strategist gave up")
                 break
             elif action == "retry":
                 strategy = decision.get("strategy", "narrow_radius")
@@ -215,11 +216,11 @@ def GoogleMaps(state: AgentState):
                 radius = decision.get("radius", 10000)
 
                 if strategy == "narrow_radius":
-                    logging.info(f"[DEBUG GoogleMaps] Retry strategy=narrow_radius, new_query='{new_query}', radius={radius}")
+                    logger.debug(f"retry strategy=narrow_radius new_query='{new_query}' radius={radius}")
                     raw_places = gmaps_text_search_client.text_search(
                         new_query, limit=5, latitude=lat, longitude=lon, radius=radius
                     )
-                    logging.info(f"[DEBUG GoogleMaps] narrow_radius got {len(raw_places or [])} places")
+                    logger.debug(f"narrow_radius got {len(raw_places or [])} places")
                     nr_results, nr_places = _build_results_from_places(raw_places, lat, lon)
                     search_history.append({
                         "iteration": iteration,
@@ -234,22 +235,22 @@ def GoogleMaps(state: AgentState):
                             best_places = nr_places
                     continue
                 elif strategy == "rephrase_query":
-                    logging.info(f"[DEBUG GoogleMaps] Retry strategy=rephrase_query, new_query='{new_query}'")
+                    logger.debug(f"retry strategy=rephrase_query new_query='{new_query}'")
                     places = gmaps_text_search_client.nearby_search_ranked_by_distance(
                         new_query, lat, lon, limit=5
                     )
                 elif strategy == "rank_by_distance":
-                    logging.info(f"[DEBUG GoogleMaps] Retry strategy=rank_by_distance, new_query='{new_query}'")
+                    logger.debug(f"retry strategy=rank_by_distance new_query='{new_query}'")
                     places = gmaps_text_search_client.nearby_search_ranked_by_distance(
                         new_query, lat, lon, limit=5
                     )
                 elif strategy == "keyword_search":
-                    logging.info(f"[DEBUG GoogleMaps] Retry strategy=keyword_search, new_query='{new_query}'")
+                    logger.debug(f"retry strategy=keyword_search new_query='{new_query}'")
                     places = gmaps_text_search_client.keyword_search(
                         new_query, lat, lon, limit=5
                     )
                 else:
-                    logging.info(f"[DEBUG GoogleMaps] Retry strategy='{strategy}' (fallback), new_query='{new_query}'")
+                    logger.debug(f"retry strategy='{strategy}' (fallback) new_query='{new_query}'")
                     places = gmaps_text_search_client.nearby_search_ranked_by_distance(
                         new_query, lat, lon, limit=5
                     )
@@ -257,10 +258,10 @@ def GoogleMaps(state: AgentState):
                 break
 
         # Build results from raw places (iteration 1 and non-narrow_radius retries)
-        logging.info(f"[DEBUG GoogleMaps] Building results from {len(places or [])} places...")
+        logger.debug(f"building results from {len(places or [])} places")
         t0 = time.time()
         iteration_results, iteration_places = _build_results_from_places(places, lat, lon)
-        logging.info(f"[DEBUG GoogleMaps] _build_results_from_places took {time.time() - t0:.2f}s")
+        logger.debug(f"_build_results_from_places took {time.time() - t0:.2f}s")
 
         search_history.append({
             "iteration": iteration,
@@ -275,9 +276,9 @@ def GoogleMaps(state: AgentState):
                 best_avg_time = avg
                 best_results = iteration_results
                 best_places = iteration_places
-                logging.info(f"[DEBUG GoogleMaps] Updated best_results: count={len(best_results)}, avg_travel={avg}")
+                logger.debug(f"updated best_results count={len(best_results)} avg_travel={avg}")
 
-        logging.info(f"[DEBUG GoogleMaps] --- Iteration {iteration} END (took {time.time() - iter_start:.2f}s) ---")
+        logger.debug(f"google_maps iteration={iteration} end took {time.time() - iter_start:.2f}s")
 
         # If first iteration got results, decide whether to continue
         if iteration == 1 and best_results:
@@ -292,21 +293,20 @@ def GoogleMaps(state: AgentState):
                 for r in best_results
             )
             if has_nearby:
-                logging.info("[DEBUG GoogleMaps] Found nearby results on first iteration, skipping strategist")
+                logger.debug("found nearby results on first iteration, skipping strategist")
                 break
             if all_na:
-                logging.warning("[DEBUG GoogleMaps] OSRM failed for all results — skipping strategist, returning results without travel times")
+                logger.warning(f"google_maps osrm_all_failed rid={rid} — returning results without travel times")
                 break
 
     # Sort by travel time and return top 3
     total_elapsed = time.time() - agent_start
-    logging.info(f"[DEBUG GoogleMaps] AGENT TOTAL TIME: {total_elapsed:.2f}s, best_results_count={len(best_results)}")
     if best_results:
         final_results = _sort_by_travel_time(best_results)[:3]
         final_places = _sort_places_by_travel_time(best_places)[:3]
         for i, r in enumerate(final_results):
-            logging.info(f"[DEBUG GoogleMaps] FINAL result[{i}]: {r['entity_name']}, travel={r['estimated_travel_time']}, rating={r['rate']}")
-        logging.info("=" * 60)
+            logger.debug(f"final result[{i}]: {r['entity_name']} travel={r['estimated_travel_time']} rating={r['rate']}")
+        logger.info(f"google_maps complete rid={rid} duration={total_elapsed:.2f}s results={len(final_results)}")
         return prepaer_states({
             "messages": [ToolMessage(content=str(final_results), name="GoogleMaps", tool_call_id="call_IoT_engine")],
             "node": "GoogleMaps",
@@ -315,8 +315,7 @@ def GoogleMaps(state: AgentState):
             "places": final_places
         })
     else:
-        logging.warning("[DEBUG GoogleMaps] NO RESULTS found after all iterations")
-        logging.info("=" * 60)
+        logger.warning(f"google_maps no_results rid={rid} query='{query[:80]}' duration={total_elapsed:.2f}s")
         return prepaer_states({
             "node": "GoogleMaps",
             "call": "generator_agent"

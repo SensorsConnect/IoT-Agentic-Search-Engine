@@ -6,8 +6,12 @@ from agents_prompt import assistant_prompt
 # another_script.py
 from sensorsconnect_coverage.geography_db import check_city_country_exists
 from sensorsconnect_coverage.location_finder import finder
+
+logger = logging.getLogger(__name__)
+
 def assistant_agent(state: AgentState):
-    logging.info("entering assistant node")
+    rid = state.get("correlation_id", "")
+    logger.info(f"assistant_agent start rid={rid} query='{state.get('query', '')[:80]}'")
     agent_state = {"node": "assistant_agent"}
 
     thread= get_thread(state)
@@ -17,7 +21,7 @@ def assistant_agent(state: AgentState):
     while isParsed == False:
         try:
             response = llm.invoke(prompt)
-            logging.info(response)
+            logger.debug(f"assistant LLM response: {str(response.content)[:200]}")
             response_json = parser.parse(response.content)
             isParsed=True
         except (ValueError, KeyError, TypeError) as e:
@@ -54,28 +58,27 @@ def assistant_agent(state: AgentState):
 
         if response_json.get('city') or response_json.get('country'):
             result = finder.process_location_query(response_json)
-            logging.info(result)
+            logger.debug(f"location_finder result: city={result.get('city') if result else None} country={result.get('country') if result else None}")
             covered_by_sensorsconnect = check_city_country_exists(result.get("city", ""), result.get("country", ""))
             agent_state["location_finder_results"] = result
             if covered_by_sensorsconnect:
-                logging.info('Iot_engine')
+                logger.info(f"assistant_agent route rid={rid} -> IoT_engine reason=sensorsconnect_covered")
                 agent_state["call"] = "IoT_engine"
             else:
-                logging.info("GoogleMaps")
+                logger.info(f"assistant_agent route rid={rid} -> GoogleMaps reason=outside_sensorsconnect")
                 agent_state["call"] = "GoogleMaps"
             agent_state["query"] = response_json["question"]
         elif has_user_gps:
-            logging.info(f"Using user GPS: ({user_lat}, {user_lon})")
+            logger.info(f"assistant_agent route rid={rid} -> GoogleMaps reason=user_gps lat={user_lat:.4f} lon={user_lon:.4f}")
             agent_state["call"] = "GoogleMaps"
             agent_state["query"] = response_json["question"]
             agent_state["location_finder_results"] = {"coordinates": [user_lat, user_lon]}
         else:
-            logging.info("Iot_engine (no location)")
+            logger.info(f"assistant_agent route rid={rid} -> IoT_engine reason=no_location")
             agent_state["call"] = "IoT_engine"
             agent_state["query"] = response_json["question"]
     else:
         agent_state["query"] = response_json["question"]
         agent_state["call"] = "scrapper"
     agent_state["messages"] = [response]
-    logging.info(agent_state)
     return prepaer_states(agent_state)

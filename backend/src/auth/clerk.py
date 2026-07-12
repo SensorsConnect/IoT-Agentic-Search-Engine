@@ -37,6 +37,7 @@ class ClerkJWTVerifier:
             return self._jwks
 
         if not CLERK_JWKS_URL:
+            logger.error("auth_config_error CLERK_JWKS_URL is not set")
             raise RuntimeError("CLERK_JWKS_URL is not configured")
 
         resp = requests.get(CLERK_JWKS_URL, timeout=10)
@@ -82,8 +83,10 @@ class ClerkJWTVerifier:
                 options={"verify_aud": False},
             )
         except jwt.ExpiredSignatureError:
+            logger.warning("auth_failure reason=token_expired")
             raise HTTPException(status_code=401, detail="Token expired")
         except jwt.InvalidTokenError as e:
+            logger.warning(f"auth_failure reason=invalid_token detail={e}")
             raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
         return payload

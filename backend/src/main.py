@@ -2,6 +2,17 @@ import os
 import logging
 from contextlib import asynccontextmanager
 
+# --- Structured logging (must be first — basicConfig is a no-op if any handler
+#     already exists, and any logging call before this would auto-install one) ---
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s %(levelname)-8s %(name)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    force=True,  # override any handler auto-installed by earlier imports
+)
+logger = logging.getLogger(__name__)
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -19,16 +30,7 @@ if missing:
 
 for v in OPTIONAL_ENV_VARS:
     if not os.environ.get(v):
-        logging.warning(f"Optional environment variable {v} is not set")
-
-# --- Structured logging ---
-LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(
-    level=getattr(logging, LOG_LEVEL, logging.INFO),
-    format="%(asctime)s %(levelname)-8s %(name)s %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
-logger = logging.getLogger(__name__)
+        logger.warning(f"Optional env var {v} is not set")
 
 
 # --- Rate limiting ---
