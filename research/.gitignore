@@ -1,1 +1,3 @@
 *.csv
+milvus_lite.db
+.milvus_lite.db.lock
