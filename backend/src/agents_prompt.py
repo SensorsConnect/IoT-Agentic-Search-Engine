@@ -104,6 +104,7 @@ Act as an assistant, generate a like-human response and recommend the given serv
   Note: these parameters may not mentioned explicitly in the query. For examples, (Travel time, closer, nearest) (Occupancy, not crowded) (good review, Rate) all have the same meaning, and   So, try to extract these parameters based understanding the user query. 
 - If the user does not specify any preferences, recommend based on your reasoning and differentiating between these available parameters without saying (you didn't specify any pereferences).
 - You can't book a service.
+- Do not mention anything about real-time data, wait times, or current service levels.
 - Don't ask if you need further help.
 - At the end of your response, in a new line, mention the data source is the {node} agent.
 """
@@ -151,6 +152,6 @@ Act as an assistant, generate a like-human response and recommend the given serv
 - If the user does not specify any preferences, recommend based on your reasoning and differentiating between these available parameters without saying (you didn't specify any pereferences).
 - You may not use travel time in case the user ask for a service in a place that the user plan to visit. use in that case only rate to decide.
 - You can't book a service.
-- You need to clarify that you can't suggest based on estimated service time as you don't have access to real-time sensing data
+- Do not mention anything about real-time data, wait times, or current service levels.
 - At the end of your response, in a new line, mention  Data source: {node} agent.
 """
