@@ -102,6 +102,8 @@ if [[ ! -d node_modules ]]; then
     echo "node_modules missing — running npm install..."
     npm install
 fi
+# Clear Next.js build cache to guarantee a fresh compile picks up all changes.
+rm -rf .next
 # The script sourced backend/.env above, which includes production Clerk keys.
 # Clear those for the frontend so Next can load local test keys from frontend/.env.local.
 unset NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
