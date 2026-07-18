@@ -1,0 +1,2221 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the LocaleLive IoT Agentic Search Engine">
+      
+      
+      
+        <link rel="canonical" href="https://sensorsconnect.github.io/IoT-Agentic-Search-Engine/architecture/migration-deploy-checklist/">
+      
+      
+        <link rel="prev" href="../migration-summary/">
+      
+      
+        <link rel="next" href="../../ops/lambda-warmup/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Deploy Checklist - LocaleLive Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#localelive-aws-migration-deployment-validation-checklist" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="LocaleLive Docs" class="md-header__button md-logo" aria-label="LocaleLive Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            LocaleLive Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Deploy Checklist
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/SensorsConnect/IoT-Agentic-Search-Engine" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SensorsConnect/IoT-Agentic-Search-Engine
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
+          
+  
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../ops/lambda-warmup/" class="md-tabs__link">
+          
+  
+  
+  Operations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/local-dev/" class="md-tabs__link">
+          
+  
+  
+  Development
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../features/anonymous-chat/" class="md-tabs__link">
+          
+  
+  
+  Features
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../location/network-location-guide/" class="md-tabs__link">
+          
+  
+  
+  Location System
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../product/roadmap/" class="md-tabs__link">
+          
+  
+  
+  Product
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="LocaleLive Docs" class="md-nav__button md-logo" aria-label="LocaleLive Docs" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    LocaleLive Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/SensorsConnect/IoT-Agentic-Search-Engine" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SensorsConnect/IoT-Agentic-Search-Engine
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../migration-summary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration Summary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deploy Checklist
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deploy Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture (Updated)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-0-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 0: Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-migration-branch-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Migration Branch ✓ DONE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-frontend-on-vercel-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Frontend on Vercel ✓ DONE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-deploy-backend-to-aws-lambda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Deploy Backend to AWS Lambda
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Deploy Backend to AWS Lambda">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3a-push-image-to-ecr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3a. Push image to ECR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3b-add-mangum-adapter-to-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3b. Add Mangum adapter to backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3c-create-lambda-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3c. Create Lambda Function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3d-set-environment-variables-in-lambda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3d. Set Environment Variables in Lambda
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3e-create-api-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3e. Create API Gateway
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3f-fix-postgresql-pool-for-lambda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3f. Fix PostgreSQL pool for Lambda
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3g-test-lambda-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3g. Test Lambda directly
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-connect-frontend-to-lambda-url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Connect Frontend to Lambda URL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-full-validation-do-this-before-touching-dns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Full Validation (DO THIS BEFORE TOUCHING DNS)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 5: Full Validation (DO THIS BEFORE TOUCHING DNS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chat-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chat / Backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-add-staging-subdomain-optional-but-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Add Staging Subdomain (Optional but Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-cut-over-domain-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Cut Over Domain (Production)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 7: Cut Over Domain (Production)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#7a-add-custom-domain-to-api-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7a. Add custom domain to API Gateway
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7b-add-custom-domain-to-vercel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7b. Add custom domain to Vercel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7c-verify-after-dns-switch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7c. Verify after DNS switch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-8-decommission-ec2-48h-after-cutover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Decommission EC2 (48h After Cutover)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rollback-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rollback Plan
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ops/lambda-warmup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lambda Warm-Up
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/local-dev/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Dev Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/env-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/anonymous-chat/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Anonymous Chat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Location System
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Location System
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../location/network-location-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Network Location Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../location/auto-location-update/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto Location Update
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../location/auto-location-fix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto Location Fix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../location/loading-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loading State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../location/debug-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Debug Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../location/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Product
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Product
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../product/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture (Updated)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-0-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 0: Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-migration-branch-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Migration Branch ✓ DONE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-frontend-on-vercel-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Frontend on Vercel ✓ DONE
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-deploy-backend-to-aws-lambda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Deploy Backend to AWS Lambda
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3: Deploy Backend to AWS Lambda">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3a-push-image-to-ecr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3a. Push image to ECR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3b-add-mangum-adapter-to-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3b. Add Mangum adapter to backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3c-create-lambda-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3c. Create Lambda Function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3d-set-environment-variables-in-lambda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3d. Set Environment Variables in Lambda
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3e-create-api-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3e. Create API Gateway
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3f-fix-postgresql-pool-for-lambda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3f. Fix PostgreSQL pool for Lambda
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3g-test-lambda-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3g. Test Lambda directly
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-connect-frontend-to-lambda-url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Connect Frontend to Lambda URL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-full-validation-do-this-before-touching-dns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Full Validation (DO THIS BEFORE TOUCHING DNS)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 5: Full Validation (DO THIS BEFORE TOUCHING DNS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chat-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chat / Backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Cases
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-add-staging-subdomain-optional-but-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Add Staging Subdomain (Optional but Recommended)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-cut-over-domain-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Cut Over Domain (Production)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 7: Cut Over Domain (Production)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#7a-add-custom-domain-to-api-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7a. Add custom domain to API Gateway
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7b-add-custom-domain-to-vercel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7b. Add custom domain to Vercel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7c-verify-after-dns-switch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7c. Verify after DNS switch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-8-decommission-ec2-48h-after-cutover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 8: Decommission EC2 (48h After Cutover)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rollback-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rollback Plan
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="localelive-aws-migration-deployment-validation-checklist">LocaleLive AWS Migration — Deployment &amp; Validation Checklist</h1>
+<p>Follow these steps in order. Do NOT transfer the domain until all checks in Step 5 pass.</p>
+<p><strong>Status:</strong>
+- [x] Step 1 — Migration branch created (<code>feat/aws-cost-migration</code>)
+- [x] Step 2 — Frontend deployed to Vercel (<code>localelive-frontend.vercel.app</code>)
+- [ ] Step 3 — Backend deployed to AWS Lambda
+- [ ] Step 4 — Connect frontend to Lambda URL
+- [ ] Step 5 — Full validation
+- [ ] Step 6 — Staging subdomain (optional)
+- [ ] Step 7 — Cut over domain
+- [ ] Step 8 — Decommission EC2</p>
+<hr />
+<h2 id="architecture-updated">Architecture (Updated)</h2>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Role</th>
+<th>Cost/month</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AWS Lambda + API Gateway</td>
+<td>Backend API</td>
+<td>~$0 (free tier)</td>
+</tr>
+<tr>
+<td>Vercel</td>
+<td>Frontend</td>
+<td>$0 (free tier)</td>
+</tr>
+<tr>
+<td>Route 53</td>
+<td>DNS</td>
+<td>~$0.50</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>~$0.50/month</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why Lambda is now viable</strong> (was blocked before, now unblocked):
+- Removed <code>torch</code> + <code>transformers</code> + <code>sentence-transformers</code> (~1.4GB) → image is now ~300MB
+- Cold start dropped from 20–50s to ~3–8s
+- Memory needed dropped from 2–3GB to 512MB–1GB
+- Embeddings now use HuggingFace Inference API (<code>HF_API_KEY</code>)</p>
+<hr />
+<h2 id="step-0-prerequisites">Step 0: Prerequisites</h2>
+<ul>
+<li>[ ] AWS account with Lambda + API Gateway + ECR enabled (<code>us-east-1</code> recommended)</li>
+<li>[ ] Vercel project connected to <code>SensorsConnect/localelive-frontend</code> ✓ (done)</li>
+<li>[ ] Route 53 hosted zone for <code>localelive.space</code> (keep — don't delete)</li>
+<li>[ ] Current EC2 still running (do not stop until Step 8)</li>
+<li>[ ] <code>backend/.env</code> file handy with all current values</li>
+</ul>
+<hr />
+<h2 id="step-1-migration-branch-done">Step 1: Migration Branch ✓ DONE</h2>
+<p>Branch <code>feat/aws-cost-migration</code> already exists and is pushed.</p>
+<hr />
+<h2 id="step-2-frontend-on-vercel-done">Step 2: Frontend on Vercel ✓ DONE</h2>
+<p>Frontend is live at <code>localelive-frontend.vercel.app</code>.
+<code>NEXT_PUBLIC_BACKEND_URL</code> is currently blank — fill in after Step 3.</p>
+<hr />
+<h2 id="step-3-deploy-backend-to-aws-lambda">Step 3: Deploy Backend to AWS Lambda</h2>
+<h3 id="3a-push-image-to-ecr">3a. Push image to ECR</h3>
+<p>Lambda container images must come from <strong>Amazon ECR</strong> (not Docker Hub directly).</p>
+<pre><code class="language-bash"># Authenticate Docker to ECR
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin \
+  &lt;YOUR_ACCOUNT_ID&gt;.dkr.ecr.us-east-1.amazonaws.com
+
+# Create ECR repo (one-time)
+aws ecr create-repository --repository-name localelive-backend --region us-east-1
+
+# Pull from Docker Hub and push to ECR
+docker pull elewah/localelive-backend:latest
+docker tag elewah/localelive-backend:latest \
+  &lt;YOUR_ACCOUNT_ID&gt;.dkr.ecr.us-east-1.amazonaws.com/localelive-backend:latest
+docker push \
+  &lt;YOUR_ACCOUNT_ID&gt;.dkr.ecr.us-east-1.amazonaws.com/localelive-backend:latest
+</code></pre>
+<h3 id="3b-add-mangum-adapter-to-backend">3b. Add Mangum adapter to backend</h3>
+<p>Lambda needs an ASGI adapter. Add to <code>backend/requirements_pip.txt</code>:</p>
+<pre><code>mangum&gt;=0.17.0
+</code></pre>
+<p>Update <code>backend/src/main.py</code> — add at the bottom:</p>
+<pre><code class="language-python">from mangum import Mangum
+handler = Mangum(app, lifespan=&quot;off&quot;)
+</code></pre>
+<p>Rebuild and push the image after this change (GitHub Actions CI will do it on push to <code>main</code>).</p>
+<h3 id="3c-create-lambda-function">3c. Create Lambda Function</h3>
+<ol>
+<li>AWS Console → <strong>Lambda</strong> → <strong>Create function</strong></li>
+<li>Select <strong>Container image</strong></li>
+<li>Image URI: browse ECR → select <code>localelive-backend:latest</code></li>
+<li>Architecture: <code>x86_64</code></li>
+<li>Memory: <code>1024 MB</code> (start here — increase to 2048 if needed)</li>
+<li>Timeout: <code>5 minutes</code> (300 seconds — LangGraph queries can take 30–90s)</li>
+<li>Click <strong>Create function</strong></li>
+</ol>
+<h3 id="3d-set-environment-variables-in-lambda">3d. Set Environment Variables in Lambda</h3>
+<p>Lambda console → your function → <strong>Configuration</strong> → <strong>Environment variables</strong> → Edit:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GROQ_API_KEY</code></td>
+<td><em>(from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>LLM_MODEL</code></td>
+<td><em>(from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>MONGODB_URL</code></td>
+<td><em>(from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>POSTGRES_URL</code></td>
+<td><em>(Neon URL from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>GOOGLE_MAPS_API_KEY</code></td>
+<td><em>(from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>ORS_API_KEY</code></td>
+<td><em>(from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>TAVILY_API_KEY</code></td>
+<td><em>(from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>CLERK_JWKS_URL</code></td>
+<td><em>(from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>LANGCHAIN_API_KEY</code></td>
+<td><em>(from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>LANGCHAIN_TRACING_V2</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>HF_API_KEY</code></td>
+<td><em>(from backend/.env)</em></td>
+</tr>
+<tr>
+<td><code>MILVUS_DB_PATH</code></td>
+<td><code>/tmp/milvus_lite.db</code></td>
+</tr>
+<tr>
+<td><code>ENVIRONMENT</code></td>
+<td><code>production</code></td>
+</tr>
+<tr>
+<td><code>CORS_ORIGINS</code></td>
+<td><code>https://localelive-frontend.vercel.app</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Note: <code>MILVUS_DB_PATH</code> uses <code>/tmp/</code> — the only writable directory in Lambda.</p>
+</blockquote>
+<h3 id="3e-create-api-gateway">3e. Create API Gateway</h3>
+<ol>
+<li>AWS Console → <strong>API Gateway</strong> → <strong>Create API</strong> → <strong>HTTP API</strong></li>
+<li>Integration: Lambda → select your function</li>
+<li>Routes: <code>ANY /{proxy+}</code> → your Lambda</li>
+<li>Stage: <code>$default</code> (auto-deploy)</li>
+<li>Click <strong>Create</strong></li>
+<li>Copy the API Gateway URL: <code>https://xxxx.execute-api.us-east-1.amazonaws.com</code></li>
+</ol>
+<h3 id="3f-fix-postgresql-pool-for-lambda">3f. Fix PostgreSQL pool for Lambda</h3>
+<p>Lambda freezes/thaws containers — persistent connection pools go stale.
+Add this to <code>backend/src/db/engine.py</code> (detect Lambda environment):</p>
+<pre><code class="language-python">import os
+from sqlalchemy.pool import NullPool
+
+# Lambda freezes containers — NullPool creates fresh connections per request
+if os.environ.get(&quot;AWS_LAMBDA_FUNCTION_NAME&quot;):
+    engine = create_engine(POSTGRES_URL, poolclass=NullPool)
+else:
+    engine = create_engine(POSTGRES_URL, pool_size=5, ...)
+</code></pre>
+<h3 id="3g-test-lambda-directly">3g. Test Lambda directly</h3>
+<pre><code class="language-bash"># Health check
+curl https://xxxx.execute-api.us-east-1.amazonaws.com/health
+# Expected: {&quot;status&quot;: &quot;ok&quot;}
+
+# Should return 401 (proves endpoint is reachable and auth is working)
+curl https://xxxx.execute-api.us-east-1.amazonaws.com/api/v1/conversations
+</code></pre>
+<hr />
+<h2 id="step-4-connect-frontend-to-lambda-url">Step 4: Connect Frontend to Lambda URL</h2>
+<ol>
+<li>Vercel dashboard → <code>localelive-frontend</code> project → <strong>Settings</strong> → <strong>Environment Variables</strong></li>
+<li>Set <code>NEXT_PUBLIC_BACKEND_URL</code> = <code>https://xxxx.execute-api.us-east-1.amazonaws.com</code></li>
+<li>Scope: <strong>All Environments</strong></li>
+<li>Trigger a redeploy: Deployments → latest → <strong>Redeploy</strong></li>
+</ol>
+<hr />
+<h2 id="step-5-full-validation-do-this-before-touching-dns">Step 5: Full Validation (DO THIS BEFORE TOUCHING DNS)</h2>
+<p>Use <code>https://localelive-frontend.vercel.app</code> for all tests.</p>
+<h3 id="authentication">Authentication</h3>
+<ul>
+<li>[ ] Landing page loads correctly</li>
+<li>[ ] Sign In → Clerk modal appears</li>
+<li>[ ] Sign in with existing account → redirected to <code>/chat</code></li>
+<li>[ ] Sign up with new account → redirected to <code>/chat</code></li>
+<li>[ ] Sign out → redirected to landing page</li>
+<li>[ ] Refresh on <code>/chat</code> → stays logged in</li>
+</ul>
+<h3 id="chat-backend">Chat / Backend</h3>
+<ul>
+<li>[ ] Map loads on chat page (Mapbox visible)</li>
+<li>[ ] Send a greeting → backend responds within 15 seconds</li>
+<li>[ ] Send a location-based query (e.g. "coffee near me") → returns places</li>
+<li>[ ] Conversation appears in sidebar history</li>
+<li>[ ] Reload → previous conversation still in sidebar (PostgreSQL persistence)</li>
+<li>[ ] Rename a conversation → name updates</li>
+<li>[ ] Delete a conversation → disappears</li>
+</ul>
+<h3 id="performance">Performance</h3>
+<ul>
+<li>[ ] First request (cold start): response within 15 seconds</li>
+<li>[ ] Subsequent requests: response within 5–30 seconds</li>
+<li>[ ] Second cold start (after 15+ min idle): still within 15 seconds</li>
+</ul>
+<h3 id="error-cases">Error Cases</h3>
+<ul>
+<li>[ ] Browser devtools → no CORS errors</li>
+<li>[ ] Lambda console → Monitoring → no timeout or OOM errors</li>
+</ul>
+<hr />
+<h2 id="step-6-add-staging-subdomain-optional-but-recommended">Step 6: Add Staging Subdomain (Optional but Recommended)</h2>
+<ol>
+<li>Vercel dashboard → <strong>Domains</strong> → Add <code>staging.localelive.space</code></li>
+<li>Route 53 → add CNAME <code>staging</code> → Vercel's assigned value</li>
+<li>API Gateway → <strong>Custom domain names</strong> → Add <code>api-staging.localelive.space</code></li>
+<li>Route 53 → add CNAME for <code>api-staging</code></li>
+<li>Test <code>https://staging.localelive.space</code> with <code>NEXT_PUBLIC_BACKEND_URL</code> = <code>https://api-staging.localelive.space</code></li>
+</ol>
+<hr />
+<h2 id="step-7-cut-over-domain-production">Step 7: Cut Over Domain (Production)</h2>
+<p>Only proceed if all Step 5 checks passed.</p>
+<h3 id="7a-add-custom-domain-to-api-gateway">7a. Add custom domain to API Gateway</h3>
+<ol>
+<li>API Gateway → <strong>Custom domain names</strong> → Add <code>api.localelive.space</code></li>
+<li>API Gateway shows a CNAME → add it in Route 53</li>
+<li>Update <code>CORS_ORIGINS</code> Lambda env var to <code>https://localelive.space</code></li>
+</ol>
+<h3 id="7b-add-custom-domain-to-vercel">7b. Add custom domain to Vercel</h3>
+<ol>
+<li>Vercel dashboard → <strong>Settings</strong> → <strong>Domains</strong> → Add <code>localelive.space</code> and <code>www.localelive.space</code></li>
+<li>Update Route 53 A/CNAME records to Vercel's provided values</li>
+<li>Update <code>NEXT_PUBLIC_BACKEND_URL</code> in Vercel to <code>https://api.localelive.space</code></li>
+<li>Redeploy Vercel</li>
+</ol>
+<h3 id="7c-verify-after-dns-switch">7c. Verify after DNS switch</h3>
+<ul>
+<li>[ ] <code>https://localelive.space</code> loads</li>
+<li>[ ] SSL certificate valid</li>
+<li>[ ] Sign in works on production domain</li>
+<li>[ ] Chat query works end-to-end</li>
+</ul>
+<hr />
+<h2 id="step-8-decommission-ec2-48h-after-cutover">Step 8: Decommission EC2 (48h After Cutover)</h2>
+<p>Wait 48 hours. If no issues:</p>
+<ol>
+<li>SSH into EC2 → <code>docker-compose down</code></li>
+<li>Verify <code>localelive.space</code> still works</li>
+<li>AWS Console → EC2 → Stop → wait 24h → Terminate</li>
+<li>Release Elastic IP</li>
+<li>Delete EBS volume</li>
+</ol>
+<p><strong>No warm-up monitor needed</strong> — Lambda cold starts are now ~3–8s, acceptable without keep-warm pings.</p>
+<p><strong>Estimated monthly cost: ~$0.50/month</strong> (vs ~$45–55 on EC2)</p>
+<hr />
+<h2 id="rollback-plan">Rollback Plan</h2>
+<p>If something breaks after domain cutover:
+1. Route 53 → revert <code>localelive.space</code> records back to EC2 Elastic IP
+2. DNS propagates in 2–5 minutes
+3. EC2 is still running until Step 8 — rollback is instant</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
