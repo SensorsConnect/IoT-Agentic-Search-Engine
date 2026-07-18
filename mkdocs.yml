@@ -1,0 +1,52 @@
+site_name: LocaleLive Docs
+site_url: https://sensorsconnect.github.io/IoT-Agentic-Search-Engine/
+site_description: Documentation for the LocaleLive IoT Agentic Search Engine
+repo_url: https://github.com/SensorsConnect/IoT-Agentic-Search-Engine
+repo_name: SensorsConnect/IoT-Agentic-Search-Engine
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Migration Summary: architecture/migration-summary.md
+    - Deploy Checklist: architecture/migration-deploy-checklist.md
+  - Operations:
+    - Lambda Warm-Up: ops/lambda-warmup.md
+  - Development:
+    - Local Dev Setup: development/local-dev.md
+    - Environment Variables: development/env-guide.md
+  - Features:
+    - Anonymous Chat: features/anonymous-chat.md
+  - Location System:
+    - Network Location Guide: location/network-location-guide.md
+    - Auto Location Update: location/auto-location-update.md
+    - Auto Location Fix: location/auto-location-fix.md
+    - Loading State: location/loading-state.md
+    - Debug Guide: location/debug-guide.md
+    - Troubleshooting: location/troubleshooting.md
+  - Product:
+    - Roadmap: product/roadmap.md

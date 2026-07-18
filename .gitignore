@@ -1,4 +1,5 @@
 .venv
+site/
 .env
 infra/.env.lambda
 react_agent.ipynb

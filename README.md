@@ -1,27 +1,18 @@
-# 🌐 Localelive: IoT-Agentic Search Engine
+# LocaleLive: IoT-Agentic Search Engine
 
 > The pulse of places lives at your fingertips.
 
-🌐 **Live Demo**: [localelive.space](https://localelive.space)  
-📦 **Deployment Branch**: [deployment](https://github.com/SensorsConnect/IoT-Agentic-Search-Engine/tree/deployment)
+**Live Demo**: [localelive.space](https://localelive.space)  
+**Docs**: [sensorsconnect.github.io/IoT-Agentic-Search-Engine](https://sensorsconnect.github.io/IoT-Agentic-Search-Engine/)
 
-Welcome to the official implementation of the **IoT Agentic Search Engine (IoT-ASE)** — a cutting-edge, real-time search engine for Internet of Things (IoT) environments. This project bridges the gap between fragmented IoT systems and user-friendly, intelligent access to live sensor data using the power of **Large Language Models (LLMs)**, **Retrieval-Augmented Generation (RAG)**, and **Agentic AI** workflows.
+## What This Project Does
 
-## 🚀 What This Project Does
-
-- Leverages LLMs + RAG to support natural language queries over diverse real-time IoT data streams.
-- Implements a multi-agent architecture (GA-RAG) with Classifier, Retriever, Generator, and Reviewer agents for robust, accurate, and context-aware responses.
-- Embeds service descriptions using **Sentence-BERT** and stores them in a **HNSW-based Vector Database** for fast semantic search.
-- Integrates with MongoDB to manage 37,000+ real-time IoT documents across 500 service types, with geospatial indexing for location-aware results.
+- Leverages LLMs + RAG to support natural language queries over diverse IoT data streams.
+- Implements a multi-agent architecture (GA-RAG) with Classifier, Retriever, Generator, and Reviewer agents for robust, context-aware responses.
+- Embeds service descriptions using HuggingFace Inference API (BAAI/bge-small-en-v1.5, 384-dim) and stores them in a Milvus Lite HNSW vector database for fast semantic search.
+- Integrates with MongoDB to manage 37,000+ IoT documents across 500 service types, with geospatial indexing for location-aware results.
 - Outperforms generic assistants like Gemini by understanding complex, preference-rich queries and generating actionable, human-like responses.
-- Built using modern tools like **LangGraph**, **Tavily API**, **OpenRouteService**, and **VectorDB**, optimized for low-latency applications in smart cities.
-
-## 📊 Use Cases
-
-- Find the nearest clinic with the shortest wait time.
-- Recommend restaurants with low occupancy and high ratings.
-- Suggest the cheapest nearby gas stations in real-time.
-- Discover uncrowded parks, events, or retail deals based on IoT streams.
+- Built with **LangGraph**, **FastAPI**, **Tavily**, **OpenRouteService**, and **Google Maps** — deployed on AWS Lambda + Vercel.
 
 > **Accuracy**: 92% top-1 intent detection for complex user queries  
 > **Coverage**: Toronto region with 500 simulated services and 37,000+ IoT data points  
@@ -29,231 +20,176 @@ Welcome to the official implementation of the **IoT Agentic Search Engine (IoT-A
 
 ---
 
-Explore the code, adapt it to your region or IoT system, and contribute to making intelligent, responsive cities a reality.
+## Architecture
 
+The full architecture is documented in [`infra/ARCHITECTURE.md`](./infra/ARCHITECTURE.md). In brief:
 
-We have deployed this repository on a local machine for testing. You can try our demo using this [URL](https://iot-ase-demo-morning-brook-6041.fly.dev/IoT-ASE-Demo/chat).  
+```
+User → localelive.space (Vercel / Next.js 15 + Clerk)
+         ↓
+     api.localelive.space → API Gateway → Lambda
+         ↓
+     FastAPI + LangGraph multi-agent pipeline
+         ↓
+     MongoDB Atlas · Neon Postgres · HuggingFace API · Groq
+```
 
-> **Note:** The current demo assumes the user's location is **downtown Toronto**.  
-> If you want to query services in another location, make sure to **explicitly specify the location in your query**.  
+**Two hard timeouts to know about:**
+- API Gateway cuts any connection at **29 seconds** — queries that take longer appear to hang.
+- Lambda has a **10-second cold-start init** — heavy imports must be deferred to first request.
 
-## 🌍 Agentic Workflow Overview  
+A CloudWatch Events rule fires every 5 minutes to keep the Lambda container warm. See [`docs/ops/lambda-warmup.md`](./docs/ops/lambda-warmup.md).
 
-The **IoT-Agentic Search Engine** integrates three intelligent agents to retrieve and process information efficiently:  
+---
 
-### 1️⃣ IoT-RAG Search Engine  
+## Multi-Agent Workflow
 
-- Retrieves data mimicking IoT-based information.  
-- Hypothetically considers services around downtown Toronto, treating each service location as an IoT device.  
-- For example, restaurants in the framework are considered IoT-integrated services, meaning each restaurant is treated as a virtual IoT device.  
+Queries flow through a 7-node LangGraph graph:
 
-### 2️⃣ Google Maps Agent  
+```
+assistant_agent        → classifies intent (greeting / service search / general question)
+  ├─ IoT_engine        → MongoDB vector + geospatial search (local service data)
+  │    └─ GoogleMaps   → fallback for zones not covered by IoT data
+  ├─ scrapper          → Tavily web search for open-ended questions
+  └─ reviewer_agent    → validates quality, may loop back for refinement
+       └─ finalize_turn
+```
 
-- Handles uncovered zones or services by leveraging the **Google Maps API**.  
-- If a relevant IoT service is not found in the **IoT-RAG Search Engine**, this agent searches for similar locations using **Google Maps**.  
+Key files: `backend/src/graph_init.py` (graph definition), `backend/src/agents/` (each node), `backend/src/agents_prompt.py` (prompts).
 
-### 3️⃣ Scraper Agent  
+### Available Services
 
-- Handles general queries or questions that cannot be answered by the other two agents.  
-- Extracts relevant information by browsing web content.  
+- Grocery stores, walk-in clinics, car rentals, parks, restaurants, and more (Toronto region)
+- Results ranked by: reputation (ratings), real-time travel time (OpenRouteService), and occupancy data
 
-## 📌 Available Services  
+### Example Query
 
-Currently, the search engine provides recommendations for common **daily activities and services**, including:  
-
-- 🛒 Grocery stores  
-- 🏥 Walk-in clinics  
-- 🚗 Car rental agencies  
-- 🌳 Parks  
-- 🍽️ Restaurants  
-- ...and more (primarily places available on **Google Maps**).  
-
-The **Agentic workflow** suggests places based on the following factors:  
-
-- ⭐ **Reputation (Ratings)**  
-- 🚗 **Real-time travel time** (using the **OpenRoute API**)  
-- 👥 **Occupancy data** (scraped from **Google Maps** for crowd analysis)  
-
-## 📝 Example Query  
-
-Here's how you can ask the **IoT-Agentic Search Engine** for a service recommendation:  
-
-```plaintext
+```
 I want to have dinner with my family at a Middle Eastern restaurant with a good reputation.
 ```
 
-This query will be processed by the Agentic workflow, and it will return results based on the available IoT data, Google Maps suggestions, and web-scraped information.
+---
 
-🚀 Feel free to try out our demo and explore the capabilities of the IoT-Agentic Search Engine!
+## Tech Stack
 
-## Installaion
-This repository provides the IoT-Agentic-Search-Engine project that leverages a 
-[DevContainer](https://code.visualstudio.com/docs/devcontainers/containers) for a seamless development environment setup. Follow the instructions below to install and start the demo.
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 15, React 18, TypeScript, Tailwind CSS |
+| Auth | Clerk |
+| Maps | Mapbox GL |
+| Backend | Python 3.11, FastAPI 0.115 |
+| Agent framework | LangGraph 0.2, LangChain 0.3 |
+| LLM | Groq (llama-3.1 family) |
+| IoT data | MongoDB Atlas — geospatial + vector search |
+| Embeddings | HuggingFace Inference API (no local model) |
+| Conversation persistence | Neon PostgreSQL, SQLAlchemy NullPool |
+| Hosting | Vercel (frontend) + AWS Lambda + API Gateway (backend) |
 
-## Prerequisites
+---
 
-Before you begin, ensure you have the following installed on your system:
+## Environment Variables
 
-1. **VS Code** - [Download and Install](https://code.visualstudio.com/)
-2. **DevContainers Extension for VS Code**:
-   - Install the [Dev Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) from the VS Code Extensions Marketplace.
-3. **Docker** - [Download and Install](https://www.docker.com/products/docker-desktop/)
+### Backend (Lambda / local)
 
-## Installation Steps
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `GROQ_API_KEY` | Yes | Groq LLM inference |
+| `LLM_MODEL` | Yes | Model name (e.g. `llama-3.1-8b-instant`) |
+| `MONGODB_URL` | Yes | MongoDB Atlas connection string |
+| `HF_API_KEY` | Yes | HuggingFace Inference API (embeddings) |
+| `POSTGRES_URL` | Yes | Neon PostgreSQL (conversation persistence) |
+| `GOOGLE_MAPS_API_KEY` | Yes | Google Maps nearby/text search |
+| `ORS_API_KEY` | Yes | OpenRouteService (travel time) |
+| `TAVILY_API_KEY` | Yes | Tavily web search |
+| `CLERK_JWKS_URL` | Yes | Clerk JWT verification |
+| `CORS_ORIGINS` | Yes | Comma-separated allowed origins |
+| `MILVUS_DB_PATH` | Yes | Path for Milvus Lite DB (`/tmp/milvus_lite.db` on Lambda) |
+| `ENVIRONMENT` | Yes | `production` or `development` |
+| `LANGCHAIN_API_KEY` | No | LangSmith tracing |
+| `LANGCHAIN_TRACING_V2` | No | `true` to enable LangSmith |
 
-### 1. Clone the Repository
+The full list with descriptions lives in [`infra/lambda-env.example`](./infra/lambda-env.example).  
+To pull/push live Lambda env vars: see [`infra/scripts/`](./infra/scripts/).
 
-Clone this repository to your local machine:
+### Frontend (Vercel)
 
-```bash
-git clone https://github.com/SensorsConnect/IoT-Agentic-Search-Engine.git
-cd IoT-Agentic-Search-Engine
-```
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_BACKEND_URL` | Backend API URL (`https://api.localelive.space`) |
+| `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox access token |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key (use `pk_live_*` in production) |
+| `CLERK_SECRET_KEY` | Clerk secret key (use `sk_live_*` in production) |
 
-### 2. Open the Project in VS Code
+`NEXT_PUBLIC_*` values are baked into the JS bundle at `next build` time. See [`docs/development/env-guide.md`](./docs/development/env-guide.md) for the full guide.
 
-Launch VS Code and open the cloned project directory:
+---
 
-```bash
-code .
-```
+## Local Development
 
-### 3. Reopen in DevContainer
-
-1. Once the project is opened in VS Code, you'll see a prompt:  
-   *"Folder contains a Dev Container configuration file. Reopen folder to develop in a container."*  
-   Click **Reopen in Container**.
-
-2. If the prompt does not appear, manually reopen the folder in a DevContainer:
-   - Press `F1` (or `Ctrl+Shift+P`).
-   - Select **Dev Containers: Reopen in Container**.
-
-### 4. Build and Start the DevContainer
-
-VS Code will automatically build the DevContainer using the provided `.devcontainer/devcontainer.json` file. This process may take a few minutes during the first run.
-
-### 5. Activate IoT-Engine Conda Environment
-
-1. Open a terminal inside the DevContainer.
-2. Run the following command to activate the IoT-Engine Conda environment:
-
-   ```bash
-   conda activate IoT-engine
-   ```
-
-3. To make this environment the default for the container, run:
-
-   ```bash
-   conda config --set auto_activate_base false
-   echo "conda activate IoT-engine" >> ~/.bashrc
-   ```
-
-4. Close and reopen the terminal to ensure the changes take effect.
-
-VS Code will automatically build the DevContainer using the provided `.devcontainer/devcontainer.json` file. This process may take a few minutes during the first run.
-
-### 5. Verify Setup
-
-Once the container is running, verify that the environment is correctly set up by running the following command in the terminal inside the container:
+See [`docs/development/local-dev.md`](./docs/development/local-dev.md) for the full Docker Compose setup. Quick start:
 
 ```bash
-bash setup-demo.sh
+# Backend only (requires backend/.env)
+cd backend
+pip install -r requirements_pip.txt
+uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Frontend only (requires frontend/.env.local with Clerk keys)
+cd frontend
+npm install
+npm run dev   # http://localhost:3000
+
+# Full stack with Docker Compose
+docker compose -f docker-compose.local.yml up --build -d
+# Frontend: http://localhost:3000  Backend: http://localhost:8001
 ```
 
-This script will install dependencies and prepare the demo.
+> The backend exposes interactive API docs at `http://localhost:8000/docs`.
 
-### 6. Setting Up Environment Variables
+---
 
-Before running the project, ensure you have the following environment variables configured in a `.env` file at the root of your project. This file should not be shared publicly as it contains sensitive information.
+## Deployment
 
-#### Instructions
+### Production (Lambda + Vercel)
 
-1. Create a `.env` file in the root directory of the project (if not already present).
-2. Copy the environment variables listed in .env.example into your `.env` file.
+Every push to `main` that touches `backend/**` triggers `.github/workflows/ci.yml`:
+1. Builds a `linux/amd64` container image with `provenance=false`
+2. Pushes to both Docker Hub (`elewah/localelive-backend`) and Amazon ECR
+3. Calls `aws lambda update-function-code` — the backend auto-deploys
 
+The frontend auto-deploys via Vercel directly from the `SensorsConnect/localelive-frontend` repo on push. There is no frontend CI step in this repo.
 
-> **Warning:** ⚠️ You need the MongoDB key to access real-time IoT data. As the data used in this demo was scraped from Google Maps, we can't publicly release it. Please reach out to us.
+Full deploy runbook: [`infra/migration-deploy-checklist.md`](./infra/migration-deploy-checklist.md).
 
+### Self-Hosted (Docker Compose)
 
-
-
-Run the following command to export environment variables from a `.env` file into your system environment.
+Pull and run the backend container:
 
 ```bash
-bash export_env.sh
-source ~/.bashrc
+docker pull elewah/localelive-backend
+docker run -d \
+  --name iot-ase-backend \
+  -p 8000:8000 \
+  --env-file .env \
+  elewah/localelive-backend
 ```
 
-### 7. create services descriptions vectorDB
+---
 
-1. Navigate to the vector_db folder:
+## Documentation
 
-```bash
-cd src/vector_db/
-```
+Full docs are hosted at [sensorsconnect.github.io/IoT-Agentic-Search-Engine](https://sensorsconnect.github.io/IoT-Agentic-Search-Engine/) and cover:
 
-2. Create services descriptions vector database:
+- [Architecture & infra](docs/architecture/overview.md)
+- [EC2 → Lambda migration history](docs/architecture/migration-summary.md)
+- [Local development](docs/development/local-dev.md)
+- [Anonymous chat feature](docs/features/anonymous-chat.md)
+- [Location system](docs/location/network-location-guide.md)
+- [Product roadmap](docs/product/roadmap.md)
 
-```bash
-python create_vectordb.py
-```
-
-### 8. Run the Demo
-
-Start the demo run the following demo in `src`:
-
-```bash
-uvicorn main:app --reload
-```
-
-### 7. Access the Application
-
-1. Follow the instructions provided in the terminal output to access the application, usually via `http://127.0.0.1:8000/docs`.
-2. To try the IoT- Agentic Search Engine (IoT-ASE), click the try button on the query API and replace `"string"` in the `text` value with your query and put a random `threadid` value, for instance
-
-```json
-{
-  "text": "I want to get coffee",
-  "threadId": "1234"
-}
-```
-
-3. Click on the execute button and wait until you receive the response.
-
-## Configuration
-
-The devcontainer is configured using the following files:
-
-- **`.devcontainer/devcontainer.json`**: Defines the container settings.
-- **`Dockerfile`**: Customizes the development container image.
-- **`setup-demo.sh`**: Installs dependencies required for the demo.
-
-Feel free to adjust these files to fit your needs.
-
-## Troubleshooting
-
-- Ensure Docker is running on your system.
-- If the container build fails, clear the cache and try again:
-
-  ```bash
-  Dev Containers: Rebuild Container
-  ```
-
-  (accessible via `Ctrl+Shift+P` or `F1`).
-
-- Check for common issues in the [Dev Containers documentation](https://code.visualstudio.com/docs/devcontainers/containers).
-
-## Contributing
-
-Feel free to open issues or submit pull requests if you find any bugs or have suggestions for improvement.
-
-## License
-
-This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+---
 
 ## Citation
-
-We now have a paper you can cite for 🤗 the IoT Agentic Search Engine
 
 ```bibtex
 @article{elewah2025agentic,
@@ -276,7 +212,8 @@ We now have a paper you can cite for 🤗 the IoT Agentic Search Engine
 }
 ```
 
-here is the full thesis
+Full thesis:
+
 ```bibtex
 @article{elewah2025sensorsconnect,
   title={SensorsConnect: World Wide Web for Internet of Things},
@@ -285,138 +222,8 @@ here is the full thesis
 }
 ```
 
-## Deployment
+---
 
-This project can be deployed in two ways: backend-only deployment or full-stack deployment using Docker Compose.
+## License
 
-### 1. Backend-Only Deployment (FastAPI)
-
-To deploy only the FastAPI backend:
-
-1. Pull the backend image from Docker Hub:
-```bash
-docker pull elewah/localelive-backend
-```
-
-2. Create a `.env` file with the required environment variables:
-```bash
-ORS_API_KEY=your_ors_api_key
-Google_Maps_API_Key=your_google_maps_api_key
-TAVILY_API_KEY=your_tavily_api_key
-GROQ_API_KEY=your_groq_api_key
-MONGODB_URL=your_mongodb_url
-LANGCHAIN_API_KEY=your_langchain_api_key
-LANGCHAIN_TRACING_V2=true
-ENVIRONMENT=production
-LOG_LEVEL=INFO
-CORS_ORIGINS=your_frontend_url
-TIMEZONE=America/Toronto
-```
-
-3. Run the backend container:
-```bash
-docker run -d \
-  --name iot-ase-backend \
-  -p 8000:8000 \
-  --env-file .env \
-  elewah/localelive-backend
-```
-
-The backend will be available at `http://localhost:8000`.
-
-### 2. Full-Stack Deployment (Docker Compose)
-
-To deploy the complete stack including frontend, backend, and Traefik reverse proxy:
-
-1. Clone the deployment branch of the repository:
-```bash
-git clone -b deployment https://github.com/SensorsConnect/IoT-Agentic-Search-Engine.git
-cd IoT-Agentic-Search-Engine
-```
-
-2. Create a `.env` file with all required environment variables:
-```bash
-# Domain Configuration
-DOMAIN_NAME=your_domain.com
-BACKEND_DOMAIN_NAME=api.your_domain.com
-TRAFEIK_DOMAIN_NAME=dashboard.your_domain.com
-
-# API Keys
-ORS_API_KEY=your_ors_api_key
-Google_Maps_API_Key=your_google_maps_api_key
-TAVILY_API_KEY=your_tavily_api_key
-GROQ_API_KEY=your_groq_api_key
-MONGODB_URL=your_mongodb_url
-LANGCHAIN_API_KEY=your_langchain_api_key
-LANGCHAIN_TRACING_V2=true
-
-# Environment Configuration
-ENVIRONMENT=production
-LOG_LEVEL=INFO
-CORS_ORIGINS=https://your_domain.com
-TIMEZONE=America/Toronto
-```
-
-3. Create required directories and files:
-```bash
-mkdir -p traefik
-touch acme.json
-chmod 600 acme.json
-```
-
-4. Pull the required images:
-```bash
-docker pull elewah/localelive-frontend
-docker pull elewah/localelive-backend
-docker pull traefik:v2.10
-```
-
-5. Start the stack:
-```bash
-docker-compose up -d
-```
-
-The services will be available at:
-- Frontend: `https://your_domain.com`
-- Backend API: `https://api.your_domain.com`
-- Traefik Dashboard: `https://dashboard.your_domain.com`
-
-### Frontend build-time environment (important)
-
-`NEXT_PUBLIC_*` values are **baked into the client JS bundle at `next build` time**, not read at container runtime. That means:
-
-- On deploy hosts, always run `docker-compose pull frontend` — do not `docker-compose build`. CI is the only path that should produce the production image, so every server runs the same bundle.
-- The GitHub Actions secret **`FRONTEND_ENV_PRODUCTION`** is the single source of truth. CI writes its contents into `frontend/.env.production` before building (`.github/workflows/ci.yml`). See `frontend/.env.production.example` for the required keys (backend URL, Mapbox token, Clerk keys, etc.).
-- A `frontend/.dockerignore` ensures `next build` inside the image reads **only** `.env.production` — `.env.local` and `.env` are excluded from the build context so developer-local files cannot leak into production.
-- `frontend/scripts/check-prod-env.sh` runs before `next build` and fails the image build if any required key is missing or still set to `REPLACE_ME`.
-- Updating the `FRONTEND_ENV_PRODUCTION` secret **does not automatically trigger a rebuild** (the CI `paths-filter` only reacts to committed `frontend/**` changes). After changing the secret, run `gh workflow run ci.yml` or push any frontend commit to kick off a new build.
-
-### Monitoring and Logs
-
-To view logs for any service:
-```bash
-# For backend-only deployment
-docker logs iot-ase-backend
-
-# For full-stack deployment
-docker-compose logs -f [service_name]  # service_name can be frontend, backend, or traefik
-```
-
-### Stopping the Services
-
-```bash
-# For backend-only deployment
-docker stop iot-ase-backend
-# For full-stack deployment
-docker-compose down
-```
-
-## Launching Current Local Development
-
-**Note:** You will need to fix some broken installations. This will be addressed in a future update.
-
-To launch the current local development environment, follow these steps:
-
-1. Ensure you define a `.env.local` file with development environment variables, especially the local backend API URL and port.
-2. For fast development, follow the installation instructions for the backend and frontend.
-3. To test the backend more quickly, use the interactive API documentation provided by FastAPI at `http://localhost:8000/docs`.
+Apache License 2.0. See [LICENSE](LICENSE).
