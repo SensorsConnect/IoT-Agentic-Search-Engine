@@ -59,14 +59,20 @@ def assistant_agent(state: AgentState):
         if response_json.get('city') or response_json.get('country'):
             result = finder.process_location_query(response_json)
             logger.debug(f"location_finder result: city={result.get('city') if result else None} country={result.get('country') if result else None}")
-            covered_by_sensorsconnect = check_city_country_exists(result.get("city", ""), result.get("country", ""))
             agent_state["location_finder_results"] = result
-            if covered_by_sensorsconnect:
-                logger.info(f"assistant_agent route rid={rid} -> IoT_engine reason=sensorsconnect_covered")
-                agent_state["call"] = "IoT_engine"
-            else:
-                logger.info(f"assistant_agent route rid={rid} -> GoogleMaps reason=outside_sensorsconnect")
+            if agent_state["search_type"] == "keyword":
+                # A specific brand/landmark name can't be answered by IoT_engine's
+                # generic service-category search, regardless of city coverage.
+                logger.info(f"assistant_agent route rid={rid} -> GoogleMaps reason=keyword_search")
                 agent_state["call"] = "GoogleMaps"
+            else:
+                covered_by_sensorsconnect = check_city_country_exists(result.get("city", ""), result.get("country", ""))
+                if covered_by_sensorsconnect:
+                    logger.info(f"assistant_agent route rid={rid} -> IoT_engine reason=sensorsconnect_covered")
+                    agent_state["call"] = "IoT_engine"
+                else:
+                    logger.info(f"assistant_agent route rid={rid} -> GoogleMaps reason=outside_sensorsconnect")
+                    agent_state["call"] = "GoogleMaps"
             agent_state["query"] = response_json["question"]
         elif has_user_gps:
             logger.info(f"assistant_agent route rid={rid} -> GoogleMaps reason=user_gps lat={user_lat:.4f} lon={user_lon:.4f}")
